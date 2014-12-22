@@ -257,6 +257,7 @@ public class HueLightHandler extends BaseThingHandler implements
         return this.bridgeHandler;
     }
 
+     
     @Override
     public void onLightStateChanged(HueBridge bridge, FullLight fullLight) {
         if (fullLight.getId().equals(lightId)) {

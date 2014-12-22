@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="digitalstrom"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+    <!--DigitalStrom Bridge-->
+    <bridge-type id="dssBridge">
+        <label>DigitalStrom</label>
+        <description>The digitalstrom bridge represents the digitalStrom bridge.</description>
+
+        <config-description><!--ipAddress-->
+            <parameter name="ipAddress" type="text">
+                <context>network_address</context>
+                <label>Network Address</label>
+                <description>Network address of the digitalStrom bridge.</description>
+                <required>true</required>
+            </parameter><!--userName-->
+            <parameter name="userName" type="text">
+                <label>Username</label>
+                <description>Name of a registered digitalStrom user, that allows to access the API.</description>
+                <required>false</required>
+            </parameter><!--password-->
+            <parameter name="password" type="text">
+                <label>Userpassword</label>
+                <description>Password of a regestered digitalStrom user, that allows to access the API.</description>
+                <required>false</required>
+            </parameter><!--dSID-->
+            <parameter name="dSID" type="text">
+            	<label>DigitalStrom Sever ID</label>
+            	<description>A unique identifier of a digital current Severs.</description>
+            	<required>false</required></parameter><!--dsName-->
+            <parameter name="dsName" type="text">
+            	<label>Name of the DigitalStrom installation</label>
+            	<description>The user defined name of the DigitalStrom installation.</description>
+            	<required>false</required></parameter><!--Application token-->
+            <parameter name="applicationToken" type="text">
+            	<label>Application Token</label>
+            	<description>The application token for this application.</description>
+            	<required>false</required></parameter>
+        </config-description>
+    </bridge-type>
+
+</thing:thing-descriptions>

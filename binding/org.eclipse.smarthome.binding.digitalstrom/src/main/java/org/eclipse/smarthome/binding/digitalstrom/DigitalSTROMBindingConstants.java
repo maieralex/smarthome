@@ -19,10 +19,36 @@ public class DigitalSTROMBindingConstants {
 
     public static final String BINDING_ID = "digitalstrom";
     
+    // List of all Thing Type Ids
+    public static final String THING_TYPE_ID_DSS_BRIDGE = "dssBridge";
+    public static final String THING_TYPE_ID_GE_KM200 = "GE-KM200";
+    public static final String THING_TYPE_ID_GE_KL200 = "GE-KL200";
+    
     // List of all Thing Type UIDs
-    public final static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public final static ThingTypeUID THING_TYPE_DSS_BRIDGE = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_DSS_BRIDGE);
+    public final static ThingTypeUID THING_TYPE_GE_KM200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KM200);
+    public final static ThingTypeUID THING_TYPE_GE_KL200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KL200);
+    
+    // List of all Channels
+    public static final String CHANNEL_BRIGHTNESS = "brightness";
+    
+    // Bridge config properties
+    public static final String HOST = "ipAddress";
+	public static final String USER_NAME = "userName";
+	public static final String PASSWORD = "password";
+	public static final String APPLICATION_TOKEN = "applicationToken";
+	public static final String DS_ID = "dSID";
+	public static final String DS_NAME = "dsName";
+	
+    // Device config properties
+	public static final String DEVICE_ID = "deviceId";
+	public static final String DEVICE_NAME = "deviceName";
+	
+	//Client configuration
+	//connection Configuration
+	public final static int DEFAULT_CONNECTION_TIMEOUT = 4000;
+	public final static int DEFAULT_READ_TIMEOUT = 10000;
 
-    // List of all Channel ids
-    public final static String CHANNEL_1 = "channel1";
-
+	//DeviceListener refresh interval
+	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 10000;
 }
