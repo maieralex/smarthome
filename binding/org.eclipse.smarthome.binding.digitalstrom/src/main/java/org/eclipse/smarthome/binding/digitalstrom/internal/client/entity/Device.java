@@ -166,4 +166,48 @@ public interface Device {
 	 */
 	public void notifyDeviceListener(String dsid);
 	
+	//for ESH
+	
+	/**
+	 * Adds a DeviceStateUpdate to a queue for ESH-Thing-Updates.
+	 * 
+	 * @param eshThingStateUpdate
+	 */
+	//public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate);
+	
+	/**
+	 * Returns the next ESH-Thing-State-Update.
+	 * 
+	 * @return DeviceStateUpdate
+	 */
+	public DeviceStateUpdate getNextESHThingUpdateStates();
+	
+	/**
+	 * Returns true if the ESH-Thing is up to date.
+	 *  
+	 * @return
+	 */
+	public boolean isESHThingUpToDate();
+	
+	/**
+	 * Returns true if the device is up to date.
+	 * 
+	 * @return
+	 */
+	public boolean isDeviceUpToDate();
+	
+	/**
+	 * Returns the next DigitalSTROM-Device-Update to send it to the DigitalSTROM-Server.
+	 * 
+	 * @return
+	 */
+	public DeviceStateUpdate getNextDeviceUpdateState();
+	
+	/**
+	 * Update the in ESH internal stored device object.
+	 * 
+	 * @param deviceStateUpdate
+	 */
+	public void updateInternalDeviceState(DeviceStateUpdate deviceStateUpdate);
+	
 }

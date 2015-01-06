@@ -20,6 +20,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.Outp
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.DeviceListener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -180,7 +181,7 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if(isOn)
-			setOutputValue(DeviceConstants.DEFAULT_MAX_OUTPUTVALUE);
+			outputValue = DeviceConstants.DEFAULT_MAX_OUTPUTVALUE;
 	}
 	
 	@Override
@@ -225,30 +226,39 @@ public class JSONDeviceImpl implements Device {
 	
 	@Override
 	public void setIsOn(boolean flag) {
+		if(flag){
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
+		} else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
+		}
+		
 		//if device is off set power consumption and energy meter value to 0
-		if(flag == false){
+	/*	if(flag == false){
 			this.powerConsumption=0;
 			this.energyMeterValue=0;
 		}
 		this.isOn = flag;
+	*/
 	}
 	
 	@Override
 	public synchronized void setOutputValue(int value) {
 		if (value <= 0) {
-			outputValue = 0;
-			setIsOn(false);
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
+		//	outputValue = 0;
+		//	setIsOn(false);
 		}
 		else if (value > maxOutputValue) {
-			outputValue = maxOutputValue;
-			setIsOn(true);
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, this.maxOutputValue));
+			//outputValue = maxOutputValue;
+			//setIsOn(true);
 		}
 		else {
-			
-			outputValue = value;
-			setIsOn(true);
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
+			//outputValue = value;
+			//setIsOn(true);
 		}
-		notifyDeviceListener(dsid.getValue());
+		//notifyDeviceListener(dsid.getValue());
 	}
 
 	@Override
@@ -272,13 +282,29 @@ public class JSONDeviceImpl implements Device {
 				return;
 			}
 			if ((outputValue + getDimmStep()) > maxOutputValue) {
-				outputValue = maxOutputValue;
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, maxOutputValue));
+				//outputValue = maxOutputValue;
 			}
 			else {
-				outputValue += getDimmStep();
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, outputValue + getDimmStep()));
+				//outputValue += getDimmStep();
 			}
-			setIsOn(true);
-			notifyDeviceListener(this.dsid.getValue());
+			//setIsOn(true);
+			//notifyDeviceListener(this.dsid.getValue());
+		}
+		
+		if(isRollershutter()){
+			if (slatPosition == maxSlatPosition) {
+				return;
+			}
+			if ((slatPosition + getDimmStep()) > slatPosition) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, maxSlatPosition));
+				//outputValue = maxOutputValue;
+			}
+			else {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, slatPosition + getDimmStep()));
+				//outputValue += getDimmStep();
+			}
 		}
 	}
 
@@ -286,33 +312,47 @@ public class JSONDeviceImpl implements Device {
 	public synchronized void decrease() {
 		if (isDimmable()) {
 			if (outputValue == minOutputValue) {
-				if (outputValue == 0) {
+			/*	if (outputValue == 0) {
 					setIsOn(false);
-				}
+				}*/
 				return;
 			}
 			
 			if ((outputValue - getDimmStep()) <= minOutputValue) {
+							
 				if (isOn) {
 					System.out.println("Device isOn");
-					outputValue = minOutputValue;
+					this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, minOutputValue));
+					//outputValue = minOutputValue;
 				}
 				
-				if (minOutputValue == 0) {
+				/*if (minOutputValue == 0) {
 					setIsOn(false);
 				}
 				else {
 					if (outputValue != 0) {
 						setIsOn(true);
 					}
-				}
+				}*/
 			}
 			else {
-				outputValue -= getDimmStep();
-				setIsOn(true);
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, outputValue - getDimmStep()));
 			}
-			notifyDeviceListener(this.dsid.getValue());
+			//notifyDeviceListener(this.dsid.getValue());
 		}
+		
+		if(isRollershutter()){
+			if (slatPosition == minSlatPosition) {
+				return;
+			}
+			if ((slatPosition + getDimmStep()) < slatPosition) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, minSlatPosition));
+			}
+			else {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, slatPosition - getDimmStep()));
+			}
+		}
+
 	}
 	
 	@Override
@@ -340,16 +380,23 @@ public class JSONDeviceImpl implements Device {
 
 	@Override
 	public synchronized void setSlatPosition(int position) {
+		if(position == this.slatPosition){
+			return;
+		}
+		
 		if (position < minSlatPosition) {
-			slatPosition = minSlatPosition;
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, minSlatPosition));
+			//slatPosition = minSlatPosition;
 		}
 		else if (position > this.maxSlatPosition) {
-			slatPosition = this.maxSlatPosition;
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, maxSlatPosition));
+			//slatPosition = this.maxSlatPosition;
 		}
 		else {
-			this.slatPosition = position;
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, position));
+			//this.slatPosition = position;
 		}
-		notifyDeviceListener(this.dsid.getValue());
+		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	@Override
@@ -358,15 +405,21 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public synchronized void setPowerConsumption(int powerConspumtion) {
-		if (powerConspumtion < 0) {
-			this.powerConsumption = 0;
-		}
-		else {
-			this.powerConsumption = powerConspumtion;
+	public synchronized void setPowerConsumption(int powerConsumption) {
+		if(powerConsumption == this.powerConsumption) {
+			return;
 		}
 		
-		notifyDeviceListener(this.dsid.getValue());
+		if (powerConsumption < 0) {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
+			//this.powerConsumption = 0;
+		}
+		else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
+			//this.powerConsumption = powerConspumtion;
+		}
+		
+		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	@Override
@@ -375,15 +428,21 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public synchronized void setEnergyMeterValue(int value) {
-		if (value < 0) {
-			energyMeterValue = 0;
-		}
-		else {
-			energyMeterValue = value;
+	public synchronized void setEnergyMeterValue(int energyMeterValue) {
+		if(energyMeterValue == this.electricMeterValue) {
+			return;
 		}
 		
-		notifyDeviceListener(this.dsid.getValue());
+		if (energyMeterValue < 0) {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, 0));
+			//energyMeterValue = 0;
+		}
+		else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
+			//energyMeterValue = value;
+		}
+		
+		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	@Override
@@ -418,14 +477,20 @@ public class JSONDeviceImpl implements Device {
 
 	@Override
 	public synchronized void setElectricMeterValue(int electricMeterValue) {
-		if (electricMeterValue < 0) {
-			this.electricMeterValue = 0; 
-		}
-		else {
-			this.electricMeterValue = electricMeterValue;
+		if(electricMeterValue == this.electricMeterValue){
+			return;
 		}
 		
-		notifyDeviceListener(this.dsid.getValue());
+		if (electricMeterValue < 0) {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, 0));
+			//this.electricMeterValue = 0; 
+		}
+		else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
+			//this.electricMeterValue = electricMeterValue;
+		}
+		
+		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	private short getDimmStep() {
@@ -500,6 +565,81 @@ public class JSONDeviceImpl implements Device {
 			return device.getDSID().equals(this.getDSID());
 		}
 		return false;
+	}
+
+	//for ESH
+	
+	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();
+	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();
+	
+	/*@Override
+	public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate) {
+		if(eshThingStateUpdate != null){
+			this.eshThingStateUpdates.add(eshThingStateUpdate);
+		}
+	}
+	*/
+
+	@Override
+	public DeviceStateUpdate getNextESHThingUpdateStates() {
+		return !this.eshThingStateUpdates.isEmpty()?this.eshThingStateUpdates.remove(0):null;
+	}
+	@Override
+	public boolean isESHThingUpToDate(){
+		return this.eshThingStateUpdates.isEmpty();
+	}
+	
+	@Override
+	public boolean isDeviceUpToDate() {
+		return this.deviceStateUpdates.isEmpty();
+	}
+
+	@Override
+	public DeviceStateUpdate getNextDeviceUpdateState() {
+		return !this.deviceStateUpdates.isEmpty()?this.deviceStateUpdates.remove(0):null;
+	}
+
+	@Override
+	public void updateInternalDeviceState(DeviceStateUpdate deviceStateUpdate) {
+		if(deviceStateUpdate != null){			
+			switch(deviceStateUpdate.getType()){
+				case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
+					this.outputValue = deviceStateUpdate.getValue();
+					if(this.outputValue <=0){
+						this.isOn = false;
+						this.powerConsumption=0;
+						this.energyMeterValue=0;
+					} else{
+						this.isOn = true;
+					}
+					break;
+				case DeviceStateUpdate.UPDATE_ON_OFF: 
+					if(deviceStateUpdate.getValue() < 0 ){
+						this.outputValue = this.minOutputValue;
+						this.isOn = false;
+						this.powerConsumption=0;
+						this.energyMeterValue=0;
+					} else{
+						this.outputValue = this.maxOutputValue;
+						this.isOn = true;
+					}
+					break;
+				case DeviceStateUpdate.UPDATE_SLATPOSITION: 
+					this.slatPosition = deviceStateUpdate.getValue();
+					break;
+				case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
+					setElectricMeterValue(deviceStateUpdate.getValue());
+					break;
+				case DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE:
+					setEnergyMeterValue(deviceStateUpdate.getValue());
+					break;
+				case DeviceStateUpdate.UPDATE_POWER_CONSUMPTION:
+					setPowerConsumption( deviceStateUpdate.getValue());
+					break;
+				default: return;
+			}
+			this.eshThingStateUpdates.add(deviceStateUpdate);
+		}
 	}
 			
 }
