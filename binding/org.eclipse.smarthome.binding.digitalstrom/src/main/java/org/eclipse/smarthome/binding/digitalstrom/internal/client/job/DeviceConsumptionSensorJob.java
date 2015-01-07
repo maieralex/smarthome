@@ -13,6 +13,8 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAP
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.DeviceStateUpdateImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +46,10 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 		switch (this.sensorIndex) {
 	
 			case ACTIVE_POWER:
-							this.device.setPowerConsumption(consumption);
+							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, consumption));
 							break;
 			case OUTPUT_CURRENT:
-							this.device.setElectricMeterValue(consumption);
+							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, consumption));
 							break;
 			default:
 				break;

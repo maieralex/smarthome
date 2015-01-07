@@ -650,6 +650,13 @@ public class DigitalSTROMEventListener extends Thread {
 		return false;
 	}
 	
+	// ... we want to ignore own 'command-echos'
+	public void addEcho(String dsid, short sceneId) {
+		synchronized (echoBox) {
+			echoBox.add(dsid + "-" + sceneId);
+		}
+	}
+	
 	private boolean isDimmScene(short sceneId) {
 		if (sceneId > 9 && sceneId < 13) {
 			return true;

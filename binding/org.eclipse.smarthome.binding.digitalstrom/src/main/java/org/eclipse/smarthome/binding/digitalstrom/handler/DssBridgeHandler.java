@@ -21,13 +21,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMEventListener;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Zone;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -154,6 +157,54 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         }*/
 	}
 	
+	public void sendComandsToDSS(Device device){
+		//TODO: connectionState Abfrage
+		while(!device.isDeviceUpToDate()){
+			
+			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
+			boolean requestSucsessfull = false;
+			
+			if(deviceStateUpdate != null){
+				switch(deviceStateUpdate.getType()){
+					case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
+						requestSucsessfull = digitalSTROMClient.setDeviceValue(applicationToken, 
+								device.getDSID(), 
+								null, 
+								deviceStateUpdate.getValue());
+						break;
+					case DeviceStateUpdate.UPDATE_ON_OFF: 
+						if(deviceStateUpdate.getValue() > 0){
+							requestSucsessfull = digitalSTROMClient.turnDeviceOn(applicationToken, device.getDSID(), null);
+							if(requestSucsessfull){
+								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+										(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
+							}
+						} else{
+							requestSucsessfull = digitalSTROMClient.turnDeviceOff(applicationToken, device.getDSID(), null);
+							if(requestSucsessfull){
+								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+										(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
+							}
+						}
+						break;
+					case DeviceStateUpdate.UPDATE_SLATPOSITION: 
+						requestSucsessfull = digitalSTROMClient.setDeviceValue(applicationToken, 
+								device.getDSID(), 
+								null, 
+								deviceStateUpdate.getValue());
+						break;
+					default: return;
+				}
+				
+				if(requestSucsessfull){
+					device.updateInternalDeviceState(deviceStateUpdate);
+				} else{
+					//TODO: Fehlerausgabe
+				}
+			}
+		}
+	}
+	
 	public Collection<Device> getDevices(){
 		return deviceMap.values();
 	}
@@ -175,13 +226,22 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		return applicationToken;
 	}
 	
+	private synchronized void onUpdate() {
+    //TODO: implement pollingJob then delete comment
+		/*	if (digitalSTROMClient != null) {
+			if (pollingJob == null || pollingJob.isCancelled()) {
+				pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 1, POLLING_FREQUENCY, TimeUnit.SECONDS);
+			}
+    	}*/
+    }
+	
 	 public boolean registerDeviceStatusListener(DeviceStatusListener deviceStatusListener) {
 	        if (deviceStatusListener == null) {
 	            throw new NullPointerException("It's not allowed to pass a null LightStatusListener.");
 	        }
 	        boolean result = deviceStatusListeners.add(deviceStatusListener);
 	        if (result) {
-	        	//onUpdate();
+	        	onUpdate();
 	            // inform the listener initially about all lights and their states
 	            for (Device device : deviceMap.values()) {
 	            	deviceStatusListener.onDeviceAdded(device);

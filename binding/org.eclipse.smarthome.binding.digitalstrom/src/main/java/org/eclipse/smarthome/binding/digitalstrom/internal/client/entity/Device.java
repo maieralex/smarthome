@@ -168,6 +168,11 @@ public interface Device {
 	
 	//for ESH
 	
+	public long getLastPowerConsumptionUpdate();
+	
+	public long getLastElectricMeterUpdate();
+	
+	public long getLastEnergyMeterUpdate();
 	/**
 	 * Adds a DeviceStateUpdate to a queue for ESH-Thing-Updates.
 	 * 

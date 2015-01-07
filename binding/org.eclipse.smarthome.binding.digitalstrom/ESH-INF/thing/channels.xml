@@ -16,5 +16,47 @@
             <parameter name="lastDimValue" type="boolean" />
         </config-description>
     </channel-type>
+    <channel-type id="powerConsumption">
+    	<item-type>Number</item-type>
+    	<label>Power consumption</label>
+    	<config-description>
+    		<parameter name="refreshTime" type="number">
+    			<label>Sensor refresh intervall</label><description>Specifies how often you want to update the power consumption sensor value. NOTE: A too low value can disturb the DigitalSTROM system!</description>
+    			<default>10000</default>
+    			<required>false</required>
+    		</parameter>
+    		<parameter name="refreshPriority" type="text">
+    			<label>label</label>
+    			<description>description</description>
+    			<options>
+    				<option value="never">never</option>
+    				<option value="high">high priority</option>
+    				<option value="medium">medium priority</option>
+    				<option value="low">low priority</option></options>
+    			<default>never</default>
+    			<required>false</required></parameter></config-description>
+    </channel-type>
+    <channel-type id="electricMeterValue">
+    	<item-type>Number</item-type>
+    	<label>Electric meter value</label>
+    </channel-type>
+    <channel-type id="energyMeterValue">
+    	<item-type>Number</item-type>
+    	<label>Energy meter value</label>
+    </channel-type>
+    <channel-group-type id="sensorData">
+    	<label>sensorData</label>
+    	<channels>
+    		<channel typeId="Number" id="powerConsumption" /><channel
+    			typeId="Number" id="electricMeterValue" /><channel
+    			typeId="Number" id="energyMeterValue" />
+    	</channels>
+    </channel-group-type>
+    <channel-group-type id="light">
+    	<label>light</label>
+    	<channels>
+    		<channel typeId="Dimmer" id="brightness" />
+    	</channels>
+    </channel-group-type>
 
 </thing:thing-descriptions>

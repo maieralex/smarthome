@@ -7,20 +7,20 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_BRIGHTNESS;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DS_ID;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KL200;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KM200;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.*;
 
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
+import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -87,19 +87,50 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void handleCommand(ChannelUID channelUID, Command command) {
+		DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
+		if (dssBridgeHandler == null) {
+            logger.warn("DigitalSTROM bridge handler not found. Cannot handle command without bridge.");
+            return;
+        }
 		
+		Device device = getDevice();
+		
+		if(device == null){
+		    logger.debug("DigitalSTROM device not known on bridge. Cannot handle command.");
+            return;
+        }
+			
 		if(channelUID.getId().equals(CHANNEL_BRIGHTNESS)) {
 			if (command instanceof PercentType) {
+				device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutPutValue()));
+			} else if (command instanceof OnOffType) {
+				if(OnOffType.ON.equals((OnOffType) command)){
+					device.setIsOn(true);
+				} else{
+					device.setIsOn(false);
+				}
+			} else if(command instanceof IncreaseDecreaseType) {
+				if(IncreaseDecreaseType.INCREASE.equals((IncreaseDecreaseType) command)){
+					device.increase();
+				} else{
+					device.decrease();
+				}
+			}
+		} else {
+			logger.warn("Command send to an unknown channel id: " + channelUID);
+		}
 			
-            } else if (command instanceof OnOffType) {
-            
-            } else if(command instanceof IncreaseDecreaseType) {
-            
-            }
-        }	else {
-            logger.warn("Command send to an unknown channel id: " + channelUID);
-        }	
-		
+		dssBridgeHandler.sendComandsToDSS(device);		
+	}
+	
+	private int fromPercentToValue(int percent, int max) {
+		if (percent < 0 || percent == 0) {
+			return 0;
+		}
+		if (max < 0 || max == 0) {
+			return 0;
+		}
+		return (int) (max * (float) ((float) percent / 100));
 	}
 	
 	private synchronized DssBridgeHandler getDssBridgeHandler() {
@@ -121,19 +152,80 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void onDeviceStateChanged(Device device) {
-		// TODO Auto-generated method stub
-		
+		if(device != null && device.getDSID().getValue() == dsID){
+			while(!device.isESHThingUpToDate()){
+				DeviceStateUpdate stateUpdate = device.getNextESHThingUpdateStates();
+				if(stateUpdate != null){
+					switch(stateUpdate.getType()){
+						case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
+							updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
+									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
+							break;
+						case DeviceStateUpdate.UPDATE_ON_OFF: 
+							if(stateUpdate.getValue() > 0) {
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON); 
+							} else {
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
+							}
+							break;
+						case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
+							updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(stateUpdate.getValue()));
+							break;
+						case DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE:
+							updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(stateUpdate.getValue()));
+							break;
+						case DeviceStateUpdate.UPDATE_POWER_CONSUMPTION:
+							updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(stateUpdate.getValue()));
+							break;
+						default: return;
+					}
+				}
+				
+			}
+		}		
+	}
+	
+	private int fromValueToPercent(int value, int max) {
+		if (value < 0 || value == 0) {
+			return 0;
+		}
+		if (max < 0 || max == 0) {
+			return 0;
+		}
+		return (int) (value * (float) ((float) 100 / max));
 	}
 
 	@Override
 	public void onDeviceRemoved(Device device) {
-		// TODO Auto-generated method stub
-		
+		if (device.getDSID().getValue() == dsID) {
+        	getThing().setStatus(ThingStatus.OFFLINE);
+        }
 	}
 
 	@Override
 	public void onDeviceAdded(Device device) {
-		// TODO Auto-generated method stub
+		if (device.getDSID().getValue() == dsID) {
+	        	getThing().setStatus(ThingStatus.ONLINE);
+	        	onDeviceStateInitial(device);
+	     }		
+	}
+	
+	private void onDeviceStateInitial(Device device){
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
+				new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutPutValue())));
+
+		//nötig oder passiert das von selbst
+		if(device.isOn()) {
+			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON); 
+		} else {
+			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
+		}
+		
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(device.getElectricMeterValue()));
+		
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(device.getEnergyMeterValue()));
+		
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(device.getPowerConsumption()));
 		
 	}
 

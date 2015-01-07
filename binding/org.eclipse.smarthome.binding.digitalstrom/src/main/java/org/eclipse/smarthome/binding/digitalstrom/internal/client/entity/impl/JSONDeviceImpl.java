@@ -9,6 +9,7 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -403,9 +404,11 @@ public class JSONDeviceImpl implements Device {
 	public int getPowerConsumption() {
 		return powerConsumption;
 	}
-
+	
 	@Override
 	public synchronized void setPowerConsumption(int powerConsumption) {
+		lastPowerConsumptionUpdate = System.currentTimeMillis();
+		
 		if(powerConsumption == this.powerConsumption) {
 			return;
 		}
@@ -426,9 +429,11 @@ public class JSONDeviceImpl implements Device {
 	public int getEnergyMeterValue() {
 		return energyMeterValue;
 	}
-
+	
 	@Override
 	public synchronized void setEnergyMeterValue(int energyMeterValue) {
+		lastEnergyMeterUpdate = System.currentTimeMillis();
+		
 		if(energyMeterValue == this.electricMeterValue) {
 			return;
 		}
@@ -475,8 +480,12 @@ public class JSONDeviceImpl implements Device {
 		return electricMeterValue;
 	}
 
+	
+	
 	@Override
 	public synchronized void setElectricMeterValue(int electricMeterValue) {
+		lastElectricMeterUpdate = System.currentTimeMillis();
+		
 		if(electricMeterValue == this.electricMeterValue){
 			return;
 		}
@@ -493,6 +502,7 @@ public class JSONDeviceImpl implements Device {
 		//notifyDeviceListener(this.dsid.getValue());
 	}
 
+	
 	private short getDimmStep() {
 		if (isDimmable()) {
 			return DeviceConstants.DIMM_STEP_LIGHT;
@@ -572,13 +582,32 @@ public class JSONDeviceImpl implements Device {
 	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();
 	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();
 	
+	//save the last update time of the sensor data
+	private long lastElectricMeterUpdate = 0 ;
+	private long lastEnergyMeterUpdate = 0;
+	private long lastPowerConsumptionUpdate = 0;
+	
+	@Override
+	public long getLastPowerConsumptionUpdate(){
+		return this.lastPowerConsumptionUpdate;
+	}
+	
+	@Override
+	public long getLastEnergyMeterUpdate(){
+		return this.lastEnergyMeterUpdate;
+	}
+	
+	@Override
+	public long getLastElectricMeterUpdate(){
+		return this.lastElectricMeterUpdate;
+	}
 	/*@Override
 	public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate) {
 		if(eshThingStateUpdate != null){
 			this.eshThingStateUpdates.add(eshThingStateUpdate);
 		}
-	}
-	*/
+	}*/
+	
 
 	@Override
 	public DeviceStateUpdate getNextESHThingUpdateStates() {

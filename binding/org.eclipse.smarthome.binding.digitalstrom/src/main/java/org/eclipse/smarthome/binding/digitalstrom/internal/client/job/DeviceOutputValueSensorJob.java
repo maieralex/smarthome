@@ -12,6 +12,8 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.job;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.DeviceStateUpdateImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +45,10 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 		if (value != 1) {
 			switch (this.index) {
 			case 0:
-				this.device.setOutputValue(value);
+				this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
 				break;
 			case 4:
-				this.device.setSlatPosition(value);
+				this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, value));
 				break;
 		
 			default: 

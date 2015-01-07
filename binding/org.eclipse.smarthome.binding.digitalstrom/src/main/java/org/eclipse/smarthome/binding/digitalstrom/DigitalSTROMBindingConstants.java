@@ -31,6 +31,9 @@ public class DigitalSTROMBindingConstants {
     
     // List of all Channels
     public static final String CHANNEL_BRIGHTNESS = "brightness";
+    public static final String CHANNEL_ELECTRIC_METER = "electricMeter";
+    public static final String CHANNEL_ENERGY_METER = "energyMeter";
+    public static final String CHANNEL_POWER_CONSUMPTION = "powerConsumption";
     
     // Bridge config properties
     public static final String HOST = "ipAddress";
