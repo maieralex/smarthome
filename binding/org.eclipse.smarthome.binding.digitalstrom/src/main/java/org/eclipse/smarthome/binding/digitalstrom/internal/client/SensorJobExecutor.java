@@ -6,11 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
+import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceOutputValueSensorJob;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.SceneOutputValueSensorJob;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.SensorJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +23,19 @@ import org.slf4j.LoggerFactory;
  */
 public class SensorJobExecutor extends Thread {
 
+	/* 
+	 * NOTE:
+	 * Optimierung: 
+	 * 1. Thread schlafen legen wenn es keine Jobs gibt und wecken, wenn ein neuer Job hinzugefügt wird
+	 * 2. evtl. statt LinkedList Prioritätswarteschlange
+	 */
+	
 	private boolean shutdown = false;
 
 	private final int sleepTime = DigitalSTROMBindingConstants.DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL;
 	private final DigitalSTROMJSONImpl digitalSTROM;
-	private final String applicationToken;
+	
+	private DssBridgeHandler dssBrideHandler = null;
 	
 	private Logger logger = LoggerFactory.getLogger(SensorJobExecutor.class);
 
@@ -40,26 +46,29 @@ public class SensorJobExecutor extends Thread {
 	private List<SensorJob> lowPrioritySensorJobs = Collections
 			.synchronizedList(new LinkedList<SensorJob>());
 	
-	public SensorJobExecutor(DigitalSTROMJSONImpl digitalStrom, String applicationToken){
+	public SensorJobExecutor(DigitalSTROMJSONImpl digitalStrom, DssBridgeHandler dssBrideHandler){
 		this.digitalSTROM = digitalStrom;
-		this.applicationToken = applicationToken;
+		this.dssBrideHandler = dssBrideHandler;
 	}
 	
 	@Override
 	public void run() {
 
 		while (!this.shutdown) {
-			SensorJob job = getHighPriorityJob();
+			if(this.dssBrideHandler.checkConnection()){
+				SensorJob job = getHighPriorityJob();
 
-			if (job == null) {
-				job = getMediumPriorityJob();
-				if (job == null)
-					job = getLowPriorityJob();
+				if (job == null) {
+					job = getMediumPriorityJob();
+					if (job == null)
+						job = getLowPriorityJob();
+				}
+				if (job != null) {
+					job.execute(digitalSTROM, this.dssBrideHandler.getSessionToken());
+				}else{
+					//schlafen legen
+				}
 			}
-			if (job != null) {
-				job.execute(digitalSTROM, applicationToken);
-			}
-
 			try {
 				sleep(this.sleepTime);
 			} catch (InterruptedException e) {
@@ -74,29 +83,29 @@ public class SensorJobExecutor extends Thread {
 		this.shutdown = true;
 	}
 	
-	public void addHighPriorityJob(
-			DeviceOutputValueSensorJob deviceOutputValueSensorJob) {
+	public void addHighPriorityJob(SensorJob sensorJob) {
 		synchronized (highPrioritySensorJobs) {
-			if (!highPrioritySensorJobs.contains(deviceOutputValueSensorJob)) {
-				highPrioritySensorJobs.add(deviceOutputValueSensorJob);
+			if (!highPrioritySensorJobs.contains(sensorJob)) {
+				highPrioritySensorJobs.add(sensorJob);
+				//aufwecken
 			}
 		}
 	}
 
-	public void addMediumPriorityJob(
-			SceneOutputValueSensorJob sceneOutputValueSensorJob) {
+	public void addMediumPriorityJob(SensorJob sensorJob) {
 		synchronized (mediumPrioritySensorJobs) {
-			if (!mediumPrioritySensorJobs.contains(sceneOutputValueSensorJob)) {
-				mediumPrioritySensorJobs.add(sceneOutputValueSensorJob);
+			if (!mediumPrioritySensorJobs.contains(sensorJob)) {
+				mediumPrioritySensorJobs.add(sensorJob);
+				//aufwecken
 			}
 		}
 	}
 
-	public void addLowPriorityJob(
-			DeviceConsumptionSensorJob deviceConsumptionSensorJob) {
+	public void addLowPriorityJob(SensorJob sensorJob) {
 		synchronized (lowPrioritySensorJobs) {
-			if (!lowPrioritySensorJobs.contains(deviceConsumptionSensorJob)) {
-				lowPrioritySensorJobs.add(deviceConsumptionSensorJob);
+			if (!lowPrioritySensorJobs.contains(sensorJob)) {
+				lowPrioritySensorJobs.add(sensorJob);
+				//aufwecken
 			}
 		}
 	}
@@ -105,8 +114,7 @@ public class SensorJobExecutor extends Thread {
 		SensorJob job = null;
 		synchronized (lowPrioritySensorJobs) {
 			if (lowPrioritySensorJobs.size() > 0) {
-				job = lowPrioritySensorJobs.get(0);
-				lowPrioritySensorJobs.remove(job);
+				job = lowPrioritySensorJobs.remove(0);
 			}
 		}
 		return job;
@@ -116,8 +124,8 @@ public class SensorJobExecutor extends Thread {
 		SensorJob job = null;
 		synchronized (mediumPrioritySensorJobs) {
 			if (mediumPrioritySensorJobs.size() > 0) {
-				job = mediumPrioritySensorJobs.get(0);
-				mediumPrioritySensorJobs.remove(job);
+				//job = mediumPrioritySensorJobs.get(0);
+				job = mediumPrioritySensorJobs.remove(0);
 			}
 		}
 		return job;
@@ -127,8 +135,8 @@ public class SensorJobExecutor extends Thread {
 		SensorJob job = null;
 		synchronized (highPrioritySensorJobs) {
 			if (highPrioritySensorJobs.size() > 0) {
-				job = highPrioritySensorJobs.get(0);
-				highPrioritySensorJobs.remove(job);
+				//job = highPrioritySensorJobs.get(0);
+				job = highPrioritySensorJobs.remove(0);
 			}
 		}
 		return job;

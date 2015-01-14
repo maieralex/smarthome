@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
  * @author Alexander Betker
  * @author Alex Maier
  * @since 1.3.0
+ * 
  */
 public class DeviceConsumptionSensorJob implements SensorJob {
 
@@ -49,6 +50,9 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, consumption));
 							break;
 			case OUTPUT_CURRENT:
+							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, consumption));
+							break;
+			case ELECTRIC_METER:
 							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, consumption));
 							break;
 			default:

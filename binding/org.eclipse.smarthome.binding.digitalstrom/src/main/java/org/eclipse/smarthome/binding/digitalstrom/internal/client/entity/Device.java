@@ -173,6 +173,15 @@ public interface Device {
 	public long getLastElectricMeterUpdate();
 	
 	public long getLastEnergyMeterUpdate();
+	
+	public boolean isPowerConsumptionUpToDate();
+	
+	public boolean isElectricMeterUpToDate();
+	
+	public boolean isEnergyMeterUpToDate();
+	
+	public boolean isSensorDataUpToDate();
+	
 	/**
 	 * Adds a DeviceStateUpdate to a queue for ESH-Thing-Updates.
 	 * 

@@ -1129,4 +1129,9 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 		return handler.checkResponse(responseObj);
 		
 	}
+	
+	@Override
+	public int checkConnection(String token){
+		return transport.checkConnection(JSONRequestConstants.JSON_SYSTEM_TIME+JSONRequestConstants.PARAMETER_TOKEN+token);
+	}
 }

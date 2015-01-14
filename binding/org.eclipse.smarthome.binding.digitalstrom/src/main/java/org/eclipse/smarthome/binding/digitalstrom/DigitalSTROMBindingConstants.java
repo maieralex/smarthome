@@ -35,6 +35,14 @@ public class DigitalSTROMBindingConstants {
     public static final String CHANNEL_ENERGY_METER = "energyMeter";
     public static final String CHANNEL_POWER_CONSUMPTION = "powerConsumption";
     
+    //Sensor data channel properties
+    public static final String CHANNEL_REFRESH_PRIORITY = "refreshPriority";
+    	//options
+    	public static final String REFRESH_PRIORITY_NEVER = "never";
+    	public static final String REFRESH_PRIORITY_LOW = "low";
+    	public static final String REFRESH_PRIORITY_MEDIUM = "medium";
+    	public static final String REFRESH_PRIORITY_HIGH = "high";
+    
     // Bridge config properties
     public static final String HOST = "ipAddress";
 	public static final String USER_NAME = "userName";
@@ -51,7 +59,11 @@ public class DigitalSTROMBindingConstants {
 	//connection Configuration
 	public final static int DEFAULT_CONNECTION_TIMEOUT = 4000;
 	public final static int DEFAULT_READ_TIMEOUT = 10000;
+	public final static String APPLICATION_NAME = "ESH";
 
 	//DeviceListener refresh interval
 	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 10000;
+	
+	//SensorData
+	public final static int DEFAULT_SENSORDATA_REFRESH_INTERVAL = 10000;
 }

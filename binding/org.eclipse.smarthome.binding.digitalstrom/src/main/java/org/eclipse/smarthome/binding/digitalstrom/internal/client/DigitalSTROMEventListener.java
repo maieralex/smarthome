@@ -60,7 +60,6 @@ public class DigitalSTROMEventListener extends Thread {
 	private HttpTransport transport = null;
 	private JSONResponseHandler handler = null;
 	private DigitalSTROMJSONImpl digitalSTROM;
-	private String applicationToken;
 
 	public synchronized void shutdown() {
 		this.shutdown = true;
@@ -75,16 +74,15 @@ public class DigitalSTROMEventListener extends Thread {
 				DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 		this.digitalSTROM = digitalSTROM;
 		this.dssBridgeHandler = dssBridgeHandler;
-		this.applicationToken = dssBridgeHandler.getApplicationToken();
 	
 		this.subscribe();
 	}
 
 	private void subscribe() {
-		if (applicationToken != null) {
+		if (this.dssBridgeHandler.checkConnection()) {
 
 			boolean transmitted = digitalSTROM.subscribeEvent(
-					applicationToken, 
+					this.dssBridgeHandler.getSessionToken(), 
 					EVENT_NAME, 
 					this.ID, 
 					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
@@ -101,7 +99,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 	@Override
 	public void run() {
-		this.sensorJobExecutor = new SensorJobExecutor(digitalSTROM, applicationToken);
+		this.sensorJobExecutor = new SensorJobExecutor(digitalSTROM, this.dssBridgeHandler);
 		sensorJobExecutor.run();
 		
 		while (!this.shutdown) {
@@ -157,10 +155,10 @@ public class DigitalSTROMEventListener extends Thread {
 	}
 
 	private String getEventAsRequest(int subscriptionID, int timeout) {
-		if (applicationToken != null) {
+		if (this.dssBridgeHandler.checkConnection()) {
 			return JSONRequestConstants.JSON_EVENT_GET
 					+ JSONRequestConstants.PARAMETER_TOKEN
-					+ applicationToken
+					+ this.dssBridgeHandler.getSessionToken()
 					+ JSONRequestConstants.INFIX_PARAMETER_SUBSCRIPTION_ID
 					+ subscriptionID
 					+ JSONRequestConstants.INFIX_PARAMETER_TIMEOUT
@@ -170,8 +168,8 @@ public class DigitalSTROMEventListener extends Thread {
 	}
 
 	private boolean unsubscribeEvent(String name, int subscriptionID) {
-		if (applicationToken != null) {
-			return digitalSTROM.unsubscribeEvent(applicationToken,
+		if (this.dssBridgeHandler.checkConnection()) {
+			return digitalSTROM.unsubscribeEvent(this.dssBridgeHandler.getSessionToken(),
 					EVENT_NAME, 
 					this.ID, 
 					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT, 

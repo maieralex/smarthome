@@ -103,4 +103,43 @@ public class HttpTransport {
 		return null;
 	}
 	
+	public int checkConnection(String testRequest) {
+		if (testRequest != null && !testRequest.trim().equals("")) {
+			
+			HttpURLConnection connection = null;
+			
+			try {
+				URL url = new URL(this.uri+testRequest);
+				
+				connection = (HttpURLConnection) url.openConnection();
+
+				if (connection != null) {
+					connection.setConnectTimeout(connectTimeout);
+					connection.setReadTimeout(readTimeout);
+				
+					try {
+						connection.connect();
+						return connection.getResponseCode();
+					} catch (SocketTimeoutException e) {
+						logger.warn(e.getMessage()+" : "+testRequest);
+						return -1;
+					}			
+				}
+
+			} catch (MalformedURLException e) {
+				logger.error("MalformedURLException by executing jsonRequest: "
+						+ testRequest +" ; "+e.getLocalizedMessage());
+
+			} catch (IOException e) {
+				logger.error("IOException by executing jsonRequest: "
+						+ testRequest +" ; "+e.getLocalizedMessage());							
+			}
+			finally{
+				if (connection != null)
+					connection.disconnect();
+			}
+		}
+		return -1;
+	}
+	
 }

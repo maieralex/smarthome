@@ -16,12 +16,14 @@ import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingCons
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.PASSWORD;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.USER_NAME;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
@@ -139,12 +141,23 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 	private String getDssID(Configuration configuration){
 		String dsID = null;
 		
-		if(configuration.get(APPLICATION_TOKEN) != null && configuration.get(APPLICATION_TOKEN).toString() != ""){
-			if((dsID = digitalSTROMClient.getDSID(configuration.get(APPLICATION_TOKEN).toString())) != null) {
+		String applicationToken;
+		String sessionToken;
+		
+		if(configuration.get(APPLICATION_TOKEN) != null && 
+				( applicationToken = configuration.get(APPLICATION_TOKEN).toString()) != ""){
+			sessionToken = digitalSTROMClient.loginApplication(applicationToken);
+			if((dsID = digitalSTROMClient.getDSID(sessionToken)) != null) {
 				logger.debug("User defined Applicationtoken can be used. Get dsID.");
 			} else{
-				logger.info("User defined Applicationtoken can't be used, hostadress is incorrect or host isn't reachable");
-				//test Befehl schicken ob Host ereichbar ist
+				if(digitalSTROMClient.checkConnection(sessionToken) != HttpURLConnection.HTTP_NOT_FOUND){
+					logger.info("Server not found! Please check this points:\n"
+							+ " - DigitalSTROM-Server turned on?\n"
+							+ " - hostadress correct?\n"
+							+ " - ethernet cable connection established?");
+				} else{
+					logger.info("User defined Applicationtoken can't be used.");
+				}
 			}
 		}
 		//final ändern in Konsoleneingabe oder Konsoleneingabe hinzufügen
@@ -153,14 +166,18 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 				logger.debug("Generating Applicationtoken with user and password.");
 				
 				//generate applicationToken and test host is reachable
-				String applicationToken = this.digitalSTROMClient.requestAppplicationToken(applicationName);
+				applicationToken = this.digitalSTROMClient.requestAppplicationToken(DigitalSTROMBindingConstants.APPLICATION_NAME);
 							
 				if(applicationToken != null && applicationToken != ""){
 					//enable applicationToken
-					if(this.digitalSTROMClient.enableApplicationToken(applicationToken, getSessionToken(configuration))){
+					sessionToken = this.digitalSTROMClient.login(
+							configuration.get(USER_NAME).toString(), 
+							configuration.get(PASSWORD).toString());
+					
+					if(this.digitalSTROMClient.enableApplicationToken(applicationToken, sessionToken)){
 						configuration.put(APPLICATION_TOKEN, applicationToken);
 		
-						dsID = digitalSTROMClient.getDSID(applicationToken);
+						dsID = digitalSTROMClient.getDSID(sessionToken);
 						
 						logger.debug("Applicationtoken generated and added to the configuration. Get dsID.");
 					} else {
@@ -184,11 +201,6 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 		return dsID;
 	}
 	
-	private String getSessionToken(Configuration configuration){
-		return this.digitalSTROMClient.login(
-				configuration.get(USER_NAME).toString(), 
-				configuration.get(PASSWORD).toString());
-	}
 	
 	private boolean checkUserPassword(Configuration configuration){
 		if((configuration.get(USER_NAME) != null && configuration.get(PASSWORD) != null) &&

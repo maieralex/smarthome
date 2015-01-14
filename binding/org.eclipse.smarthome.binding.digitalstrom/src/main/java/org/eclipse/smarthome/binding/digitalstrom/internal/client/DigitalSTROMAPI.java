@@ -291,5 +291,8 @@ public interface DigitalSTROMAPI {
 	 * @return
 	 */
 	public List<CachedMeteringValue> getLatest(String token, MeteringTypeEnum type, String from, MeteringUnitsEnum unit);
+	
+	//TODO: Doc
+	public int checkConnection(String token);
 
 }

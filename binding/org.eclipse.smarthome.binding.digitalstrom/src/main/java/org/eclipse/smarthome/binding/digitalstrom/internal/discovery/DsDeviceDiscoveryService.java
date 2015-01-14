@@ -33,11 +33,11 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	}
 
 	public void activate() {
-		digitalSTROMBridgeHandler.registerDeviceStatusListener(this);
+		digitalSTROMBridgeHandler.registerDeviceStatusListener(DeviceStatusListener.DEVICE_DESCOVERY, this);
     }
 
     public void deactivate() {
-    	digitalSTROMBridgeHandler.unregisterDeviceStatusListener(this);
+    	digitalSTROMBridgeHandler.unregisterDeviceStatusListener(DeviceStatusListener.DEVICE_DESCOVERY);
     }
 
 	//später ändern auf Struktur mit group-things
@@ -93,6 +93,12 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 
 
 	@Override
+	public void onDeviceNeededSensorDataUpdate(Device device) {
+		//nothing to do
+	}
+	
+	
+	@Override
 	public void onDeviceRemoved(Device device) {
 		ThingUID thingUID = getThingUID(device);
 	    
@@ -106,4 +112,6 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	public void onDeviceAdded(Device device) {
 		onDeviceAddedInternal(device);		
 	}
+
+	
 }

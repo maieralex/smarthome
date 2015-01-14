@@ -11,13 +11,17 @@ import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingCons
 
 import java.util.Set;
 
+import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -71,7 +75,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
         if (dsID != null) {
             DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
         	if(dssBridgeHandler != null) {
-        		getDssBridgeHandler().unregisterDeviceStatusListener(this);
+        		getDssBridgeHandler().unregisterDeviceStatusListener(dsID);
         	}
             dsID = null;
         }
@@ -142,7 +146,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	        ThingHandler handler = bridge.getHandler();
 	        if (handler instanceof DssBridgeHandler) {
 	        	this.dssBridgeHandler =  (DssBridgeHandler) handler;
-	        	this.dssBridgeHandler.registerDeviceStatusListener(this);
+	        	this.dssBridgeHandler.registerDeviceStatusListener(dsID, this);
 	        } else {
 	            return null;
 	        }
@@ -229,4 +233,41 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		
 	}
 
+	@Override
+	public void onDeviceNeededSensorDataUpdate(Device device) {
+				
+		for(Channel channel: this.getThing().getChannels()){
+			switch(channel.getUID().getId()){
+				case DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION:
+					if(!device.isPowerConsumptionUpToDate()){
+						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
+					}
+					break;
+				case DigitalSTROMBindingConstants.CHANNEL_ENERGY_METER:
+					if(!device.isEnergyMeterUpToDate()){
+						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
+					}
+					break;
+				case DigitalSTROMBindingConstants.CHANNEL_ELECTRIC_METER:
+					if(!device.isElectricMeterUpToDate()){
+						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
+					}
+					break;
+			}
+		}
+	}
+
+	private void sendUpdateSensorDataToBridge(Device device, Channel channel, SensorIndexEnum sensorIndex){
+		DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
+		
+		if (dssBridgeHandler == null) {
+            logger.warn("DigitalSTROM bridge handler not found. Cannot handle command without bridge.");
+            return;
+        }
+		
+		String priority = channel.getConfiguration().get(DigitalSTROMBindingConstants.CHANNEL_REFRESH_PRIORITY).toString();
+		if(priority != DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER && priority != null){
+			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, sensorIndex), priority);	
+		}
+	}
 }

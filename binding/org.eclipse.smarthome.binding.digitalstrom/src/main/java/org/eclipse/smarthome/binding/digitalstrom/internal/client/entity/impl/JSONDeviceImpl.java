@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
@@ -414,12 +415,12 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (powerConsumption < 0) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
-			//this.powerConsumption = 0;
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
+			this.powerConsumption = 0;
 		}
 		else {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
-			//this.powerConsumption = powerConspumtion;
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
+			this.powerConsumption = powerConsumption;
 		}
 		
 		//notifyDeviceListener(this.dsid.getValue());
@@ -439,12 +440,12 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (energyMeterValue < 0) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, 0));
-			//energyMeterValue = 0;
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, 0));
+			this.energyMeterValue = 0;
 		}
 		else {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
-			//energyMeterValue = value;
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
+			this.energyMeterValue = energyMeterValue;
 		}
 		
 		//notifyDeviceListener(this.dsid.getValue());
@@ -491,12 +492,12 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (electricMeterValue < 0) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, 0));
-			//this.electricMeterValue = 0; 
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, 0));
+			this.electricMeterValue = 0; 
 		}
 		else {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
-			//this.electricMeterValue = electricMeterValue;
+			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
+			this.electricMeterValue = electricMeterValue;
 		}
 		
 		//notifyDeviceListener(this.dsid.getValue());
@@ -587,6 +588,7 @@ public class JSONDeviceImpl implements Device {
 	private long lastEnergyMeterUpdate = 0;
 	private long lastPowerConsumptionUpdate = 0;
 	
+	//get methoden doch nicht nötig
 	@Override
 	public long getLastPowerConsumptionUpdate(){
 		return this.lastPowerConsumptionUpdate;
@@ -601,6 +603,41 @@ public class JSONDeviceImpl implements Device {
 	public long getLastElectricMeterUpdate(){
 		return this.lastElectricMeterUpdate;
 	}
+	
+	@Override
+	public boolean isPowerConsumptionUpToDate(){
+		return isOn && !isRollershutter() ?
+				(this.lastPowerConsumptionUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis() 
+				:true;
+	}
+	 
+	@Override
+	public boolean isElectricMeterUpToDate(){
+		return isOn && !isRollershutter() ?
+				(this.lastElectricMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis()
+				:true;
+	}
+	
+	@Override
+	public boolean isEnergyMeterUpToDate(){
+		return isOn && !isRollershutter() ?
+				(this.lastEnergyMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis()
+				:true;
+	}
+	
+	//1. Unterscheidung zwischen nötigen und nich nötigen Sensordatenabfragen? 
+	//	 z.B. Lampe macht sinn, Rollershutter nicht, weil nur beim runter bzw. hochfahren Strom verbraucht wird
+	//2. Wenn der Refreshinterval vom Nutzer bestimmt wird Zeit übergeben (eigene var, wegen Übergabe des Devices), 
+	//   da diese der Bridge-config entnommen werden muss
+	@Override
+	public boolean isSensorDataUpToDate(){
+		return isOn && !isRollershutter() ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
+				isPowerConsumptionUpToDate() ||
+				isElectricMeterUpToDate() ||
+				isEnergyMeterUpToDate()
+				:true;
+	}
+	
 	/*@Override
 	public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate) {
 		if(eshThingStateUpdate != null){
@@ -634,20 +671,20 @@ public class JSONDeviceImpl implements Device {
 			switch(deviceStateUpdate.getType()){
 				case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
 					this.outputValue = deviceStateUpdate.getValue();
-					if(this.outputValue <=0){
+					if(this.outputValue <= 0){
 						this.isOn = false;
-						this.powerConsumption=0;
-						this.energyMeterValue=0;
+						setPowerConsumption(0);
+						setEnergyMeterValue(0);
 					} else{
 						this.isOn = true;
 					}
 					break;
 				case DeviceStateUpdate.UPDATE_ON_OFF: 
-					if(deviceStateUpdate.getValue() < 0 ){
-						this.outputValue = this.minOutputValue;
+					if(deviceStateUpdate.getValue() < 0){
+						this.outputValue = 0;
 						this.isOn = false;
-						this.powerConsumption=0;
-						this.energyMeterValue=0;
+						setPowerConsumption(0);
+						setEnergyMeterValue(0);
 					} else{
 						this.outputValue = this.maxOutputValue;
 						this.isOn = true;
@@ -658,13 +695,13 @@ public class JSONDeviceImpl implements Device {
 					break;
 				case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
 					setElectricMeterValue(deviceStateUpdate.getValue());
-					break;
+					return;
 				case DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE:
 					setEnergyMeterValue(deviceStateUpdate.getValue());
-					break;
+					return;
 				case DeviceStateUpdate.UPDATE_POWER_CONSUMPTION:
-					setPowerConsumption( deviceStateUpdate.getValue());
-					break;
+					setPowerConsumption(deviceStateUpdate.getValue());
+					return;
 				default: return;
 			}
 			this.eshThingStateUpdates.add(deviceStateUpdate);

@@ -13,7 +13,7 @@
         </description>
 
         <config-description>
-            <parameter name="lastDimValue" type="boolean" />
+            <parameter name="lastDimValue" type="boolean" ></parameter>
         </config-description>
     </channel-type>
     <channel-type id="powerConsumption">
