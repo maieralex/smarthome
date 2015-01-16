@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
@@ -60,8 +59,6 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 			DsYellowHandler.SUPPORTED_THING_TYPES);
 
 	private DigitalSTROMAPI digitalSTROMClient = null;
-	private String applicationName = "EclipseSmartHome";
-
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {

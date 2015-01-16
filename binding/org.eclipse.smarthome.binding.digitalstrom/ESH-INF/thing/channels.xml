@@ -20,7 +20,7 @@
     	<item-type>Number</item-type>
     	<label>Power consumption</label>
     	<config-description>
-    		<parameter name="refreshTime" type="number">
+    		<parameter name="refreshTime" type="decimal">
     			<label>Sensor refresh intervall</label><description>Specifies how often you want to update the power consumption sensor value. NOTE: A too low value can disturb the DigitalSTROM system!</description>
     			<default>10000</default>
     			<required>false</required>
@@ -44,19 +44,5 @@
     	<item-type>Number</item-type>
     	<label>Energy meter value</label>
     </channel-type>
-    <channel-group-type id="sensorData">
-    	<label>sensorData</label>
-    	<channels>
-    		<channel typeId="Number" id="powerConsumption" /><channel
-    			typeId="Number" id="electricMeterValue" /><channel
-    			typeId="Number" id="energyMeterValue" />
-    	</channels>
-    </channel-group-type>
-    <channel-group-type id="light">
-    	<label>light</label>
-    	<channels>
-    		<channel typeId="Dimmer" id="brightness" />
-    	</channels>
-    </channel-group-type>
 
 </thing:thing-descriptions>

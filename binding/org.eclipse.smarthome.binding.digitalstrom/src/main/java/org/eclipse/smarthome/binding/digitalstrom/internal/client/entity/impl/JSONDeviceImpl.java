@@ -9,7 +9,6 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;

@@ -16,6 +16,7 @@ import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingCons
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.USER_NAME;
 
 import java.net.HttpURLConnection;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
@@ -68,14 +71,17 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     private String applicationToken = null;
     private String sessionToken = null;
     
+    private static final int POLLING_FREQUENCY = 10; // in seconds
+	private final int BIN_CHECK_TIME = 360000; //in milliseconds
+    
     /****States****/
     private boolean lastConnectionState = false;
+    private long lastBinCheck = 0;
     
     /****Maps****/
     private HashMap<String, DeviceStatusListener> deviceStatusListeners = new HashMap<String, DeviceStatusListener>();
    
-    //später
-    //private HashMap<String, DeviceStatusListener> deviceTrashBin = new HashMap<String, DeviceStatusListener>();
+    private List<TrashDevice> trashDevices = new LinkedList<TrashDevice>(); 
     
     private HashMap<String, Device> deviceMap = new HashMap<String, Device>();
     
@@ -87,7 +93,90 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	private DigitalSTROMEventListener digitalSTROMEventListener = null;
 	private SensorJobExecutor sensorJobExecuter = null;
     
+	private ScheduledFuture<?> pollingJob;
 	
+	private Runnable pollingRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+        	if(checkConnection()){
+        		HashMap<String, Device> tempDeviceMap = new HashMap<String, Device>(deviceMap);
+        		List<Device> currentDeviceList = new LinkedList<Device>(digitalSTROMClient.getApartmentDevices(sessionToken, false));
+        		
+        		while (!currentDeviceList.isEmpty()){
+        			Device currentDevice = currentDeviceList.remove(0);
+        			String currentDeviceDSID = currentDevice.getDSID().getValue();
+        			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
+        			
+        			if(eshDevice != null){
+        				
+        				if(!eshDevice.isESHThingUpToDate()){
+        					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
+        				}
+        				
+        				if(!eshDevice.isSensorDataUpToDate()){
+        					deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
+        				}
+        				
+        			} else{
+        				if(trashDevices.isEmpty()){
+        					deviceMap.put(currentDeviceDSID, currentDevice);
+        				} else{
+        					int index = trashDevices.indexOf(currentDevice);
+        					 if(index != -1){
+        						 Device device =  trashDevices.get(index).getDevice();
+        						 deviceMap.put(device.getDSID().getValue(), device);
+        					 } else{
+        						 deviceMap.put(currentDeviceDSID, currentDevice); 
+        					 }
+        				}
+        				
+        				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
+        				//Testen ob das nötig ist, evtl muss erst das Thing über den DeviceDiscoveryService erstellt werden
+        				try {
+							wait(100);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+        				deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
+        			}
+        		}
+        		        		
+        		for(Device device: tempDeviceMap.values()){
+        			trashDevices.add(new TrashDevice(deviceMap.remove(device.getDSID().getValue())));
+        			deviceStatusListeners.get(device.getDSID().getValue()).onDeviceRemoved(device);
+        			deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceRemoved(device);
+        		}
+        		
+        		if(!trashDevices.isEmpty() && (lastBinCheck + BIN_CHECK_TIME < System.currentTimeMillis())){
+        			for(TrashDevice trashDevice: trashDevices){
+        				if(trashDevice.isTimeToDelete(Calendar.getInstance().get(Calendar.DAY_OF_YEAR))){
+        					trashDevices.remove(trashDevice);
+        				}
+        			}
+        			lastBinCheck = System.currentTimeMillis();
+        		}
+        	}
+        }
+	};
+		
+	private class TrashDevice {
+		private Device device;
+		private int timeStamp;
+		
+		public TrashDevice(Device device){
+			this.device = device;
+			this.timeStamp = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+		}
+		
+		public Device getDevice(){
+			return device;
+		}
+		
+		public boolean isTimeToDelete(int dayOfYear){
+			return this.timeStamp + DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME <= dayOfYear; 
+		}
+	}
 	
 	public DssBridgeHandler(Bridge bridge) {
 		super(bridge);
@@ -132,6 +221,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         logger.debug("Handler disposed.");
         this.digitalSTROMEventListener.shutdown();
         this.sensorJobExecuter.shutdown();
+        
+        if(pollingJob!=null && !pollingJob.isCancelled()) {
+        	pollingJob.cancel(true);
+        	pollingJob = null;
+        }
         //TODO: füllen mit allem rest
     }
 
@@ -168,12 +262,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	}
 	
 	private synchronized void onUpdate() {
-	    //TODO: implement pollingJob then delete comment
-			/*	if (digitalSTROMClient != null) {
-				if (pollingJob == null || pollingJob.isCancelled()) {
-					pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 1, POLLING_FREQUENCY, TimeUnit.SECONDS);
-				}
-	    	}*/
+		if (digitalSTROMClient != null) {
+			if (pollingJob == null || pollingJob.isCancelled()) {
+				pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 1, POLLING_FREQUENCY, TimeUnit.SECONDS);
+			}
+	    }
 	}
     
 	/****handling methods****/

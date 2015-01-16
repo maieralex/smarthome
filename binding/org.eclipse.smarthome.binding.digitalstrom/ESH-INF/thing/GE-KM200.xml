@@ -12,10 +12,6 @@
 
         <label>DigitalStrom device GE-KM200 (yellow).</label>
         <description>This is a DigitalStrom light device.</description>
-        <channel-groups>
-        	<channel-group typeId="Dimmer" id="light" /><channel-group
-        		typeId="Number" id="sensorData" />
-        </channel-groups>
 
         
 

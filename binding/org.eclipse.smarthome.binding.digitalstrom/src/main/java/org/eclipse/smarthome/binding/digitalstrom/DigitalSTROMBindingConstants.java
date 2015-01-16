@@ -51,6 +51,8 @@ public class DigitalSTROMBindingConstants {
 	public static final String DS_ID = "dSID";
 	public static final String DS_NAME = "dsName";
 	
+	public static final int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted
+	
     // Device config properties
 	public static final String DEVICE_ID = "deviceId";
 	public static final String DEVICE_NAME = "deviceName";

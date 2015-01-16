@@ -15,8 +15,8 @@
 
         <channels>
             <channel id="brightness" typeId="brightness" /><channel
-            	typeId="Number" id="powerConsumption" /><channel
-        		typeId="Number" id="electricMeterValue" /><channel typeId="Number" id="EnergyMeterValue" />
+            	typeId="powerConsumption" id="powerConsumption" /><channel
+        		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
     </thing-type>
 </thing:thing-descriptions>

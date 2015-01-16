@@ -9,7 +9,10 @@
         <label>DigitalStrom</label>
         <description>The digitalstrom bridge represents the digitalStrom bridge.</description>
 
-        <config-description><!--ipAddress-->
+        <config-description><!--Application token--><parameter name="applicationToken" type="text">
+            	<label>Application Token</label>
+            	<description>The application token for this application.</description>
+            	<required>false</required></parameter><!--ipAddress-->
             <parameter name="ipAddress" type="text">
                 <context>network_address</context>
                 <label>Network Address</label>
@@ -33,11 +36,8 @@
             <parameter name="dsName" type="text">
             	<label>Name of the DigitalStrom installation</label>
             	<description>The user defined name of the DigitalStrom installation.</description>
-            	<required>false</required></parameter><!--Application token-->
-            <parameter name="applicationToken" type="text">
-            	<label>Application Token</label>
-            	<description>The application token for this application.</description>
             	<required>false</required></parameter>
+            
         </config-description>
     </bridge-type>
 

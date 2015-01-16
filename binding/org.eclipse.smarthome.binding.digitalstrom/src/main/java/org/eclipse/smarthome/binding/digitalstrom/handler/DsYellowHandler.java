@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
  */
 public class DsYellowHandler extends BaseThingHandler implements DeviceStatusListener{
 
-    private Logger logger = LoggerFactory.getLogger(DigitalSTROMHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DsYellowHandler.class);
 
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet(THING_TYPE_GE_KM200, THING_TYPE_GE_KL200);
     
