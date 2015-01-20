@@ -129,6 +129,7 @@ public class HttpTransport {
 			} catch (MalformedURLException e) {
 				logger.error("MalformedURLException by executing jsonRequest: "
 						+ testRequest +" ; "+e.getLocalizedMessage());
+				return -2;
 
 			} catch (IOException e) {
 				logger.error("IOException by executing jsonRequest: "

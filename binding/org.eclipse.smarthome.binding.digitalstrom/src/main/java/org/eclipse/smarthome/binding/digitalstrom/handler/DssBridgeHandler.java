@@ -112,46 +112,86 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(!eshDevice.isESHThingUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
+        					logger.debug("inform deviceStatusListener from  Device \""
+        							+ currentDeviceDSID
+        							+ "\" about update ESH-Update");
         				}
         				
         				if(!eshDevice.isSensorDataUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
+        					logger.debug("inform deviceStatusListener from  Device \""
+        							+ currentDeviceDSID
+        							+ "\" about Sensordata need update");
         				}
         				
         			} else{
+        				logger.debug("Found new Device!");
+        				
         				if(trashDevices.isEmpty()){
         					deviceMap.put(currentDeviceDSID, currentDevice);
+        					logger.debug("trashDevices are empty, add Device to the deviceMap!");
         				} else{
+        					logger.debug("Search device in trashDevices.");
+        					
         					int index = trashDevices.indexOf(currentDevice);
         					 if(index != -1){
         						 Device device =  trashDevices.get(index).getDevice();
         						 deviceMap.put(device.getDSID().getValue(), device);
+        						 logger.debug("Found device in trashDevices, add TrashDevice to the deviceMap!");
         					 } else{
-        						 deviceMap.put(currentDeviceDSID, currentDevice); 
+        						 deviceMap.put(currentDeviceDSID, currentDevice);
+        						 logger.debug("Can't find device in trashDevices, add Device to the deviceMap!");
         					 }
         				}
         				
         				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
         				//Testen ob das nötig ist, evtl muss erst das Thing über den DeviceDiscoveryService erstellt werden
+        				logger.debug("inform DeviceStatusListener: " 
+        						+ DeviceStatusListener.DEVICE_DESCOVERY 
+        						+ " about Device: " 
+        						+ currentDevice 
+        						+ " added.");
         				try {
 							wait(100);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
         				deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
+        				logger.debug("inform DeviceStatusListener: " 
+        						+ currentDevice 
+        						+ " about Device: " 
+        						+ currentDevice 
+        						+ " added.");
         			}
         		}
         		        		
         		for(Device device: tempDeviceMap.values()){
-        			trashDevices.add(new TrashDevice(deviceMap.remove(device.getDSID().getValue())));
-        			deviceStatusListeners.get(device.getDSID().getValue()).onDeviceRemoved(device);
+        			logger.debug("Found removed Devices.");
+        			String dsID = device.getDSID().getValue();
+        			
+        			trashDevices.add(new TrashDevice(deviceMap.remove(dsID)));
+        			logger.debug("Add Device: "+ device.getDSID().getValue() + " to trashDevices");
+        			
+        			deviceStatusListeners.get(dsID).onDeviceRemoved(device);
+        			logger.debug("inform DeviceStatusListener: " 
+    						+ dsID
+    						+ " about Device: " 
+    						+ dsID 
+    						+ " removed.");
         			deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceRemoved(device);
+        			logger.debug("inform DeviceStatusListener: " 
+    						+ DeviceStatusListener.DEVICE_DESCOVERY
+    						+ " about Device: " 
+    						+ dsID 
+    						+ " removed.");
         		}
         		
         		if(!trashDevices.isEmpty() && (lastBinCheck + BIN_CHECK_TIME < System.currentTimeMillis())){
         			for(TrashDevice trashDevice: trashDevices){
         				if(trashDevice.isTimeToDelete(Calendar.getInstance().get(Calendar.DAY_OF_YEAR))){
+        					logger.debug("Found trashDevice that have to deleate!");
         					trashDevices.remove(trashDevice);
+        					logger.debug("Delete trashDevice: "+ trashDevice.getDevice().getDSID().getValue());
         				}
         			}
         			lastBinCheck = System.currentTimeMillis();
@@ -460,6 +500,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			case HttpURLConnection.HTTP_OK:
 				break;
 			case HttpURLConnection.HTTP_FORBIDDEN:
+			case -1:
 				sessionToken = this.digitalSTROMClient.loginApplication(applicationToken);
 				if(this.digitalSTROMClient.checkConnection(sessionToken) == HttpURLConnection.HTTP_OK){
 					if(!lastConnectionState){
@@ -477,6 +518,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						+ " - hostadress correct?\n"
 						+ " - ethernet cable connection established?");
 				onConnectionLost();
+				lastConnectionState = false;
+				break;
+			case -2:
+				logger.error("Invalide URL!");
 				lastConnectionState = false;
 				break;
 		}

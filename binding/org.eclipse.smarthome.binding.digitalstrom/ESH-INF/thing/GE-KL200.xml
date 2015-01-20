@@ -18,5 +18,18 @@
             	typeId="powerConsumption" id="powerConsumption" /><channel
         		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
+        
+        <config-description><!--deviceID-->
+            <parameter name="deviceId" type="text">
+                <label>Device ID</label>
+                <description>The device identifier identifies one DigitalStrom device.</description>
+                <required>true</required>
+            </parameter><!--deviceName-->
+            <parameter name="deviceName" type="text">
+            	<label>Device Name</label>
+            	<description>The Name of a DigitalStrom device.</description>
+            	<default></default></parameter>
+        </config-description>
+        
     </thing-type>
 </thing:thing-descriptions>

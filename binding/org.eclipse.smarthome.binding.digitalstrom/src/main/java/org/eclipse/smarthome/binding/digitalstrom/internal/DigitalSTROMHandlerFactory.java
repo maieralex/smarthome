@@ -69,16 +69,18 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
     @Override
     public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration,
             ThingUID thingUID, ThingUID bridgeUID) {
-        if (DssBridgeHandler.SUPPORTED_THING_TYPES.equals(thingTypeUID)) {
+        if (DssBridgeHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
             ThingUID digitalStromUID = getBridgeThingUID(thingTypeUID, thingUID, configuration);
             return super.createThing(thingTypeUID, configuration, digitalStromUID, null);
-        }
-        if (DsYellowHandler.SUPPORTED_THING_TYPES.equals(thingTypeUID)) {
+        } 
+        if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
             ThingUID dssLightUID = getLightUID(thingTypeUID, thingUID, configuration, bridgeUID);
             return super.createThing(thingTypeUID, configuration, dssLightUID, bridgeUID);
-        }
+        }  
+        
         throw new IllegalArgumentException("The thing type " + thingTypeUID
-                + " is not supported by the DigitalStrom binding.");
+        		    + " is not supported by the DigitalSTROM binding.");
+            
     }
     
     //Vervollständigen auf alle ThingHandler
@@ -119,7 +121,23 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 
 	private ThingUID getBridgeThingUID(ThingTypeUID thingTypeUID,
 			ThingUID thingUID, Configuration configuration) {
-		digitalSTROMClient = new DigitalSTROMJSONImpl((String) configuration.get(HOST), DEFAULT_CONNECTION_TIMEOUT, DEFAULT_READ_TIMEOUT);
+		digitalSTROMClient = new DigitalSTROMJSONImpl(configuration.get(HOST).toString(), DEFAULT_CONNECTION_TIMEOUT, DEFAULT_READ_TIMEOUT);
+		
+		int responseCode = digitalSTROMClient.checkConnection("test"); 
+		if( responseCode == HttpURLConnection.HTTP_NOT_FOUND || 
+				responseCode == -1 || 
+				responseCode == -2){
+			if(responseCode == HttpURLConnection.HTTP_NOT_FOUND || 
+					responseCode == -1 ){
+				logger.error("Server not found! Please check this points:\n"
+					+ " - DigitalSTROM-Server turned on?\n"
+					+ " - hostadress correct?\n"
+					+ " - ethernet cable connection established?");
+			} else {
+				logger.error("Invalide URL!");
+			}
+			return null;
+		}
 		
 		if (thingUID == null) {
 			String dSID;
@@ -141,13 +159,33 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 		String applicationToken;
 		String sessionToken;
 		
+		/*
+		int responseCode = digitalSTROMClient.checkConnection("test"); 
+		if( responseCode == HttpURLConnection.HTTP_NOT_FOUND || 
+				responseCode == -1 || 
+				responseCode == -2){
+			if(responseCode == HttpURLConnection.HTTP_NOT_FOUND || 
+					responseCode == -1 ){
+				logger.info("Server not found! Please check this points:\n"
+					+ " - DigitalSTROM-Server turned on?\n"
+					+ " - hostadress correct?\n"
+					+ " - ethernet cable connection established?");
+			} else {
+				logger.info("Invalide URL!");
+			}
+			return dsID;
+		}
+		*/
 		if(configuration.get(APPLICATION_TOKEN) != null && 
 				( applicationToken = configuration.get(APPLICATION_TOKEN).toString()) != ""){
+			
 			sessionToken = digitalSTROMClient.loginApplication(applicationToken);
+			
 			if((dsID = digitalSTROMClient.getDSID(sessionToken)) != null) {
 				logger.debug("User defined Applicationtoken can be used. Get dsID.");
 			} else{
-				if(digitalSTROMClient.checkConnection(sessionToken) != HttpURLConnection.HTTP_NOT_FOUND){
+				if(digitalSTROMClient.checkConnection(sessionToken) == HttpURLConnection.HTTP_NOT_FOUND || 
+						digitalSTROMClient.checkConnection(sessionToken) == -1){
 					logger.info("Server not found! Please check this points:\n"
 							+ " - DigitalSTROM-Server turned on?\n"
 							+ " - hostadress correct?\n"
