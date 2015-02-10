@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,7 +28,7 @@ public interface EventConstants {
      *
      * @see #TOPIC_SEPERATOR
      */
-     String TOPIC_PREFIX = "smarthome";
+    String TOPIC_PREFIX = "smarthome";
 
     /**
      * The constant defining the separator for sub-topics. Each event of <i>Eclipse SmartHome</i>
@@ -39,6 +39,6 @@ public interface EventConstants {
      *
      * @see #TOPIC_PREFIX
      */
-     String TOPIC_SEPERATOR = "/";
+    String TOPIC_SEPERATOR = "/";
 
 }

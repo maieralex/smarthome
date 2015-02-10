@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="wemo"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+        xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+
+     <thing-type id="socket">
+        <label>WeMo Switch</label>
+        <description>This is a standard WeMo Switch</description>
+
+        <channels>
+            <channel id="state" typeId="state"/>
+        </channels>
+
+        <config-description>
+            <parameter name="udn" type="text">
+                <label>Unique Device Name</label>
+                <description>The UDN identifies the WeMo Device</description>
+		<required>true</required>
+            </parameter>
+
+         </config-description>
+    </thing-type>
+
+     <thing-type id="insight">
+        <label>WeMo Insight Switch</label>
+        <description>This is a WeMo Insight Switch with energy measurement</description>
+
+        <channels>
+            <channel id="state" typeId="state"/>
+            <channel id="currentPower" typeId="currentPower"/>
+            <channel id="lastOnFor" typeId="lastOnFor"/>
+            <channel id="onToday" typeId="onToday"/>
+            <channel id="onTotal" typeId="onTotal"/>
+        </channels>
+
+        <config-description>
+            <parameter name="udn" type="text">
+                <label>Unique Device Name</label>
+                <description>The UDN identifies the WeMo Device</description>
+				<required>true</required>
+        	</parameter>
+         </config-description>
+    </thing-type>
+
+     <thing-type id="lightswitch">
+        <label>WeMo Light Switch</label>
+        <description>This is a WeMo LightSwitch</description>
+
+        <channels>
+            <channel id="state" typeId="state"/>
+        </channels>
+
+        <config-description>
+            <parameter name="udn" type="text">
+                <label>Unique Device Name</label>
+                <description>The UDN identifies the WeMo Device</description>
+				<required>true</required>
+        	</parameter>
+         </config-description>
+    </thing-type>
+
+     <thing-type id="motion">
+        <label>WeMo Motion</label>
+        <description>This is a WeMo MotionSensor</description>
+
+        <channels>
+            <channel id="state" typeId="state"/>
+        </channels>
+
+        <config-description>
+            <parameter name="udn" type="text">
+                <label>Unique Device Name</label>
+                <description>The UDN identifies the WeMo Device</description>
+				<required>true</required>
+        	</parameter>
+         </config-description>
+    </thing-type>
+
+     <channel-type id="state">
+        <item-type>Switch</item-type>
+        <label>Switch</label>
+        <description>Turns the power on or off</description>
+        <category>Switch</category>
+    </channel-type>
+
+     <channel-type id="currentPower">
+        <item-type>Number</item-type>
+        <label>Power</label>
+        <description>The current power consumption</description>
+        <category>Energy</category>
+        <state pattern="%.1f W" />
+    </channel-type>
+
+     <channel-type id="lastOnFor" advanced="true">
+        <item-type>Number</item-type>
+        <label>Last Activity (s)</label>
+        <description>Duration the device has been switched on for</description>        
+    </channel-type>
+
+     <channel-type id="onToday" advanced="true">
+        <item-type>Number</item-type>
+        <label>Today's Activity (s)</label>
+        <description>How long has the device been switched on today</description>
+    </channel-type>
+
+     <channel-type id="onTotal" advanced="true">
+        <item-type>Number</item-type>
+        <label>Total Activity (s)</label>
+        <description>How long has the device been switched on totally</description>
+    </channel-type>
+ 
+</thing:thing-descriptions>

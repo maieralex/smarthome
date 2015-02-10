@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,9 +14,8 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingUID;
 
 /**
- * {@link BaseBridgeHandler} adds some convenience methods for bridges to the
- * {@link BaseThingHandler}.
- * 
+ * {@link BaseBridgeHandler} adds some convenience methods for bridges to the {@link BaseThingHandler}.
+ *
  * @author Dennis Nobel - Initial contribution
  */
 public abstract class BaseBridgeHandler extends BaseThingHandler {
@@ -30,7 +29,7 @@ public abstract class BaseBridgeHandler extends BaseThingHandler {
 
     /**
      * Finds and returns a child thing for a given UID of this bridge.
-     * 
+     *
      * @param uid
      *            uid of the child thing
      * @return child thing with the given uid or null if thing was not found

@@ -34,6 +34,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 
 	public void activate() {
 		digitalSTROMBridgeHandler.registerDeviceStatusListener(DeviceStatusListener.DEVICE_DESCOVERY, this);
+		//this.startScan();
     }
 
     public void deactivate() {

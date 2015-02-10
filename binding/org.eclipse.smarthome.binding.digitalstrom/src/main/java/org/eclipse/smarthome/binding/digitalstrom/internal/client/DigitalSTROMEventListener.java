@@ -88,6 +88,8 @@ public class DigitalSTROMEventListener extends Thread {
 					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
 					DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 
+			logger.info("Sessiontoken = {}",this.dssBridgeHandler.getSessionToken());
+			
 			if (!transmitted) {
 				this.shutdown = true;
 				logger.error("Couldn't subscribe eventListener ... maybe timeout because system is to busy ...");

@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.eclipse.smarthome.core.common.registry;
 
 import java.util.List;
@@ -7,9 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link AbstractProvider} can be used as base class for {@link Provider}
- * implementations. It supports the registration and notification of listeners.
- * 
+ * {@link AbstractProvider} can be used as base class for {@link Provider} implementations. It supports the registration
+ * and notification of listeners.
+ *
  * @author Dennis Nobel - Initial contribution
  *
  * @param <E>
@@ -21,7 +28,7 @@ public abstract class AbstractProvider<E> implements Provider<E> {
         ADDED, REMOVED, UPDATED;
     }
 
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractProvider.class);
+    protected final Logger logger = LoggerFactory.getLogger(AbstractProvider.class);
     protected List<ProviderChangeListener<E>> listeners = new CopyOnWriteArrayList<>();
 
     @Override
@@ -38,21 +45,21 @@ public abstract class AbstractProvider<E> implements Provider<E> {
         for (ProviderChangeListener<E> listener : this.listeners) {
             try {
                 switch (eventType) {
-                case ADDED:
-                    listener.added(this, element);
-                    break;
-                case REMOVED:
-                    listener.removed(this, element);
-                    break;
-                case UPDATED:
-                    listener.updated(this, oldElement, element);
-                    break;
-                default:
-                    break;
+                    case ADDED:
+                        listener.added(this, element);
+                        break;
+                    case REMOVED:
+                        listener.removed(this, element);
+                        break;
+                    case UPDATED:
+                        listener.updated(this, oldElement, element);
+                        break;
+                    default:
+                        break;
                 }
             } catch (Exception ex) {
-                logger.error("Could not inform the listener '" + listener + "' about the '"
-                        + eventType.name() + "' event!: " + ex.getMessage(), ex);
+                logger.error("Could not inform the listener '" + listener + "' about the '" + eventType.name()
+                        + "' event!: " + ex.getMessage(), ex);
             }
         }
     }

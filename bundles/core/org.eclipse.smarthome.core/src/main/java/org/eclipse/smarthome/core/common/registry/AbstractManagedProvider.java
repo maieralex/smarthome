@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.eclipse.smarthome.core.common.registry;
 
 import java.util.Collection;
@@ -13,20 +20,18 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 
 /**
- * {@link AbstractManagedProvider} is an abstract implementation for the
- * {@link ManagedProvider} interface and can be used as base class for
- * {@link ManagedProvider} implementations. It uses the {@link StorageService}
- * to persist the elements.
- * 
+ * {@link AbstractManagedProvider} is an abstract implementation for the {@link ManagedProvider} interface and can be
+ * used as base class for {@link ManagedProvider} implementations. It uses the {@link StorageService} to persist the
+ * elements.
+ *
  * <p>
- * It provides the possibility to transform the element into another java class,
- * that can be persisted. This is needed, if the original element class is not
- * directly persistable. If the element type can be persisted directly the
+ * It provides the possibility to transform the element into another java class, that can be persisted. This is needed,
+ * if the original element class is not directly persistable. If the element type can be persisted directly the
  * {@link DefaultAbstractManagedProvider} can be used as base class.
  * </p>
- * 
+ *
  * @author Dennis Nobel - Initial contribution
- * 
+ *
  * @param <E>
  *            type of the element
  * @param <K>
@@ -37,8 +42,9 @@ import com.google.common.collect.ImmutableList;
 public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider<E> implements ManagedProvider<E, K> {
 
     private Storage<PE> storage;
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractManagedProvider.class);
-    
+    protected final Logger logger = LoggerFactory.getLogger(AbstractManagedProvider.class);
+
+    @Override
     public void add(E element) {
 
         if (element == null) {
@@ -47,35 +53,53 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
 
         String keyAsString = getKeyAsString(element);
         if (storage.get(keyAsString) != null) {
-            throw new IllegalArgumentException(
-                    "Cannot add element, because an element with same UID (" + keyAsString
-                            + ") already exists.");
+            throw new IllegalArgumentException("Cannot add element, because an element with same UID (" + keyAsString
+                    + ") already exists.");
         }
-        
+
         storage.put(keyAsString, toPersistableElement(element));
         notifyListenersAboutAddedElement(element);
         logger.debug("Added new element to {}.", this.getClass().getSimpleName());
     }
 
+    @Override
     public Collection<E> getAll() {
         final Function<String, E> toElementList = new Function<String, E>() {
+            @Override
             public E apply(String elementKey) {
                 PE persistableElement = storage.get(elementKey);
-                if(persistableElement != null) {
+                if (persistableElement != null) {
                     return toElement(elementKey, persistableElement);
                 } else {
                     return null;
                 }
             }
         };
-        
+
         Collection<String> keys = storage.getKeys();
-        Collection<E> elements = Collections2.filter(Collections2.transform(keys, toElementList),
-                Predicates.notNull());
+        Collection<E> elements = Collections2.filter(Collections2.transform(keys, toElementList), Predicates.notNull());
 
         return ImmutableList.copyOf(elements);
     }
 
+    @Override
+    public E get(K key) {
+
+        if (key == null) {
+            throw new IllegalArgumentException("Cannot get null element");
+        }
+
+        String keyAsString = keyToString(key);
+
+        PE persistableElement = storage.get(keyAsString);
+        if (persistableElement != null) {
+            return toElement(keyAsString, persistableElement);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public E remove(K key) {
 
         if (key == null) {
@@ -96,6 +120,7 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
         return null;
     }
 
+    @Override
     public E update(E element) {
 
         if (element == null) {
@@ -110,8 +135,8 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
             logger.debug("Updated element in {}.", this.getClass().getSimpleName());
             return oldElement;
         } else {
-            logger.warn("Could not update element with key {} in {}, because it does not exists.",
-                    key, this.getClass().getSimpleName());
+            logger.warn("Could not update element with key {} in {}, because it does not exists.", key, this.getClass()
+                    .getSimpleName());
         }
 
         return null;
@@ -123,7 +148,7 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
 
     /**
      * Returns the key for a given element
-     * 
+     *
      * @param element
      *            element
      * @return key (must not be null)
@@ -132,14 +157,14 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
 
     /**
      * Returns the name of storage, that is used to persist the elements.
-     * 
+     *
      * @return name of the storage
      */
     protected abstract String getStorageName();
 
     /**
      * Transforms the key into a string representation.
-     * 
+     *
      * @param key
      *            key
      * @return string representation of the key
@@ -147,13 +172,12 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
     protected abstract String keyToString(K key);
 
     protected void setStorageService(StorageService storageService) {
-        this.storage = storageService
-                .getStorage(getStorageName(), this.getClass().getClassLoader());
+        this.storage = storageService.getStorage(getStorageName(), this.getClass().getClassLoader());
     }
 
     /**
      * Converts the persistable element into the original element.
-     * 
+     *
      * @param key key
      * @param persistableElement
      *            persistable element
@@ -163,7 +187,7 @@ public abstract class AbstractManagedProvider<E, K, PE> extends AbstractProvider
 
     /**
      * Converts the original element into an element that can be persisted.
-     * 
+     *
      * @param element
      *            original element
      * @return persistable element

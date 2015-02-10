@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,7 +39,7 @@ class ItemChannelLinkOSGiTest extends OSGiTest {
         registerVolatileStorageService()
         managedThingProvider = getService ManagedThingProvider
         managedThingProvider.add(ThingBuilder.create(CHANNEL_UID.getThingUID()).withChannels([
-            ChannelBuilder.create(CHANNEL_UID, "Color")
+            ChannelBuilder.create(CHANNEL_UID, "Color").build()
         ]).build())
         itemChannelLinkRegistry = getService ItemChannelLinkRegistry
         managedItemChannelLinkProvider = getService ManagedItemChannelLinkProvider
@@ -80,22 +80,11 @@ class ItemChannelLinkOSGiTest extends OSGiTest {
     }
 
     @Test
-    void 'assert getBoundItem items returns item'() {
-        managedItemChannelLinkProvider.add ITEM_CHANNEL_LINK
-        assertThat  itemChannelLinkRegistry.getBoundItem(CHANNEL_UID), is(equalTo("item"))
-    }
-
-    @Test
-    void 'assert getBoundItem items returns null'() {
-        assertThat  itemChannelLinkRegistry.getBoundItem(CHANNEL_UID), is(null)
-    }
-
-    @Test
     void 'assert getBoundChannels returns channel'() {
         managedItemChannelLinkProvider.add ITEM_CHANNEL_LINK
         def boundChannels = itemChannelLinkRegistry.getBoundChannels("item")
         assertThat boundChannels.size(), is(1)
-        assertThat boundChannels.first(), is(equalTo(ITEM_CHANNEL_LINK.getChannelUID()))
+        assertThat boundChannels.first(), is(equalTo(ITEM_CHANNEL_LINK.getUID()))
     }
 
     @Test

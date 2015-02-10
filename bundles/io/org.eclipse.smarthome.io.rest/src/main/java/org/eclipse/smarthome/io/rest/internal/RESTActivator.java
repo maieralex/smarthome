@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,36 +14,39 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Extension of the default OSGi bundle activator
- * 
+ *
  * @author Kai Kreuzer - Initial contribution and API
  */
 public class RESTActivator implements BundleActivator {
 
-    private static final Logger logger = LoggerFactory.getLogger(RESTActivator.class);
+    private final Logger logger = LoggerFactory.getLogger(RESTActivator.class);
 
-	private static BundleContext context;
-	
-	/**
-	 * Called whenever the OSGi framework starts our bundle
-	 */
-	public void start(BundleContext bc) throws Exception {
-		context = bc;
-		logger.debug("REST API has been started.");
-	}
+    private static BundleContext context;
 
-	/**
-	 * Called whenever the OSGi framework stops our bundle
-	 */
-	public void stop(BundleContext bc) throws Exception {
-		context = null;
-		logger.debug("REST API has been stopped.");
-	}
-	
-	/**
-	 * Returns the bundle context of this bundle
-	 * @return the bundle context
-	 */
-	public static BundleContext getContext() {
-		return context;
-	}
+    /**
+     * Called whenever the OSGi framework starts our bundle
+     */
+    @Override
+    public void start(BundleContext bc) throws Exception {
+        context = bc;
+        logger.debug("REST API has been started.");
+    }
+
+    /**
+     * Called whenever the OSGi framework stops our bundle
+     */
+    @Override
+    public void stop(BundleContext bc) throws Exception {
+        context = null;
+        logger.debug("REST API has been stopped.");
+    }
+
+    /**
+     * Returns the bundle context of this bundle
+     * 
+     * @return the bundle context
+     */
+    public static BundleContext getContext() {
+        return context;
+    }
 }

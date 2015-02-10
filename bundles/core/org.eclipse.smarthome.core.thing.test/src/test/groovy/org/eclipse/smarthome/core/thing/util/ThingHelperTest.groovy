@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,16 +85,4 @@ class ThingHelperTest {
 		assertFalse ThingHelper.equals(thingA, thingB)
 	}
 
-	@Test
-	void 'Two things are different after name was modified'() {
-		Thing thingA = ThingBuilder.create(new ThingUID(new ThingTypeUID("binding:type"), "thingId")).build()
-
-		Thing thingB = ThingBuilder.create(new ThingUID(new ThingTypeUID("binding:type"), "thingId")).build()
-
-		assertTrue ThingHelper.equals(thingA, thingB)
-
-		thingB.setName("Thing B")
-
-		assertFalse ThingHelper.equals(thingA, thingB)
-	}
 }

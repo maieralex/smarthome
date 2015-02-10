@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,43 +11,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.io.rest.core.item.beans.GroupItemBean;
 
 /**
- * This is a java bean that is used with JAXB to serialize things to XML or
- * JSON.
- * 
+ * This is a java bean that is used with JAX-RS to serialize things to JSON.
+ *
  * @author Dennis Nobel - Initial contribution
  *
  */
-@XmlRootElement(name = "thing")
 public class ThingBean {
 
     public String bridgeUID;
-    @XmlJavaTypeAdapter(MapAdapter.class)
     public Map<String, Object> configuration;
     public ThingStatus status;
-
     public String UID;
-
-    @XmlElement(name = "channel")
-    private List<ChannelBean> channels;
+    public List<ChannelBean> channels;
+    public GroupItemBean item;
 
     public ThingBean() {
     }
 
     public ThingBean(String UID, String bridgeUID, ThingStatus status, List<ChannelBean> channels,
-            Configuration configuration) {
+            Configuration configuration, GroupItemBean item) {
         this.UID = UID;
         this.bridgeUID = bridgeUID;
         this.status = status;
         this.channels = channels;
         this.configuration = toMap(configuration);
+        this.item = item;
     }
 
     private Map<String, Object> toMap(Configuration configuration) {

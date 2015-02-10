@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,10 +21,10 @@ public class ThingBuilder extends GenericThingBuilder<ThingBuilder> {
         ThingImpl thing = new ThingImpl(thingTypeUID, thingId);
         return new ThingBuilder(thing);
     }
-    
+
     public static ThingBuilder create(ThingUID thingUID) {
-    	ThingImpl thing = new ThingImpl(thingUID);
-    	return new ThingBuilder(thing);
+        ThingImpl thing = new ThingImpl(thingUID);
+        return new ThingBuilder(thing);
     }
 
 }

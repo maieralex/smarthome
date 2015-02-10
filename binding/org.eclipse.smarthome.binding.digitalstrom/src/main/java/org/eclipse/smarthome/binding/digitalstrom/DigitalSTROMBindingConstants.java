@@ -48,7 +48,7 @@ public class DigitalSTROMBindingConstants {
 	public static final String USER_NAME = "userName";
 	public static final String PASSWORD = "password";
 	public static final String APPLICATION_TOKEN = "applicationToken";
-	public static final String DS_ID = "dSID";
+	public static final String DS_ID = "deviceId";
 	public static final String DS_NAME = "dsName";
 	
 	public static final int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted

@@ -69,7 +69,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     /****configuration****/
     private DigitalSTROMAPI digitalSTROMClient = null;
     private String applicationToken = null;
-    private String sessionToken = null;
+    private String sessionToken = "123";
     
     private static final int POLLING_FREQUENCY = 10; // in seconds
 	private final int BIN_CHECK_TIME = 360000; //in milliseconds
@@ -104,11 +104,12 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         		List<Device> currentDeviceList = new LinkedList<Device>(digitalSTROMClient.getApartmentDevices(sessionToken, false));
         		
         		while (!currentDeviceList.isEmpty()){
+        			
         			Device currentDevice = currentDeviceList.remove(0);
         			String currentDeviceDSID = currentDevice.getDSID().getValue();
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
         			
-        			if(eshDevice != null){
+        			if(eshDevice != null && deviceStatusListeners.get(currentDeviceDSID) != null){
         				
         				if(!eshDevice.isESHThingUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
@@ -245,10 +246,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			this.getConfig().get(HOST).toString(), 
         			(DigitalSTROMJSONImpl) digitalSTROMClient, 
         			this);
-        	this.digitalSTROMEventListener.start();
+        			
+        	//this.digitalSTROMEventListener.start();
         	
         	//vieleiecht besser bei updateSensorData?
-        	this.sensorJobExecuter.run();
+        	//this.sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
+        	//this.sensorJobExecuter.run();
+        	
+        	//onUpdate();
         	
         } else{
             logger.warn("Cannot connect to DigitalSTROMSever. Host address is not set.");
@@ -259,13 +264,13 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         logger.debug("Handler disposed.");
-        this.digitalSTROMEventListener.shutdown();
+       /* this.digitalSTROMEventListener.shutdown();
         this.sensorJobExecuter.shutdown();
         
         if(pollingJob!=null && !pollingJob.isCancelled()) {
         	pollingJob.cancel(true);
         	pollingJob = null;
-        }
+        }*/
         //TODO: füllen mit allem rest
     }
 
@@ -305,6 +310,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		if (digitalSTROMClient != null) {
 			if (pollingJob == null || pollingJob.isCancelled()) {
 				pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 1, POLLING_FREQUENCY, TimeUnit.SECONDS);
+				logger.debug("start pollingJob");
 			}
 	    }
 	}
@@ -339,14 +345,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						if(deviceStateUpdate.getValue() > 0){
 							requestSucsessfull = digitalSTROMClient.turnDeviceOn(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
-										(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
+								//digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+									//	(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
 							}
 						} else{
 							requestSucsessfull = digitalSTROMClient.turnDeviceOff(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
-										(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
+								//digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+									//	(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
 							}
 						}
 						break;
@@ -408,7 +414,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			throw new NullPointerException("It's not allowed to pass a null DeviceStatusListener.");
 		}
 		
-		if (id != null) {    	
+		if (id != null) {
+			logger.debug("Added DeviceStatusListener {}",id);
 			deviceStatusListeners.put(id, deviceStatusListener);
 			onUpdate();
 		    // inform the listener initially about the device and their states
@@ -496,11 +503,16 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	 */
 	public boolean checkConnection(){
 		//TODO: informieren obs noch weitere Fälle gibt
+		//logger.debug("checkConnection HTTP Status: {}",this.digitalSTROMClient.checkConnection(sessionToken));
 		switch(this.digitalSTROMClient.checkConnection(sessionToken)) {
 			case HttpURLConnection.HTTP_OK:
+				lastConnectionState = true;
+				break;
+			case HttpURLConnection.HTTP_UNAUTHORIZED:
+				logger.info("DigitalSTROM server  {} send HTTPStatus {}", this.getConfig().get(HOST), HttpURLConnection.HTTP_UNAUTHORIZED);
+				lastConnectionState = false;
 				break;
 			case HttpURLConnection.HTTP_FORBIDDEN:
-			case -1:
 				sessionToken = this.digitalSTROMClient.loginApplication(applicationToken);
 				if(this.digitalSTROMClient.checkConnection(sessionToken) == HttpURLConnection.HTTP_OK){
 					if(!lastConnectionState){
@@ -512,6 +524,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 					onNotAuthentificated();
 					lastConnectionState = false;
 				}
+				break;
+			case -1:
 			case HttpURLConnection.HTTP_NOT_FOUND:
 				logger.error("Server not found! Please check this points:\n"
 						+ " - DigitalSTROM-Server turned on?\n"
@@ -565,7 +579,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 					sessionToken = this.digitalSTROMClient.login(
 							configuration.get(USER_NAME).toString(), 
 							configuration.get(PASSWORD).toString());
-					
+					logger.debug("SessionToken: {}, applicationToken: {}", sessionToken, applicationToken);
 					if(this.digitalSTROMClient.enableApplicationToken(applicationToken, sessionToken)){
 						configuration.put(APPLICATION_TOKEN, applicationToken);
 						this.applicationToken = applicationToken;

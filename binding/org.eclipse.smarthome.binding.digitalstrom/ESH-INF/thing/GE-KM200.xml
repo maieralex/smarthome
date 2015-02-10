@@ -13,7 +13,11 @@
         <label>DigitalStrom device GE-KM200 (yellow).</label>
         <description>This is a DigitalStrom light device.</description>
 
-        
+        <channels>
+            <channel id="brightness" typeId="brightness" /><channel
+            	typeId="powerConsumption" id="powerConsumption" /><channel
+        		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
+        </channels>
 
         <config-description><!--deviceID-->
             <parameter name="deviceId" type="text">

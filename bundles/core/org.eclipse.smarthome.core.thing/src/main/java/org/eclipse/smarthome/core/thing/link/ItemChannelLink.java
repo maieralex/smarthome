@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,62 +11,32 @@ import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 
 /**
- * {@link ItemChannelLink} defines a link between an {@link Item} and a
- * {@link Channel}.
- * 
- * @author Dennis Nobel - Initial contribution
+ * {@link ItemChannelLink} defines a link between an {@link Item} and a {@link Channel}.
+ *
+ * @author Dennis Nobel - Initial contribution, Added getIDFor method
+ * @author Jochen Hiller - Bugfix 455434: added default constructor, object is now mutable
  */
-public class ItemChannelLink {
+public class ItemChannelLink extends AbstractLink {
 
-    private final String itemName;
+    private ChannelUID channelUID;
 
-    private final ChannelUID channelUID;
+    /**
+     * Default constructor in package scope only. Will allow to instantiate this
+     * class by reflection. Not intended to be used for normal instantiation.
+     */
+    ItemChannelLink() {
+        super();
+        this.channelUID = null;
+    }
 
     public ItemChannelLink(String itemName, ChannelUID channelUID) {
-        this.itemName = itemName;
+        super(itemName);
         this.channelUID = channelUID;
     }
 
-    public String getItemName() {
-        return itemName;
-    }
-
-    public ChannelUID getChannelUID() {
-        return channelUID;
-    }
-
-    public String getID() {
-        return itemName + " -> " + getChannelUID().toString();
-    }
-
     @Override
-    public String toString() {
-        return getID();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-        	return false;
-        }
-        if (!(obj instanceof ItemChannelLink)) {
-        	return false;
-        }
-        ItemChannelLink other = (ItemChannelLink) obj;
-        if (!this.itemName.equals(other.itemName)) {
-        	return false;
-        }
-        if (!this.channelUID.equals(other.channelUID)) {
-        	return false;
-        }
-
-        return true;
-    }
-    
-    @Override
-    public int hashCode() {
-        return (int)this.itemName.hashCode() *
-                this.channelUID.hashCode();
+    public ChannelUID getUID() {
+        return this.channelUID;
     }
 
 }

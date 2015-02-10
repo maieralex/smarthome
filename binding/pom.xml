@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="MACROMAN"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
     <groupId>org.eclipse.smarthome</groupId>
@@ -8,8 +8,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.eclipse.smarthome</groupId>
-  <artifactId>binding</artifactId>
+  <groupId>org.eclipse.smarthome.binding</groupId>
+  <artifactId>pom</artifactId>
 
   <name>Eclipse SmartHome Bindings</name>
 
@@ -19,7 +19,8 @@
     <module>org.eclipse.smarthome.binding.hue</module>
     <module>org.eclipse.smarthome.binding.hue.test</module>
     <module>org.eclipse.smarthome.binding.yahooweather</module>
-    <module>org.eclipse.smarthome.binding.digitalstrom</module>
+    <module>org.eclipse.smarthome.binding.wemo</module>
+    <module>org.eclipse.smarthome.binding.lifx</module>
   </modules>
 
   <build>

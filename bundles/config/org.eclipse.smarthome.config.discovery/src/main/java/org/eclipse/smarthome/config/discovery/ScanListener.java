@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,7 @@ package org.eclipse.smarthome.config.discovery;
 /**
  * The {@link ScanListener} interface for receiving scan operation events.
  * <p>
- * A class that is interested in errors and termination of an active scan
- * has to implement this interface.
+ * A class that is interested in errors and termination of an active scan has to implement this interface.
  *
  * @author Kai Kreuzer - Initial Contribution.
  *
@@ -22,8 +21,7 @@ public interface ScanListener {
     /**
      * Invoked synchronously when the according scan has finished.
      * <p>
-     * This signal is sent latest when the defined timeout for the 
-     * scan has been reached.
+     * This signal is sent latest when the defined timeout for the scan has been reached.
      */
     void onFinished();
 

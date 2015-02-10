@@ -1,4 +1,9 @@
-grammar org.eclipse.smarthome.model.thing.Thing with org.eclipse.xtext.common.Terminals
+grammar org.eclipse.smarthome.model.thing.Thing 
+
+// disabled due to conflicts between the custom ID rule and the common INT rule
+// with org.eclipse.xtext.common.Terminals
+
+hidden(WS, ML_COMMENT, SL_COMMENT)
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
@@ -14,7 +19,7 @@ ModelPropertyContainer:
 
 ModelBridge returns ModelThing: 
 	{ModelBridge}
-	bridge?='Bridge' (id=UID | thingTypeId=ID thingId=ID)
+	bridge?='Bridge' (id=UID | thingTypeId=UID_SEGMENT thingId=UID_SEGMENT)
 	('['
 		properties+=ModelProperty? (',' properties+=ModelProperty)*
 	']')?
@@ -28,7 +33,7 @@ ModelBridge returns ModelThing:
 ;
 
 ModelThing:
-	('Thing')? (id=UID | thingTypeId=ID thingId=ID)
+	('Thing')? (id=UID | thingTypeId=UID_SEGMENT thingId=UID_SEGMENT)
 	('['
 		properties+=ModelProperty? (',' properties+=ModelProperty)*
 	']')?
@@ -39,7 +44,7 @@ ModelThing:
 ;
 
 ModelChannel:
-	type=ModelItemType ':' id=ID
+	type=ModelItemType ':' id=UID_SEGMENT
 	('['
 		properties+=ModelProperty (',' properties+=ModelProperty)*
 	']')?
@@ -54,8 +59,13 @@ ModelProperty:
 ;
 
 UID:
-	ID ':' ID ':' ID (=> ':' ID)*
+	UID_SEGMENT ':' UID_SEGMENT ':' UID_SEGMENT (=> ':' UID_SEGMENT)*
 ;
+
+UID_SEGMENT :
+	ID|STRING
+;
+
 
 ValueType returns ecore::EJavaObject:
 	STRING | NUMBER | BOOLEAN
@@ -66,5 +76,21 @@ BOOLEAN returns ecore::EBoolean:
 ;
 
 NUMBER returns ecore::EBigDecimal:
-	INT ('.' INT )?
+	ID ('.' ID )?
 ;
+
+terminal ID  		: '^'?('a'..'z'|'A'..'Z'|'_'|'0'..'9') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+
+// INT is disabled due to conflicts with the custom ID rule
+// terminal INT: '0'..'9';
+
+terminal STRING	: 
+			'"' ( '\\' ('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|'"') )* '"' |
+			"'" ( '\\' ('b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\') | !('\\'|"'") )* "'"
+		; 
+terminal ML_COMMENT	: '/*' -> '*/';
+terminal SL_COMMENT 	: '//' !('\n'|'\r')* ('\r'? '\n')?;
+
+terminal WS			: (' '|'\t'|'\r'|'\n')+;
+
+terminal ANY_OTHER: .;

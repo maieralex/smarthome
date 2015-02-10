@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,8 +50,8 @@ public class ItemUtil {
     /**
      * Ensures that the specified name of the item is valid.
      * <p>
-     * If the name of the item is invalid an {@link IllegalArgumentException} is thrown,
-     * otherwise this method returns silently.
+     * If the name of the item is invalid an {@link IllegalArgumentException} is thrown, otherwise this method returns
+     * silently.
      * <p>
      * A valid item name must <i>only</i> only consists of the following characters:
      * <ul>
@@ -67,8 +67,7 @@ public class ItemUtil {
      */
     public static void assertValidItemName(String itemName) throws IllegalArgumentException {
         if (!isValidItemName(itemName)) {
-            throw new IllegalArgumentException("The specified name of the item '"
-                    + itemName + "' is not valid!");
+            throw new IllegalArgumentException("The specified name of the item '" + itemName + "' is not valid!");
         }
     }
 

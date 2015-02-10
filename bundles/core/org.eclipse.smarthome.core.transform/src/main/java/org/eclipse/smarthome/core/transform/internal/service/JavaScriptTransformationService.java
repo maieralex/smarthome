@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,67 +28,63 @@ import org.slf4j.LoggerFactory;
 /**
  * The implementation of {@link TransformationService} which transforms the
  * input by Java Script.
- * 
+ *
  * @author Pauli Anttila
  */
 public class JavaScriptTransformationService implements TransformationService {
 
-	static final Logger logger = 
-		LoggerFactory.getLogger(JavaScriptTransformationService.class);
-	
-	/**
-	 * Transforms the input <code>source</code> by Java Script. It expects the
-	 * transformation rule to be read from a file which is stored under the
-	 * 'configurations/transform' folder. To organize the various
-	 * transformations one should use subfolders.
-	 * 
-	 * @param filename
-	 *            the name of the file which contains the Java script
-	 *            transformation rule. Transformation service inject input
-	 *            (source) to 'input' variable.
-	 * @param source
-	 *            the input to transform
-	 */
-	public String transform(String filename, String source) throws TransformationException {
+    /**
+     * Transforms the input <code>source</code> by Java Script. It expects the
+     * transformation rule to be read from a file which is stored under the
+     * 'configurations/transform' folder. To organize the various
+     * transformations one should use subfolders.
+     * 
+     * @param filename
+     *            the name of the file which contains the Java script
+     *            transformation rule. Transformation service inject input
+     *            (source) to 'input' variable.
+     * @param source
+     *            the input to transform
+     */
+    @Override
+    public String transform(String filename, String source) throws TransformationException {
+        Logger logger = LoggerFactory.getLogger(JavaScriptTransformationService.class);
+        if (filename == null || source == null) {
+            throw new TransformationException("the given parameters 'filename' and 'source' must not be null");
+        }
 
-		if (filename == null || source == null) {
-			throw new TransformationException(
-				"the given parameters 'filename' and 'source' must not be null");
-		}
+        logger.debug("about to transform '{}' by the Java Script '{}'", source, filename);
 
-		logger.debug("about to transform '{}' by the Java Script '{}'", source, filename);
+        Reader reader;
 
-		Reader reader;
+        try {
+            String path = ConfigConstants.getConfigFolder() + File.separator
+                    + TransformationActivator.TRANSFORM_FOLDER_NAME + File.separator + filename;
+            reader = new InputStreamReader(new FileInputStream(path));
+        } catch (FileNotFoundException e) {
+            throw new TransformationException("An error occured while loading script.", e);
+        }
 
-		try {
-			String path = ConfigConstants.getConfigFolder() 
-				+ File.separator + TransformationActivator.TRANSFORM_FOLDER_NAME
-				+ File.separator + filename;
-			reader = new InputStreamReader(new FileInputStream(path));
-		} catch (FileNotFoundException e) {
-			throw new TransformationException("An error occured while loading script.", e);
-		}
+        ScriptEngineManager manager = new ScriptEngineManager();
 
-		ScriptEngineManager manager = new ScriptEngineManager();
-		
-		ScriptEngine engine = manager.getEngineByName("javascript");
-		engine.put("input", source);
+        ScriptEngine engine = manager.getEngineByName("javascript");
+        engine.put("input", source);
 
-		Object result = null;
+        Object result = null;
 
-		long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-		try {
-			result = engine.eval(reader);
-		} catch (ScriptException e) {
-			throw new TransformationException("An error occured while executing script.", e);
-		} finally {
-			IOUtils.closeQuietly(reader);
-		}
+        try {
+            result = engine.eval(reader);
+        } catch (ScriptException e) {
+            throw new TransformationException("An error occured while executing script.", e);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
 
-		logger.trace("JavaScript execution elapsed {} ms", System.currentTimeMillis() - startTime);
+        logger.trace("JavaScript execution elapsed {} ms", System.currentTimeMillis() - startTime);
 
-		return String.valueOf(result);
-	}
+        return String.valueOf(result);
+    }
 
 }

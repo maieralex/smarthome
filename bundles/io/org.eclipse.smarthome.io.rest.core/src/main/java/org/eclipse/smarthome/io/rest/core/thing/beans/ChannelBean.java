@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,19 +7,20 @@
  */
 package org.eclipse.smarthome.io.rest.core.thing.beans;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * This is a java bean that is used with JAXB to serialize channels to XML or
- * JSON.
- * 
+ * This is a java bean that is used with JAX-RS to serialize channels to JSON.
+ *
  * @author Dennis Nobel - Initial contribution
  *
  */
 @XmlRootElement(name = "channel")
 public class ChannelBean {
 
-    public String boundItem;
+    public List<String> linkedItems;
 
     public String id;
 
@@ -28,10 +29,10 @@ public class ChannelBean {
     public ChannelBean() {
     }
 
-    public ChannelBean(String id, String itemType, String boundItem) {
-        this.itemType = itemType;
+    public ChannelBean(String id, String itemType, List<String> linkedItems) {
         this.id = id;
-        this.boundItem = boundItem;
+        this.itemType = itemType;
+        this.linkedItems = linkedItems;
     }
 
 }

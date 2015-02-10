@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,16 +7,14 @@
  */
 package org.eclipse.smarthome.model.script;
 
-import org.eclipse.smarthome.model.script.ScriptStandaloneSetupGenerated;
 
 /**
- * Initialization support for running Xtext languages 
+ * Initialization support for running Xtext languages
  * without equinox extension registry
  */
-public class ScriptStandaloneSetup extends ScriptStandaloneSetupGenerated{
+public class ScriptStandaloneSetup extends ScriptStandaloneSetupGenerated {
 
-	public static void doSetup() {
-		new ScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
-	}
+    public static void doSetup() {
+        new ScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
+    }
 }
-

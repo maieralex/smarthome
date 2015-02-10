@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,29 +14,29 @@ import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.navigator.CommonViewer;
 
 /**
-*
-* @author Kai Kreuzer - Initial contribution and API
-*
-*/
+ *
+ * @author Kai Kreuzer - Initial contribution and API
+ *
+ */
 public class ConfigNavigatorActionGroup extends ActionGroup {
 
-	private SelectConfigFolderAction selectConfigFolderAction;
-	private CommonViewer commonViewer;
+    private SelectConfigFolderAction selectConfigFolderAction;
+    private CommonViewer commonViewer;
 
-	public ConfigNavigatorActionGroup(CommonViewer aViewer) {
-		super();
-		commonViewer = aViewer;
-		makeActions();
-	}
+    public ConfigNavigatorActionGroup(CommonViewer aViewer) {
+        super();
+        commonViewer = aViewer;
+        makeActions();
+    }
 
-	@Override
-	public void fillActionBars(IActionBars actionBars) {
-		IToolBarManager manager = actionBars.getToolBarManager();
-		manager.add(selectConfigFolderAction);
-	}
-	
-	private void makeActions() {
-		selectConfigFolderAction = new SelectConfigFolderAction(commonViewer);
-	}
+    @Override
+    public void fillActionBars(IActionBars actionBars) {
+        IToolBarManager manager = actionBars.getToolBarManager();
+        manager.add(selectConfigFolderAction);
+    }
+
+    private void makeActions() {
+        selectConfigFolderAction = new SelectConfigFolderAction(commonViewer);
+    }
 
 }

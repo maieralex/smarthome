@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,11 +16,11 @@ import com.google.inject.Inject;
 
 public class SitemapConverters extends DefaultTerminalConverters {
 
-	@Inject
-	private STRINGValueConverter stringValueConverter;
+    @Inject
+    private STRINGValueConverter stringValueConverter;
 
-	 @ValueConverter(rule = "Icon")
-	 public IValueConverter<String> BIG_DECIMAL() {
-	   return stringValueConverter;
-	 }
+    @ValueConverter(rule = "Icon")
+    public IValueConverter<String> BIG_DECIMAL() {
+        return stringValueConverter;
+    }
 }

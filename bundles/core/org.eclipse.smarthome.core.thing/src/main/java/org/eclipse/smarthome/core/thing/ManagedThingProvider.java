@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,21 +21,21 @@ import org.slf4j.LoggerFactory;
  * things at runtime by calling {@link ManagedThingProvider#addThing(Thing)} or
  * {@link ManagedThingProvider#removeThing(Thing)}. An added thing is
  * automatically exposed to the {@link ThingRegistry}.
- * 
+ *
  * @author Oliver Libutzki - Initial contribution
  * @author Dennis Nobel - Integrated Storage
  * @author Michael Grammling - Added dynamic configuration update
  */
 public class ManagedThingProvider extends DefaultAbstractManagedProvider<Thing, ThingUID> implements ThingProvider {
 
-    private final static Logger logger = LoggerFactory.getLogger(ManagedThingProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(ManagedThingProvider.class);
 
     private List<ThingHandlerFactory> thingHandlerFactories = new CopyOnWriteArrayList<>();
 
     /**
      * Creates a thing based on the given configuration properties, adds it and
      * informs all listeners.
-     * 
+     *
      * @param thingTypeUID
      *            thing type unique id
      * @param thingUID
@@ -53,14 +53,13 @@ public class ManagedThingProvider extends DefaultAbstractManagedProvider<Thing, 
         logger.debug("Creating thing for type '{}'.", thingTypeUID);
         for (ThingHandlerFactory thingHandlerFactory : thingHandlerFactories) {
             if (thingHandlerFactory.supportsThingType(thingTypeUID)) {
-                Thing thing = thingHandlerFactory.createThing(thingTypeUID, configuration,
-                        thingUID, bridgeUID);
+                Thing thing = thingHandlerFactory.createThing(thingTypeUID, configuration, thingUID, bridgeUID);
                 add(thing);
                 return thing;
             }
         }
-        logger.warn("Cannot create thing. No binding found that supports creating a thing"
-                + " of type {}.", thingTypeUID);
+        logger.warn("Cannot create thing. No binding found that supports creating a thing" + " of type {}.",
+                thingTypeUID);
         return null;
     }
 

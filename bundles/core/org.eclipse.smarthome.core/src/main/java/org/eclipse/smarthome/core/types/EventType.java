@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,9 +19,7 @@ package org.eclipse.smarthome.core.types;
  */
 public enum EventType {
 
-    COMMAND("command"),
-    UPDATE("update");
-
+    COMMAND("command"), UPDATE("update");
 
     private String name;
 
@@ -29,6 +27,7 @@ public enum EventType {
         this.name = name;
     }
 
+    @Override
     public String toString() {
         return this.name;
     }

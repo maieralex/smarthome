@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -90,6 +90,32 @@ class StorageServiceOSGiTest extends OSGiTest {
         storageWithoutClassloader.put("Key1", "Value")
         
         assertThat storageWithoutClassloader.get("Key1"), is(equalTo("Value"))
+    }
+    
+    @Test
+    void 'assert store configuration works'() {
+        def storageWithoutClassloader = storageService.getStorage("storage")
+
+        def configuration = new MockConfiguration();
+        configuration.put("bigDecimal", new BigDecimal(3))
+
+        storageWithoutClassloader.put("configuration", configuration)
+
+        def bigDecimal = storageWithoutClassloader.get("configuration").get("bigDecimal")
+        assertThat bigDecimal instanceof BigDecimal, is(true)
+    }
+    
+    private class MockConfiguration {
+        private Map<String, Object> configuration = new HashMap<String, Object>();
+        
+        public void put(String key, Object value) {
+            configuration.put(key,  value);
+        }
+        
+        public Object get(String key) {
+            return configuration.get(key);
+        }
+        
     }
 
 	

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
@@ -25,12 +26,14 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
- * {@link BaseThingHandlerFactory} provides a base implementation for the
- * {@link ThingHandlerFactory} interface. It provides the OSGi service
+ * {@link BaseThingHandlerFactory} provides a base implementation for the {@link ThingHandlerFactory} interface. It
+ * provides the OSGi service
  * registration logic.
- * 
+ *
  * @author Dennis Nobel - Initial contribution
- * 
+ *         * @author Benedikt Niehues - fix for Bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=445137 considering
+ *         default values
+ *
  */
 public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
 
@@ -38,40 +41,39 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
 
     private Map<String, ServiceRegistration<ThingHandler>> thingHandlers = new HashMap<>();
     private ServiceTracker<ThingTypeRegistry, ThingTypeRegistry> thingTypeRegistryServiceTracker;
+    private ServiceTracker<ConfigDescriptionRegistry, ConfigDescriptionRegistry> configDescritpionRegistryServiceTracker;
 
-	/**
-	 * Initializes the {@link BaseThingHandlerFactory}. If this method is
-	 * overridden by a sub class, the implementing method must call
-	 * <code>super.activate(componentContext)</code> first.
-	 * 
-	 * @param componentContext
-	 *            component context (must not be null)
-	 */
+    /**
+     * Initializes the {@link BaseThingHandlerFactory}. If this method is
+     * overridden by a sub class, the implementing method must call <code>super.activate(componentContext)</code> first.
+     * 
+     * @param componentContext
+     *            component context (must not be null)
+     */
     protected void activate(ComponentContext componentContext) {
         this.bundleContext = componentContext.getBundleContext();
         thingTypeRegistryServiceTracker = new ServiceTracker<>(bundleContext, ThingTypeRegistry.class.getName(), null);
         thingTypeRegistryServiceTracker.open();
+        configDescritpionRegistryServiceTracker = new ServiceTracker<>(bundleContext,
+                ConfigDescriptionRegistry.class.getName(), null);
+        configDescritpionRegistryServiceTracker.open();
     }
-	
-	/**
-	 * Disposes the {@link BaseThingHandlerFactory}. If this method is
-	 * overridden by a sub class, the implementing method must call
-	 * <code>super.deactivate(componentContext)</code> first.
-	 * 
-	 * @param componentContext
-	 *            component context (must not be null)
-	 */
+
+    /**
+     * Disposes the {@link BaseThingHandlerFactory}. If this method is
+     * overridden by a sub class, the implementing method must call <code>super.deactivate(componentContext)</code>
+     * first.
+     * 
+     * @param componentContext
+     *            component context (must not be null)
+     */
     protected void deactivate(ComponentContext componentContext) {
         for (ServiceRegistration<ThingHandler> serviceRegistration : this.thingHandlers.values()) {
-
-            ThingHandler thingHandler = (ThingHandler) bundleContext.getService(serviceRegistration
-                    .getReference());
-            if (thingHandler instanceof BaseThingHandler) {
-                ((BaseThingHandler) thingHandler).unsetBundleContext(bundleContext);
-            }
-            thingHandler.dispose();
+            unregisterHandler(serviceRegistration);
         }
         thingTypeRegistryServiceTracker.close();
+        configDescritpionRegistryServiceTracker.close();
+        this.thingHandlers.clear();
         this.bundleContext = null;
     }
 
@@ -79,36 +81,42 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     public void unregisterHandler(Thing thing) {
         ServiceRegistration<ThingHandler> serviceRegistration = thingHandlers.remove(thing.getUID().toString());
         if (serviceRegistration != null) {
-			ThingHandler thingHandler = (ThingHandler) bundleContext
-					.getService(serviceRegistration.getReference());
-            serviceRegistration.unregister();
-            removeHandler(thingHandler);
-            thingHandler.dispose();
-            if (thingHandler instanceof BaseThingHandler) {
-                ((BaseThingHandler) thingHandler).unsetBundleContext(bundleContext);
-            }
+            unregisterHandler(serviceRegistration);
+        }
+    }
+
+    private void unregisterHandler(ServiceRegistration<ThingHandler> serviceRegistration) {
+        ThingHandler thingHandler = bundleContext.getService(serviceRegistration.getReference());
+        removeHandler(thingHandler);
+        thingHandler.dispose();
+        serviceRegistration.unregister();
+        if (thingHandler instanceof BaseThingHandler) {
+            ((BaseThingHandler) thingHandler).unsetBundleContext(bundleContext);
         }
     }
 
     @Override
     public void registerHandler(Thing thing) {
         ThingHandler thingHandler = createHandler(thing);
+        if (thingHandler == null) {
+            throw new IllegalStateException(this.getClass().getSimpleName()
+                    + " could not create a handler for the thing '" + thing.getUID() + "'.");
+        }
         if (thingHandler instanceof BaseThingHandler) {
-        	if(bundleContext == null) {
-        		throw new IllegalStateException("Base thing handler factory has not been properly initialized. Did you forget to call super.activate()?");
-        	}
+            if (bundleContext == null) {
+                throw new IllegalStateException(
+                        "Base thing handler factory has not been properly initialized. Did you forget to call super.activate()?");
+            }
             ((BaseThingHandler) thingHandler).setBundleContext(bundleContext);
         }
         thingHandler.initialize();
 
-        ServiceRegistration<ThingHandler> serviceRegistration = registerAsService(thing,
-                thingHandler);
+        ServiceRegistration<ThingHandler> serviceRegistration = registerAsService(thing, thingHandler);
         thingHandlers.put(thing.getUID().toString(), serviceRegistration);
 
     }
 
-    private ServiceRegistration<ThingHandler> registerAsService(Thing thing,
-            ThingHandler thingHandler) {
+    private ServiceRegistration<ThingHandler> registerAsService(Thing thing, ThingHandler thingHandler) {
 
         Dictionary<String, Object> serviceProperties = getServiceProperties(thing, thingHandler);
 
@@ -123,15 +131,12 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
         Dictionary<String, Object> serviceProperties = new Hashtable<>();
 
         serviceProperties.put(ThingHandler.SERVICE_PROPERTY_THING_ID, thing.getUID());
-        serviceProperties.put(ThingHandler.SERVICE_PROPERTY_THING_TYPE, thing.getThingTypeUID()
-                .toString());
+        serviceProperties.put(ThingHandler.SERVICE_PROPERTY_THING_TYPE, thing.getThingTypeUID().toString());
 
         Map<String, Object> additionalServiceProperties = getServiceProperties(thingHandler);
         if (additionalServiceProperties != null) {
-            for (Entry<String, Object> additionalServiceProperty : additionalServiceProperties
-                    .entrySet()) {
-                serviceProperties.put(additionalServiceProperty.getKey(),
-                        additionalServiceProperty.getValue());
+            for (Entry<String, Object> additionalServiceProperty : additionalServiceProperties.entrySet()) {
+                serviceProperties.put(additionalServiceProperty.getKey(), additionalServiceProperty.getValue());
             }
         }
         return serviceProperties;
@@ -140,7 +145,7 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     /**
      * This method can be overridden to append additional service properties to
      * the registered OSGi {@link ThingHandler} service.
-     * 
+     *
      * @param thingHandler
      *            thing handler, which will be registered as OSGi service
      * @return map of additional service properties
@@ -150,9 +155,8 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     }
 
     /**
-     * The method implementation must create and return the {@link ThingHandler}
-     * for the given thing.
-     * 
+     * The method implementation must create and return the {@link ThingHandler} for the given thing.
+     *
      * @param thing
      *            thing
      * @return thing handler
@@ -163,7 +167,7 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
      * This method is called when a thing handler should be removed. The
      * implementing caller can override this method to release specific
      * resources.
-     * 
+     *
      * @param thingHandler
      *            thing handler to be removed
      */
@@ -175,26 +179,28 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     public void removeThing(ThingUID thingUID) {
         // can be overridden
     }
-    
+
     /**
      * Returns the {@link ThingType} which is represented by the given {@link ThingTypeUID}.
+     * 
      * @param thingTypeUID the unique id of the thing type
      * @return the thing type represented by the given unique id
      */
     protected ThingType getThingTypeByUID(ThingTypeUID thingTypeUID) {
-    	if(thingTypeRegistryServiceTracker == null) {
-    		throw new IllegalStateException("Base thing handler factory has not been properly initialized. Did you forget to call super.activate()?");
-    	}
-    	ThingTypeRegistry thingTypeRegistry = thingTypeRegistryServiceTracker.getService();
-    	if (thingTypeRegistry != null) {
-    		return thingTypeRegistry.getThingType(thingTypeUID);
-    	}
-    	return null;
+        if (thingTypeRegistryServiceTracker == null) {
+            throw new IllegalStateException(
+                    "Base thing handler factory has not been properly initialized. Did you forget to call super.activate()?");
+        }
+        ThingTypeRegistry thingTypeRegistry = thingTypeRegistryServiceTracker.getService();
+        if (thingTypeRegistry != null) {
+            return thingTypeRegistry.getThingType(thingTypeUID);
+        }
+        return null;
     }
-    
+
     /**
      * Creates a thing based on given thing type uid.
-     * 
+     *
      * @param thingTypeUID
      *            thing type uid (can not be null)
      * @param thingUID
@@ -204,12 +210,12 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
      * @return thing (can be null, if thing type is unknown)
      */
     protected Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration, ThingUID thingUID) {
-    	return createThing(thingTypeUID, configuration, thingUID, null);
+        return createThing(thingTypeUID, configuration, thingUID, null);
     }
-    
+
     /**
      * Creates a thing based on given thing type uid.
-     * 
+     *
      * @param thingTypeUID
      *            thing type uid (should not be null)
      * @param thingUID
@@ -220,14 +226,25 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
      *            (can be null)
      * @return thing (can be null, if thing type is unknown)
      */
-    public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration,
-            ThingUID thingUID, ThingUID bridgeUID) {
+    @Override
+    public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration, ThingUID thingUID,
+            ThingUID bridgeUID) {
         ThingType thingType = getThingTypeByUID(thingTypeUID);
         if (thingType != null) {
-            return ThingFactory.createThing(thingType, thingUID, configuration, bridgeUID);
+            Thing thing = ThingFactory.createThing(thingType, thingUID, configuration, bridgeUID,
+                    getConfigDescriptionRegistry());
+            return thing;
         } else {
             return null;
         }
     }
-    
+
+    protected ConfigDescriptionRegistry getConfigDescriptionRegistry() {
+        if (configDescritpionRegistryServiceTracker == null) {
+            throw new IllegalStateException(
+                    "Config Description Registry has not been properly initialized. Did you forget to call super.activate()?");
+        }
+        return configDescritpionRegistryServiceTracker.getService();
+    }
+
 }

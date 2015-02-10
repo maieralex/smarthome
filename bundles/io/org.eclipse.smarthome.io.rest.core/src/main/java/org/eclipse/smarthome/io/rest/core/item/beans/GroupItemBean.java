@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,18 +7,14 @@
  */
 package org.eclipse.smarthome.io.rest.core.item.beans;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
- * This is a java bean that is used with JAXB to serialize group items
- * to XML or JSON.
- *  
+ * This is a java bean that is used to serialize group items to JSON.
+ * 
  * @author Kai Kreuzer - Initial contribution and API
  *
  */
-@XmlRootElement(name="item")
 public class GroupItemBean extends ItemBean {
 
-	public ItemBean[] members;
-	
+    public ItemBean[] members;
+
 }

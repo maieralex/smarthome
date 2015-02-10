@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
  * Use this class to register components to be used within the IDE.
  */
 public class SitemapUiModule extends org.eclipse.smarthome.model.ui.AbstractSitemapUiModule {
-	public SitemapUiModule(AbstractUIPlugin plugin) {
-		super(plugin);
-	}
+    public SitemapUiModule(AbstractUIPlugin plugin) {
+        super(plugin);
+    }
 }

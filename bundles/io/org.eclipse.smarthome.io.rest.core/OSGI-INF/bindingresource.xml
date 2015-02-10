@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+    Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -11,6 +11,9 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.eclipse.smarthome.io.rest.core.binding.BindingResource">
    <implementation class="org.eclipse.smarthome.io.rest.core.binding.BindingResource"/>
    <service>
+      <provide interface="org.eclipse.smarthome.io.rest.core.binding.BindingResource"/>
       <provide interface="org.eclipse.smarthome.io.rest.RESTResource"/>
    </service>
+   <reference bind="setBindingInfoRegistry" cardinality="1..1" interface="org.eclipse.smarthome.core.binding.BindingInfoRegistry" name="BindingInfoRegistry" policy="static" unbind="unsetBindingInfoRegistry"/>
+   <reference bind="setThingTypeResource" cardinality="1..1" interface="org.eclipse.smarthome.io.rest.core.thing.ThingTypeResource" name="ThingTypeResource" policy="static" unbind="unsetThingTypeResource"/>
 </scr:component>

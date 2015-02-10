@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,15 +17,14 @@ import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 
-
 /**
- * The {@link BridgeTypeConverter} is a concrete implementation of the {@code XStream}
- * {@link Converter} interface used to convert bridge type information within an XML document
+ * The {@link BridgeTypeConverter} is a concrete implementation of the {@code XStream} {@link Converter} interface used
+ * to convert bridge type information within an XML document
  * into a {@link BridgeTypeXmlResult} object.
  * <p>
- * This converter converts {@code bridge-type} XML tags.
- * It uses the {@link ThingTypeConverter} since both contain the same content.
- * 
+ * This converter converts {@code bridge-type} XML tags. It uses the {@link ThingTypeConverter} since both contain the
+ * same content.
+ *
  * @author Michael Grammling - Initial Contribution
  */
 public class BridgeTypeConverter extends ThingTypeConverter {
@@ -35,20 +34,15 @@ public class BridgeTypeConverter extends ThingTypeConverter {
     }
 
     @Override
-    protected BridgeTypeXmlResult unmarshalType(
-            HierarchicalStreamReader reader, UnmarshallingContext context,
-            Map<String, String> attributes, NodeIterator nodeIterator)
-            throws ConversionException {
+    protected BridgeTypeXmlResult unmarshalType(HierarchicalStreamReader reader, UnmarshallingContext context,
+            Map<String, String> attributes, NodeIterator nodeIterator) throws ConversionException {
 
-        BridgeTypeXmlResult thingTypeXmlResult = new BridgeTypeXmlResult(
-                new ThingTypeUID(super.getUID(attributes, context)),
-                super.readSupportedBridgeTypeUIDs(nodeIterator, context),
-                super.readLabel(nodeIterator),
-                super.readDescription(nodeIterator),
-                super.readChannelTypeDefinitions(nodeIterator),
+        BridgeTypeXmlResult bridgeTypeXmlResult = new BridgeTypeXmlResult(new ThingTypeUID(super.getUID(attributes,
+                context)), super.readSupportedBridgeTypeUIDs(nodeIterator, context), super.readLabel(nodeIterator),
+                super.readDescription(nodeIterator), super.getChannelTypeReferenceObjects(nodeIterator),
                 super.getConfigDescriptionObjects(nodeIterator));
 
-        return thingTypeXmlResult;
+        return bridgeTypeXmlResult;
     }
 
 }

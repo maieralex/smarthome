@@ -1076,8 +1076,8 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 			JSONObject obj = handler.getResultJSONObject(responseObj);
 			
 			if(obj != null){
-				String dsID = JSONApiResponseKeysEnum.SYSTEM_DSID
-						.getKey();
+				String dsID = obj.get(JSONApiResponseKeysEnum.SYSTEM_DSID
+						.getKey()).toString();
 			
 				if (dsID != null) return dsID;
 			}
@@ -1108,8 +1108,8 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 			JSONObject obj = handler.getResultJSONObject(responseObj);
 			
 			if(obj != null){
-				String aplicationToken = JSONApiResponseKeysEnum.SYSTEM_APPLICATION_TOKEN
-						.getKey();
+				String aplicationToken = obj.get(JSONApiResponseKeysEnum.SYSTEM_APPLICATION_TOKEN
+						.getKey()).toString();
 			
 				if (aplicationToken != null) return aplicationToken;
 			}
@@ -1132,6 +1132,6 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	
 	@Override
 	public int checkConnection(String token){
-		return transport.checkConnection(JSONRequestConstants.JSON_SYSTEM_TIME+JSONRequestConstants.PARAMETER_TOKEN+token);
+		return transport.checkConnection("/json/apartment/getName?token="+token);
 	}
 }

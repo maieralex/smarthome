@@ -33,7 +33,7 @@
     				<option value="high">high priority</option>
     				<option value="medium">medium priority</option>
     				<option value="low">low priority</option></options>
-    			<default>never</default>
+    			<default>high</default>
     			<required>false</required></parameter></config-description>
     </channel-type>
     <channel-type id="electricMeterValue">

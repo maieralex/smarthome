@@ -16,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +113,7 @@ public class HttpTransport {
 			try {
 				URL url = new URL(this.uri+testRequest);
 				
-				connection = (HttpURLConnection) url.openConnection();
+				connection = (HttpsURLConnection) url.openConnection();
 
 				if (connection != null) {
 					connection.setConnectTimeout(connectTimeout);

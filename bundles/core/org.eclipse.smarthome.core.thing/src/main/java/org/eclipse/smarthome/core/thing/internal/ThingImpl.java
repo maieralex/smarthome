@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.items.GroupItem;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -27,8 +28,12 @@ import com.google.common.collect.ImmutableList;
  * The {@link ThingImpl} class is a concrete implementation of the {@link Thing}.
  * <p>
  * This class is mutable.
- * 
+ *
  * @author Michael Grammling - Configuration could never be null but may be empty
+ * @author Benedikt Niehues - Fix ESH Bug 450236
+ *         https://bugs.eclipse.org/bugs/show_bug.cgi?id=450236 - Considering
+ *         ThingType Description
+ *
  */
 public class ThingImpl implements Thing {
 
@@ -45,17 +50,17 @@ public class ThingImpl implements Thing {
     transient volatile private ThingHandler thingHandler;
 
     transient volatile private List<ThingListener> thingListeners = new CopyOnWriteArrayList<>();
-    
-    private String name;
 
     private ThingTypeUID thingTypeUID;
-    
+
+    transient volatile private GroupItem linkedItem;
+
     /**
      * Package protected default constructor to allow reflective instantiation.
      */
     ThingImpl() {
     }
-    
+
     /**
      * @param thingTypeUID
      * @param thingId
@@ -67,20 +72,20 @@ public class ThingImpl implements Thing {
         this.thingTypeUID = thingTypeUID;
         this.channels = new ArrayList<>(0);
     }
-    
+
     /**
      * @param thingUID
      * @throws IllegalArgumentException
      */
     public ThingImpl(ThingUID thingUID) throws IllegalArgumentException {
-    	this.uid = thingUID;
-    	this.thingTypeUID = new ThingTypeUID(thingUID.getBindingId(), thingUID.getThingTypeId());
-    	this.channels = new ArrayList<>(0);
+        this.uid = thingUID;
+        this.thingTypeUID = new ThingTypeUID(thingUID.getBindingId(), thingUID.getThingTypeId());
+        this.channels = new ArrayList<>(0);
     }
 
     /**
      * Adds the thing listener.
-     * 
+     *
      * @param thingListener
      *            the thing listener
      */
@@ -100,8 +105,23 @@ public class ThingImpl implements Thing {
         return this.bridgeUID;
     }
 
+    @Override
     public List<Channel> getChannels() {
         return ImmutableList.copyOf(this.channels);
+    }
+
+    @Override
+    public Channel getChannel(String channelId) {
+        for (Channel channel : this.channels) {
+            if (channel.getUID().getId().equals(channelId)) {
+                return channel;
+            }
+        }
+        return null;
+    }
+
+    public List<Channel> getChannelsMutable() {
+        return this.channels;
     }
 
     @Override
@@ -114,23 +134,19 @@ public class ThingImpl implements Thing {
         return this.thingHandler;
     }
 
+    @Override
     public ThingUID getUID() {
         return uid;
     }
 
-
+    @Override
     public ThingStatus getStatus() {
         return status;
     }
-    
-    @Override
-    public String getName() {
-		return name;
-	}
 
     /**
      * Removes the thing listener.
-     * 
+     *
      * @param thingListener
      *            the thing listener
      */
@@ -160,18 +176,28 @@ public class ThingImpl implements Thing {
         this.uid = id;
     }
 
+    @Override
     public void setStatus(ThingStatus status) {
         this.status = status;
-    }
-    
-    @Override
-    public void setName(String name) {
-    	this.name = name;
     }
 
     @Override
     public ThingTypeUID getThingTypeUID() {
         return this.thingTypeUID;
+    }
+
+    public void setLinkedItem(GroupItem groupItem) {
+        this.linkedItem = groupItem;
+    }
+
+    @Override
+    public GroupItem getLinkedItem() {
+        return this.linkedItem;
+    }
+
+    @Override
+    public boolean isLinked() {
+        return getLinkedItem() != null;
     }
 
     @Override

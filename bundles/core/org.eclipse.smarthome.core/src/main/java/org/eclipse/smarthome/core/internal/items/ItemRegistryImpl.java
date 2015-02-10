@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,8 @@ import org.eclipse.smarthome.core.items.ItemProvider;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.items.ItemRegistryChangeListener;
 import org.eclipse.smarthome.core.items.ItemsChangeListener;
+import org.eclipse.smarthome.core.items.ManagedItemProvider;
+import org.eclipse.smarthome.core.types.StateDescriptionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,19 +35,21 @@ import org.slf4j.LoggerFactory;
  * keeps track of all declared items of all item providers and keeps their
  * current state in memory. This is the central point where states are kept and
  * thus it is a core part for all stateful services.
- * 
+ *
  * @author Kai Kreuzer - Initial contribution and API
- * 
+ *
  */
-public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegistry, ItemsChangeListener {
+public class ItemRegistryImpl extends AbstractRegistry<Item, String> implements ItemRegistry, ItemsChangeListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(ItemRegistryImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(ItemRegistryImpl.class);
 
     /**
      * if an EventPublisher service is available, we provide it to all items, so
      * that they can communicate over the bus
      */
     protected EventPublisher eventPublisher;
+
+    protected StateDescriptionProvider stateDescriptionProvider;
 
     @Override
     public void allItemsChanged(ItemProvider provider, Collection<String> oldItemNames) {
@@ -66,23 +70,23 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
         elementMap.put(provider, items);
         for (Item item : provider.getAll()) {
             try {
-            	onAddElement(item);
-            	items.add(item);
-            } catch(IllegalArgumentException ex) {
-            	 logger.warn("Could not add item: " + ex.getMessage(), ex);
+                onAddElement(item);
+                items.add(item);
+            } catch (IllegalArgumentException ex) {
+                logger.warn("Could not add item: " + ex.getMessage(), ex);
             }
         }
 
         for (RegistryChangeListener<Item> listener : listeners) {
-            if(listener instanceof ItemRegistryChangeListener) {
-                ((ItemRegistryChangeListener)listener).allItemsChanged(oldItemNames);
+            if (listener instanceof ItemRegistryChangeListener) {
+                ((ItemRegistryChangeListener) listener).allItemsChanged(oldItemNames);
             }
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.smarthome.core.internal.items.ItemRegistry#getItem(java.lang
      * .String)
@@ -99,9 +103,18 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
         throw new ItemNotFoundException(name);
     }
 
+    @Override
+    public Item get(String itemName) {
+        try {
+            return getItem(itemName);
+        } catch (ItemNotFoundException ignored) {
+            return null;
+        }
+    }
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.smarthome.core.internal.items.ItemRegistry#getItemByPattern
      * (java.lang.String)
@@ -124,7 +137,7 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.smarthome.core.internal.items.ItemRegistry#getItems()
      */
     @Override
@@ -132,9 +145,22 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
         return getAll();
     }
 
+    @Override
+    public Collection<Item> getItemsOfType(String type) {
+        Collection<Item> matchedItems = new ArrayList<Item>();
+
+        for (Item item : getItems()) {
+            if (item.getType().equals(type)) {
+                matchedItems.add(item);
+            }
+        }
+
+        return matchedItems;
+    }
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.smarthome.core.internal.items.ItemRegistry#getItems(java.
      * lang.String)
@@ -175,7 +201,7 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
      * An item should be initialized, which means that the event publisher is
      * injected and its implementation is notified that it has just been
      * created, so it can perform any task it needs to do after its creation.
-     * 
+     *
      * @param item
      *            the item to initialize
      * @throws IllegalArgumentException if the item has no valid name
@@ -185,24 +211,28 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
             if (item instanceof GenericItem) {
                 GenericItem genericItem = (GenericItem) item;
                 genericItem.setEventPublisher(eventPublisher);
+                genericItem.setStateDescriptionProvider(stateDescriptionProvider);
                 genericItem.initialize();
             }
 
             if (item instanceof GroupItem) {
                 // fill group with its members
-                for (Item i : getItems()) {
-                    if (i.getGroupNames().contains(item.getName())) {
-                        ((GroupItem) item).addMember(i);
-                    }
-                }
+                addMembersToGroupItem((GroupItem) item);
             }
 
             // add the item to all relevant groups
             addToGroupItems(item, item.getGroupNames());
         } else {
-			throw new IllegalArgumentException("Ignoring item '"
-					+ item.getName() + "' as it does not comply with"
-					+ " the naming convention.");
+            throw new IllegalArgumentException("Ignoring item '" + item.getName() + "' as it does not comply with"
+                    + " the naming convention.");
+        }
+    }
+
+    private void addMembersToGroupItem(GroupItem groupItem) {
+        for (Item i : getItems()) {
+            if (i.getGroupNames().contains(groupItem.getName())) {
+                groupItem.addMember(i);
+            }
         }
     }
 
@@ -233,6 +263,9 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
     protected void onUpdateElement(Item oldItem, Item item) {
         removeFromGroupItems(oldItem, oldItem.getGroupNames());
         addToGroupItems(item, item.getGroupNames());
+        if (item instanceof GroupItem) {
+            addMembersToGroupItem((GroupItem) item);
+        }
     }
 
     protected void setEventPublisher(EventPublisher eventPublisher) {
@@ -249,4 +282,71 @@ public class ItemRegistryImpl extends AbstractRegistry<Item> implements ItemRegi
         }
     }
 
+    protected void setStateDescriptionProvider(StateDescriptionProvider stateDescriptionProvider) {
+        this.stateDescriptionProvider = stateDescriptionProvider;
+        for (Item item : getItems()) {
+            ((GenericItem) item).setStateDescriptionProvider(stateDescriptionProvider);
+        }
+    }
+
+    protected void unsetStateDescriptionProvider(StateDescriptionProvider stateDescriptionProvider) {
+        this.stateDescriptionProvider = null;
+        for (Item item : getItems()) {
+            ((GenericItem) item).setStateDescriptionProvider(null);
+        }
+    }
+
+    @Override
+    public Collection<Item> getItemsByTag(String... tags) {
+        List<Item> filteredItems = new ArrayList<Item>();
+        for (Item item : getItems()) {
+            if (itemHasTags(item, tags)) {
+                filteredItems.add(item);
+            }
+        }
+        return filteredItems;
+    }
+
+    private boolean itemHasTags(Item item, String... tags) {
+        for (String tag : tags) {
+            if (!item.hasTag(tag)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends GenericItem> Collection<T> getItemsByTag(Class<T> typeFilter, String... tags) {
+        Collection<T> filteredItems = new ArrayList<T>();
+
+        Collection<Item> items = getItemsByTag(tags);
+        for (Item item : items) {
+            if (typeFilter.isInstance(item)) {
+                filteredItems.add((T) filteredItems);
+            }
+        }
+        return filteredItems;
+    }
+
+    @Override
+    public Collection<Item> getItemsByTagAndType(String type, String... tags) {
+        List<Item> filteredItems = new ArrayList<Item>();
+        for (Item item : getItemsOfType(type)) {
+            if (itemHasTags(item, tags)) {
+                filteredItems.add(item);
+            }
+        }
+        return filteredItems;
+    }
+
+    @Override
+    public void remove(String itemName, boolean recursive) {
+        if (this.managedProvider != null) {
+            ((ManagedItemProvider) this.managedProvider).remove(itemName, recursive);
+        } else {
+            throw new IllegalStateException("ManagedProvider is not available");
+        }
+    }
 }

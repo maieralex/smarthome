@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,12 +20,13 @@ import org.eclipse.xtext.scoping.IGlobalScopeProvider;
  */
 public class PersistenceRuntimeModule extends org.eclipse.smarthome.model.persistence.AbstractPersistenceRuntimeModule {
 
-	@Override
-	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
-		return PersistenceGlobalScopeProvider.class;
-	}
-	
-	public Class<? extends IGenerator> bindIGenerator() {
-		return NullGenerator.class;
-	}
+    @Override
+    public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
+        return PersistenceGlobalScopeProvider.class;
+    }
+
+    @Override
+    public Class<? extends IGenerator> bindIGenerator() {
+        return NullGenerator.class;
+    }
 }

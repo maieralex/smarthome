@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,5 +26,14 @@ class UIDTest {
         new ThingUID("binding:type:id_1")
         new ThingUID("binding:type:ID")
         new ThingUID("00:type:ID")
+    }
+    
+    @Test
+    void 'channel UID with group'() {
+        def channelUID = new ChannelUID("binding", "thing-type", "thing", "group", "id")
+        assertThat channelUID.toString(), is(equalTo("binding:thing-type:thing:group#id"))
+        assertThat channelUID.isInGroup(), is(true)
+        assertThat channelUID.getId(), is("group#id")
+        assertThat channelUID.getIdWithoutGroup(), is("id")
     }
 }

@@ -58,8 +58,8 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	
     @Override
     public void initialize() {
-    	logger.debug("Initializing digitalSTROM yellow device handler.");
-        final String configDSId = (String) getConfig().get(DS_ID);
+        final String configDSId = getConfig().get(DS_ID).toString();
+        logger.debug(configDSId);
         if (configDSId != null) {
             dsID = configDSId;
         	// note: this call implicitly registers our handler as a listener on the bridge
@@ -84,6 +84,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     private Device getDevice() {
     	DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
     	if(dssBridgeHandler != null) {
+    		//logger.debug("get DssBridgeHandler");
     		return dssBridgeHandler.getDeviceByDSID(dsID);
     	}
         return null;

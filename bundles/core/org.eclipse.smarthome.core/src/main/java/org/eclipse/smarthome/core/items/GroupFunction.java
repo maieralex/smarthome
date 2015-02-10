@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,68 +16,69 @@ import org.eclipse.smarthome.core.types.UnDefType;
 /**
  * Group functions are used by active group items to calculate a state for the group
  * out of the states of all its member items.
- * 
+ *
  * @author Kai Kreuzer - Initial contribution and API
  *
  */
 abstract public interface GroupFunction {
 
-	/**
-	 * Determines the current state of a group based on a list of items
-	 * 
-	 * @param items the items to calculate a group state for
-	 * @return the calculated group state
-	 */
-	public State calculate(Set<Item> items);
-	
-	/**
-	 * Calculates the group state and returns it as a state of the requested type.
-	 * 
-	 * @param items the items to calculate a group state for
-	 * @param stateClass the type in which the state should be returned
-	 * @return the calculated group state of the requested type or null, if type is not supported
-	 */
-	public State getStateAs(Set<Item> items, Class<? extends State> stateClass);
+    /**
+     * Determines the current state of a group based on a list of items
+     * 
+     * @param items the items to calculate a group state for
+     * @return the calculated group state
+     */
+    public State calculate(Set<Item> items);
 
-	/**
-	 * This is the default group function that does nothing else than to check if all member items
-	 * have the same state. If this is the case, this state is returned, otherwise UNDEF is returned.
-	 * 
-	 * @author Kai Kreuzer - Initial contribution and API
-		 *
-	 */
-	static class Equality implements GroupFunction {
+    /**
+     * Calculates the group state and returns it as a state of the requested type.
+     * 
+     * @param items the items to calculate a group state for
+     * @param stateClass the type in which the state should be returned
+     * @return the calculated group state of the requested type or null, if type is not supported
+     */
+    public State getStateAs(Set<Item> items, Class<? extends State> stateClass);
 
-		/**
-		 * @{inheritDoc
-		 */
-		public State calculate(Set<Item> items) {
-			if(items.size()>0) {
-				Iterator<Item> it = items.iterator();
-				State state = it.next().getState(); 
-				while(it.hasNext()) {
-					if(!state.equals(it.next().getState())) {
-						return UnDefType.UNDEF;
-					}
-				}
-				return state;
-			} else {
-				return UnDefType.UNDEF;
-			}
-		}
+    /**
+     * This is the default group function that does nothing else than to check if all member items
+     * have the same state. If this is the case, this state is returned, otherwise UNDEF is returned.
+     * 
+     * @author Kai Kreuzer - Initial contribution and API
+     *
+     */
+    static class Equality implements GroupFunction {
 
-		/**
-		 * @{inheritDoc
-		 */
-		public State getStateAs(Set<Item> items,
-				Class<? extends State> stateClass) {
-			State state = calculate(items);
-			if(stateClass.isInstance(state)) {
-				return state;
-			} else {
-				return null;
-			}
-		}
-	}
+        /**
+         * @{inheritDoc
+         */
+        @Override
+        public State calculate(Set<Item> items) {
+            if (items.size() > 0) {
+                Iterator<Item> it = items.iterator();
+                State state = it.next().getState();
+                while (it.hasNext()) {
+                    if (!state.equals(it.next().getState())) {
+                        return UnDefType.UNDEF;
+                    }
+                }
+                return state;
+            } else {
+                return UnDefType.UNDEF;
+            }
+        }
+
+        /**
+         * @{inheritDoc
+         */
+        @Override
+        public State getStateAs(Set<Item> items, Class<? extends State> stateClass) {
+            State state = calculate(items);
+            if (stateClass.isInstance(state)) {
+                return state;
+            } else {
+                return null;
+            }
+        }
+    }
 
 }

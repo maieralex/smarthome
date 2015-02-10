@@ -50,29 +50,30 @@ Every binding needs to define a `binding.xml` file, which is located in the fold
 
 External systems are represented as *Things* in the Eclipse SmartHome runtime. When starting the implementation of an Eclipse SmartHome binding, you should think about the abstraction of your external system. Different services or devices should be represented as individual *Things* described by a *ThingType*. Each functionality of the *Thing*, should be modelled as a `Channel`. A binding should define all *ThingTypes* that are supported by the binding.
 
-Eclipse SmartHome allows you to define your *ThingTypes* in a declarative way through XML files. The XML files must be located at `/ESH-INF/thing-type/`. A *ThingType* definition must contain the UID and optionally a description and a manufacturer. Moreover supported channels must be specified. For channels it is important to specify which type of an *Item* can be linked the *Channel*. Subsequent an excerpt of the Yahoo Weather service *ThingType* definition is shown:
+Eclipse SmartHome allows you to define your *ThingTypes* in a declarative way through XML files. The XML files must be located at `/ESH-INF/thing/`. A *ThingType* definition must contain the UID and optionally a description and a manufacturer. Moreover supported channels must be specified. For channels it is important to specify which type of an *Item* can be linked the *Channel*. Subsequent an excerpt of the Yahoo Weather service *ThingType* definition is shown:
 
 ```xml
 <thing-type id="weather">
     <label>Weather Information</label>
     <description>Provides various weather data from the Yahoo service</description>
-
     <channels>
         <channel id="temperature" typeId="temperature" />
     </channels>
-
     <config-description>
-        <parameter name="location" type="text">
+        <parameter name="location" type="text" required="true">
             <label>Location</label>
             <description>Location for the weather information.
                 Syntax is WOEID, see https://en.wikipedia.org/wiki/WOEID.
             </description>
-            <required>true</required>
         </parameter>
         <parameter name="unit" type="text">
             <label>Unit</label>
             <description>Specifies the unit of the data. Valid values are "us" or "metric".</description>
             <default>metric</default>
+            <options>
+              <option value="metric">metric</option>
+              <option value="us">us</option>
+            </options>
         </parameter>
         <parameter name="refresh" type="integer">
             <label>Refresh interval</label>
@@ -86,8 +87,14 @@ Eclipse SmartHome allows you to define your *ThingTypes* in a declarative way th
     <item-type>Number</item-type>
     <label>Temperature</label>
     <description>Current temperature in degrees celsius (metric) or fahrenheit (us)</description>
+    <category>Temperature</category>
+    <state readOnly="true" />
 </channel-type>
 ```
+
+The channel type definition allows to specify a category and additional meta information for the state of the linked item. Together with the definition of the `readOnly` attribute, user interfaces get an idea how to render an item for this channel. For example a channel with the category `Temperature` which is readable only, indicates that this is a sensor for temperature. In that case the user inteface can render an according icon and a label for the current value. If the `readOnly` flag is set to `false` (which is the default value), the user interface could render a slider to change the temperature, because this means it is temperature actuator. Restrictions of the state like the minimum or maximum value can also be specified. 
+
+In order to give user interfaces a chance to render good default UIs for things, the binding should specify as much meta data as possible. For a complete list of possible configuration options and categories please see the [Thing Definition](../architecture/thing-definition.md#channels) section.
 
 ## The ThingHandlerFactory
 
@@ -159,11 +166,11 @@ The `ThingHandler` has two important lifecycle methods: `initialize` and `dispos
 
 ### Configuration
 
-*Things* can be configured with parameters. To retrieve the configuration of a *Thing* you can can call `getThing().getConfiguration()` inside the `ThingHandler`. The configuration class has the equivalent methods as the `Map` interface, thus the the method `get(String key)` can be used to retrieve a value for a given key. 
+*Things* can be configured with parameters. To retrieve the configuration of a *Thing* you can call `getThing().getConfiguration()` inside the `ThingHandler`. The configuration class has the equivalent methods as the `Map` interface, thus the method `get(String key)` can be used to retrieve a value for a given key. 
 
-Moreover the configuration class has a utility method `as(Class<T> configurationClass)`, that transform the configuration into a Java object of the given type. All configuration values will be mapped to properties of the class. The type of the property must match the type of the configuration. Only the following types are supported for configuration values: `Boolean`, `String` and `BigDecimal`.
+Moreover the configuration class has a utility method `as(Class<T> configurationClass)` that transform the configuration into a Java object of the given type. All configuration values will be mapped to properties of the class. The type of the property must match the type of the configuration. Only the following types are supported for configuration values: `Boolean`, `String` and `BigDecimal`.
 
-For example, The Yahoo Weather binding allows to configure the location and unit.
+For example, the Yahoo Weather binding allows to configure the location and unit.
 
 ## Bridges
 

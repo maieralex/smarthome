@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of {@link ThingRegistry}.
- * 
+ *
  * @author Michael Grammling - Added dynamic configuration update
  */
-public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingRegistry {
+public class ThingRegistryImpl extends AbstractRegistry<Thing, ThingUID> implements ThingRegistry {
 
     private Logger logger = LoggerFactory.getLogger(ThingRegistryImpl.class.getName());
 
@@ -33,7 +33,7 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
 
     /**
      * Adds a thing tracker.
-     * 
+     *
      * @param thingTracker
      *            the thing tracker
      */
@@ -44,12 +44,12 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.eclipse.smarthome.core.thing.ThingRegistry#getByUID(java.lang.String)
      */
     @Override
-    public Thing getByUID(ThingUID uid) {
+    public Thing get(ThingUID uid) {
         for (Thing thing : getAll()) {
             if (thing.getUID().equals(uid)) {
                 return thing;
@@ -60,7 +60,7 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
 
     /**
      * Removes a thing tracker.
-     * 
+     *
      * @param thingTracker
      *            the thing tracker
      */
@@ -99,7 +99,7 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
     protected void onRemoveElement(Thing thing) {
         ThingUID bridgeUID = thing.getBridgeUID();
         if (bridgeUID != null) {
-            Thing bridge = this.getByUID(bridgeUID);
+            Thing bridge = this.get(bridgeUID);
             if (bridge instanceof BridgeImpl) {
                 ((BridgeImpl) bridge).removeThing(thing);
             }
@@ -127,7 +127,7 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
     private void addThingToBridge(Thing thing) {
         ThingUID bridgeUID = thing.getBridgeUID();
         if (bridgeUID != null) {
-            Thing bridge = this.getByUID(bridgeUID);
+            Thing bridge = this.get(bridgeUID);
             if (bridge instanceof BridgeImpl && !((Bridge) bridge).getThings().contains(thing)) {
                 ((BridgeImpl) bridge).addThing(thing);
             }
@@ -138,21 +138,21 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing> implements ThingR
         for (ThingTracker thingTracker : thingTrackers) {
             try {
                 switch (event) {
-                case THING_ADDED:
-                    thingTracker.thingAdded(thing, ThingTrackerEvent.THING_ADDED);
-                    break;
-                case THING_REMOVED:
-                    thingTracker.thingRemoved(thing, ThingTrackerEvent.THING_REMOVED);
-                    break;
-                case THING_UPDATED:
-                    thingTracker.thingUpdated(thing, ThingTrackerEvent.THING_UPDATED);
-                    break;
-                default:
-                    break;
+                    case THING_ADDED:
+                        thingTracker.thingAdded(thing, ThingTrackerEvent.THING_ADDED);
+                        break;
+                    case THING_REMOVED:
+                        thingTracker.thingRemoved(thing, ThingTrackerEvent.THING_REMOVED);
+                        break;
+                    case THING_UPDATED:
+                        thingTracker.thingUpdated(thing, ThingTrackerEvent.THING_UPDATED);
+                        break;
+                    default:
+                        break;
                 }
             } catch (Exception ex) {
-                logger.error("Could not inform the ThingTracker '" + thingTracker + "' about the '"
-                        + event.name() + "' event!", ex);
+                logger.error("Could not inform the ThingTracker '" + thingTracker + "' about the '" + event.name()
+                        + "' event!", ex);
             }
         }
     }

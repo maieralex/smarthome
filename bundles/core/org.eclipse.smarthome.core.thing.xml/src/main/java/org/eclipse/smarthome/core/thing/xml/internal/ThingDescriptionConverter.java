@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,10 +17,9 @@ import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 
-
 /**
- * The {@link ThingDescriptionConverter} is a concrete implementation of the {@code XStream}
- * {@link Converter} interface used to convert a list of type information within an XML document
+ * The {@link ThingDescriptionConverter} is a concrete implementation of the {@code XStream} {@link Converter} interface
+ * used to convert a list of type information within an XML document
  * into a {@link ThingDescriptionList} object.
  * <p>
  * This converter converts {@code thing-descriptions} XML tags.
@@ -31,13 +30,11 @@ public class ThingDescriptionConverter extends GenericUnmarshaller<ThingDescript
 
     private ConverterAttributeMapValidator attributeMapValidator;
 
-
     public ThingDescriptionConverter() {
         super(ThingDescriptionList.class);
 
-        this.attributeMapValidator = new ConverterAttributeMapValidator(new String[][] {
-                { "bindingId", "true" },
-                { "schemaLocation", "false" }});
+        this.attributeMapValidator = new ConverterAttributeMapValidator(new String[][] { { "bindingId", "true" },
+                { "schemaLocation", "false" } });
     }
 
     @Override

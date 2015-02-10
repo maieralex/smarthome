@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,11 @@
  */
 package org.eclipse.smarthome.io.rest.core.discovery;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -27,78 +29,92 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultFlag;
 import org.eclipse.smarthome.config.discovery.inbox.Inbox;
 import org.eclipse.smarthome.config.discovery.inbox.InboxFilterCriteria;
-import org.eclipse.smarthome.core.thing.ManagedThingProvider;
 import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.io.rest.AbstractRESTResource;
+import org.eclipse.smarthome.core.thing.setup.ThingSetupManager;
+import org.eclipse.smarthome.io.rest.RESTResource;
 import org.eclipse.smarthome.io.rest.core.discovery.beans.DiscoveryResultBean;
-import org.eclipse.smarthome.io.rest.core.discovery.beans.DiscoveryResultListBean;
+import org.eclipse.smarthome.io.rest.core.util.BeanMapper;
 
 /**
  * This class acts as a REST resource for the inbox and is registered with the
  * Jersey servlet.
  *
  * @author Dennis Nobel - Initial contribution
+ * @author Kai Kreuzer - refactored for using the OSGi JAX-RS connector
  */
 @Path("inbox")
-public class InboxResource extends AbstractRESTResource {
+public class InboxResource implements RESTResource {
+
+    private ThingSetupManager thingSetupManager;
+    private Inbox inbox;
+
+    protected void setInbox(Inbox inbox) {
+        this.inbox = inbox;
+    }
+
+    protected void unsetInbox(Inbox inbox) {
+        this.inbox = null;
+    }
+
+    protected void setThingSetupManager(ThingSetupManager thingSetupManager) {
+        this.thingSetupManager = thingSetupManager;
+    }
+
+    protected void unsetThingSetupManager(ThingSetupManager thingSetupManager) {
+        this.thingSetupManager = null;
+    }
 
     @Context
     private UriInfo uriInfo;
 
     @POST
     @Path("/approve/{thingUID}")
-    public Response approve(@PathParam("thingUID") String thingUID) {
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response approve(@PathParam("thingUID") String thingUID, String label) {
         ThingUID thingUIDObject = new ThingUID(thingUID);
-        Inbox inbox = getService(Inbox.class);
         List<DiscoveryResult> results = inbox.get(new InboxFilterCriteria(thingUIDObject, null));
         if (results.isEmpty()) {
-            return Response.status(Status.BAD_REQUEST).build();
+            return Response.status(Status.NOT_FOUND).build();
         }
         DiscoveryResult result = results.get(0);
         Configuration conf = new Configuration(result.getProperties());
-        ManagedThingProvider managedThingProvider = getService(ManagedThingProvider.class);
-        managedThingProvider.createThing(result.getThingTypeUID(), result.getThingUID(), result.getBridgeUID(), conf);
+        thingSetupManager.addThing(result.getThingUID(), conf, result.getBridgeUID(),
+                label != null && !label.isEmpty() ? label : null);
         return Response.ok().build();
     }
 
     @DELETE
     @Path("/{thingUID}")
     public Response delete(@PathParam("thingUID") String thingUID) {
-        Inbox inbox = getService(Inbox.class);
-        inbox.remove(new ThingUID(thingUID));
-        return Response.ok().build();
+        if (inbox.remove(new ThingUID(thingUID))) {
+            return Response.ok().build();
+        } else {
+            return Response.status(Status.NOT_FOUND).build();
+        }
     }
 
     @GET
     @Produces({ MediaType.WILDCARD })
     public Response getAll() {
-
-        Inbox inbox = getService(Inbox.class);
-
         List<DiscoveryResult> discoveryResults = inbox.getAll();
-        DiscoveryResultListBean discoveryResultListBean = convertToListBean(discoveryResults);
+        Set<DiscoveryResultBean> discoveryResultBeans = convertToListBean(discoveryResults);
 
-        return Response.ok(discoveryResultListBean).build();
+        return Response.ok(discoveryResultBeans).build();
     }
 
     @POST
     @Path("/ignore/{thingUID}")
     public Response ignore(@PathParam("thingUID") String thingUID) {
-        Inbox inbox = getService(Inbox.class);
         inbox.setFlag(new ThingUID(thingUID), DiscoveryResultFlag.IGNORED);
         return Response.ok().build();
     }
 
-    private DiscoveryResultListBean convertToListBean(List<DiscoveryResult> discoveryResults) {
-        List<DiscoveryResultBean> discoveryResultBeans = new ArrayList<>();
+    private Set<DiscoveryResultBean> convertToListBean(List<DiscoveryResult> discoveryResults) {
+        Set<DiscoveryResultBean> discoveryResultBeans = new LinkedHashSet<>();
         for (DiscoveryResult discoveryResult : discoveryResults) {
-            ThingUID thingUID = discoveryResult.getThingUID();
-            ThingUID bridgeUID = discoveryResult.getBridgeUID();
-            discoveryResultBeans.add(new DiscoveryResultBean(thingUID.toString(), bridgeUID != null ? bridgeUID
-                    .toString() : null, discoveryResult.getLabel(), discoveryResult.getFlag(), discoveryResult
-                    .getProperties()));
+            discoveryResultBeans.add(BeanMapper.mapDiscoveryResultToBean(discoveryResult));
         }
-        return new DiscoveryResultListBean(discoveryResultBeans);
+        return discoveryResultBeans;
     }
 
 }

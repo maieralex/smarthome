@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.eclipse.smarthome.config.core.i18n;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.eclipse.smarthome.core.i18n.I18nProvider;
 import org.eclipse.smarthome.core.i18n.I18nUtil;
@@ -18,15 +19,25 @@ import org.osgi.framework.Bundle;
  * The {@link ConfigDescriptionI18nUtil} uses the {@link I18nProvider} to
  * resolve the localized texts. It automatically infers the key if the default
  * text is not a constant.
- * 
+ *
  * @author Dennis Nobel - Initial contribution
+ * @author Alex Tugarev - Extended for pattern and option label
  */
 public class ConfigDescriptionI18nUtil {
 
     private I18nProvider i18nProvider;
-    
+
+    private static final Pattern delimiter = Pattern.compile("[:=\\s]");
+
     public ConfigDescriptionI18nUtil(I18nProvider i18nProvider) {
         this.i18nProvider = i18nProvider;
+    }
+
+    public String getParameterPattern(Bundle bundle, URI configDescriptionURI, String parameterName,
+            String defaultPattern, Locale locale) {
+        String key = I18nUtil.isConstant(defaultPattern) ? I18nUtil.stripConstant(defaultPattern) : inferKey(
+                configDescriptionURI, parameterName, "pattern");
+        return i18nProvider.getText(bundle, key, defaultPattern, locale);
     }
 
     public String getParameterDescription(Bundle bundle, URI configDescriptionURI, String parameterName,
@@ -43,9 +54,27 @@ public class ConfigDescriptionI18nUtil {
         return i18nProvider.getText(bundle, key, defaultLabel, locale);
     }
 
+    public String getParameterOptionLabel(Bundle bundle, URI configDescriptionURI, String parameterName,
+            String optionValue, String defaultOptionLabel, Locale locale) {
+        if (!isValidPropertyKey(optionValue))
+            return defaultOptionLabel;
+
+        String key = I18nUtil.isConstant(defaultOptionLabel) ? I18nUtil.stripConstant(defaultOptionLabel) : inferKey(
+                configDescriptionURI, parameterName, "option." + optionValue);
+
+        return i18nProvider.getText(bundle, key, defaultOptionLabel, locale);
+    }
+
     private String inferKey(URI configDescriptionURI, String parameterName, String lastSegment) {
         String uri = configDescriptionURI.getSchemeSpecificPart().replace(":", ".");
         return configDescriptionURI.getScheme() + ".config." + uri + "." + parameterName + "." + lastSegment;
+    }
+
+    private boolean isValidPropertyKey(String key) {
+        if (key != null) {
+            return !delimiter.matcher(key).find();
+        }
+        return false;
     }
 
 }

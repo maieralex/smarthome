@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,8 +7,11 @@
  */
 package org.eclipse.smarthome.core.items;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.smarthome.core.common.registry.AbstractManagedProvider;
@@ -19,15 +22,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link ManagedItemProvider} is an OSGi service, that allows to add or remove
- * items at runtime by calling {@link ManagedItemProvider#addItem(Item)} or
- * {@link ManagedItemProvider#removeItem(Item)}. An added item is automatically
+ * items at runtime by calling {@link ManagedItemProvider#addItem(Item)} or {@link ManagedItemProvider#removeItem(Item)}
+ * . An added item is automatically
  * exposed to the {@link ItemRegistry}. Persistence of added Items is handled by
- * a {@link StorageService}. Items are being restored using the given
- * {@link ItemFactory}s.
- * 
+ * a {@link StorageService}. Items are being restored using the given {@link ItemFactory}s.
+ *
  * @author Dennis Nobel - Initial contribution, added support for GroupItems
  * @author Thomas Eichstaedt-Engelen
  * @author Kai Kreuzer - improved return values
+ * @author Alex Tugarev - added tags
  */
 public class ManagedItemProvider extends AbstractManagedProvider<Item, String, PersistedItem> implements ItemProvider {
 
@@ -39,22 +42,51 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
 
         public String itemType;
 
-        public PersistedItem(String itemType, List<String> groupNames) {
-            this(itemType, groupNames, null);
-        }
+        public Set<String> tags;
 
-        public PersistedItem(String itemType, List<String> groupNames, String baseItemType) {
-            this.itemType = itemType;
-            this.groupNames = groupNames;
-            this.baseItemType = baseItemType;
-        }
+        public String label;
+
+        public String category;
+
     }
 
     private static final String ITEM_TYPE_GROUP = "Group";
 
-    private static final Logger logger = LoggerFactory.getLogger(ManagedItemProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(ManagedItemProvider.class);
 
     private Collection<ItemFactory> itemFactories = new CopyOnWriteArrayList<ItemFactory>();
+
+    /**
+     * Removes an item and it´s member if recursive flag is set to true.
+     *
+     * @param itemName
+     *            item name to remove
+     * @param recursive
+     *            if set to true all members of the item will be removed, too.
+     */
+    public void remove(String itemName, boolean recursive) {
+        Item item = get(itemName);
+        if (recursive && item instanceof GroupItem) {
+            List<String> members = getMemberNamesRecursively((GroupItem) item, getAll());
+            for (String member : members) {
+                this.remove(member);
+            }
+        }
+        this.remove(item.getName());
+    }
+
+    private List<String> getMemberNamesRecursively(GroupItem groupItem, Collection<Item> allItems) {
+        List<String> memberNames = new ArrayList<>();
+        for (Item item : allItems) {
+            if (item.getGroupNames().contains(groupItem.getName())) {
+                memberNames.add(item.getName());
+                if (item instanceof GroupItem) {
+                    memberNames.addAll(getMemberNamesRecursively((GroupItem) item, allItems));
+                }
+            }
+        }
+        return memberNames;
+    }
 
     private GenericItem createItem(String itemType, String itemName) {
 
@@ -73,11 +105,10 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
     /**
      * Translates the Items class simple name into a type name understandable by
      * the {@link ItemFactory}s.
-     * 
+     *
      * @param item
      *            the Item to translate the name
-     * @return the translated ItemTypeName understandable by the
-     *         {@link ItemFactory}s
+     * @return the translated ItemTypeName understandable by the {@link ItemFactory}s
      */
     private String toItemFactoryName(Item item) {
         return item.getType();
@@ -108,7 +139,7 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
 
     @Override
     protected Item toElement(String itemName, PersistedItem persistedItem) {
-        GenericItem item = null;
+        ActiveItem item = null;
 
         if (persistedItem.itemType.equals(ITEM_TYPE_GROUP)) {
             if (persistedItem.baseItemType != null) {
@@ -121,16 +152,27 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
             item = createItem(persistedItem.itemType, itemName);
         }
 
-        List<String> groupNames = persistedItem.groupNames;
-        if (item != null && groupNames != null) {
-            for (String groupName : groupNames) {
-                item.addGroupName(groupName);
+        if (item != null) {
+            List<String> groupNames = persistedItem.groupNames;
+            if (groupNames != null) {
+                for (String groupName : groupNames) {
+                    item.addGroupName(groupName);
+                }
             }
+
+            Set<String> tags = persistedItem.tags;
+            if (tags != null) {
+                for (String tag : tags) {
+                    item.addTag(tag);
+                }
+            }
+
+            item.setLabel(persistedItem.label);
+            item.setCategory(persistedItem.category);
         }
 
         if (item == null) {
-            logger.debug(
-                    "Couldn't restore item '{}' of type '{}' ~ there is no appropriate ItemFactory available.",
+            logger.debug("Couldn't restore item '{}' of type '{}' ~ there is no appropriate ItemFactory available.",
                     itemName, persistedItem.itemType);
         }
 
@@ -140,8 +182,7 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
     @Override
     protected PersistedItem toPersistableElement(Item item) {
 
-        PersistedItem persistedItem;
-        String itemType = toItemFactoryName(item);
+        PersistedItem persistedItem = new PersistedItem();
 
         if (item instanceof GroupItem) {
             String baseItemType = null;
@@ -149,10 +190,17 @@ public class ManagedItemProvider extends AbstractManagedProvider<Item, String, P
             if (baseItem != null) {
                 baseItemType = toItemFactoryName(baseItem);
             }
-            persistedItem = new PersistedItem(ITEM_TYPE_GROUP, item.getGroupNames(), baseItemType);
+            persistedItem.itemType = ITEM_TYPE_GROUP;
+            persistedItem.baseItemType = baseItemType;
         } else {
-            persistedItem = new PersistedItem(itemType, item.getGroupNames());
+            String itemType = toItemFactoryName(item);
+            persistedItem.itemType = itemType;
         }
+
+        persistedItem.label = item.getLabel();
+        persistedItem.groupNames = new ArrayList<>(item.getGroupNames());
+        persistedItem.tags = new HashSet<>(item.getTags());
+        persistedItem.category = item.getCategory();
 
         return persistedItem;
     }

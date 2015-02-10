@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,26 +7,23 @@
  */
 package org.eclipse.smarthome.model.rule;
 
-import org.eclipse.smarthome.model.rule.RulesStandaloneSetupGenerated;
-
 import com.google.inject.Injector;
 
 /**
- * Initialization support for running Xtext languages 
+ * Initialization support for running Xtext languages
  * without equinox extension registry
  */
-public class RulesStandaloneSetup extends RulesStandaloneSetupGenerated{
+public class RulesStandaloneSetup extends RulesStandaloneSetupGenerated {
 
-	private static Injector injector;
-	
-	public static void doSetup() {
-		if(injector==null) {
-			injector = new RulesStandaloneSetup().createInjectorAndDoEMFRegistration();
-		}
-	}
-	
-	static public Injector getInjector() {
-		return injector;
-	}
+    private static Injector injector;
+
+    public static void doSetup() {
+        if (injector == null) {
+            injector = new RulesStandaloneSetup().createInjectorAndDoEMFRegistration();
+        }
+    }
+
+    static public Injector getInjector() {
+        return injector;
+    }
 }
-

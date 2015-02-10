@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,19 +14,29 @@ import com.google.common.base.Joiner;
 /**
  * {@link UID} is the base class for unique identifiers within the SmartHome
  * framework. A UID must always start with a binding ID.
- * 
+ *
  * @author Dennis Nobel - Initial contribution
- * @authoer Oliver Libutzki - Added possibility to define UIDs with variable amount of segments
+ * @author Oliver Libutzki - Added possibility to define UIDs with variable amount of segments
+ * @author Jochen Hiller - Bugfix 455434: added default constructor, object is now mutable
  */
 public abstract class UID {
 
-    private static final String SEPARATOR = ":";
-    private final String[] segments;
+    public static final String SEGMENT_PATTERN = "[A-Za-z0-9_-]*";
+    public static final String SEPARATOR = ":";
+    private String[] segments;
+
+    /**
+     * Default constructor in package scope only. Will allow to instantiate this
+     * class by reflection. Not intended to be used for normal instantiation.
+     */
+    UID() {
+        this.segments = null;
+    }
 
     /**
      * Parses a UID for a given string. The UID must be in the format
      * 'bindingId:segment:segment:...'.
-     * 
+     *
      * @param uid
      *            uid in form a string (must not be null)
      */
@@ -43,7 +53,7 @@ public abstract class UID {
 
     /**
      * Creates a UID for list of segments.
-     * 
+     *
      * @param segments
      *            segments (must not be null)
      */
@@ -53,24 +63,18 @@ public abstract class UID {
         }
         int numberOfSegments = getMinimalNumberOfSegments();
         if (segments.length < numberOfSegments) {
-            throw new IllegalArgumentException("UID must have at least " + numberOfSegments
-                    + " segments.");
+            throw new IllegalArgumentException("UID must have at least " + numberOfSegments + " segments.");
         }
-        for (String segment : segments) {
-            if (!segment.matches("[A-Za-z0-9_-]*")) {
-                throw new IllegalArgumentException(
-                        "UID segment '"
-                                + segment
-                                + "' contains invalid characters. Each segment of the UID must match the pattern [A-Za-z0-9_-]*.");
-            }
+        for (int i = 0; i < segments.length; i++) {
+            String segment = segments[i];
+            validateSegment(segment, i, segments.length);
         }
         this.segments = segments;
     }
 
-    
     /**
      * Specifies how many segments the UID has to have at least.
-     * 
+     *
      * @return
      */
     protected abstract int getMinimalNumberOfSegments();
@@ -78,13 +82,21 @@ public abstract class UID {
     protected String[] getSegments() {
         return this.segments;
     }
+
     protected String getSegment(int segment) {
         return this.segments[segment];
     }
 
+    protected void validateSegment(String segment, int index, int length) {
+        if (!segment.matches(SEGMENT_PATTERN)) {
+            throw new IllegalArgumentException("UID segment '" + segment
+                    + "' contains invalid characters. Each segment of the UID must match the pattern [A-Za-z0-9_-]*.");
+        }
+    }
+
     /**
      * Returns the binding id.
-     * 
+     *
      * @return binding id
      */
     public String getBindingId() {
@@ -93,6 +105,10 @@ public abstract class UID {
 
     @Override
     public String toString() {
+        return getAsString();
+    }
+
+    public String getAsString() {
         return Joiner.on(SEPARATOR).join(segments);
     }
 
