@@ -18,7 +18,9 @@
     </channel-type>
     <channel-type id="powerConsumption">
     	<item-type>Number</item-type>
-    	<label>Power consumption</label>
+    	<label>PowerConsumption</label>
+    	<category>PowerConsumtion</category>
+    	<state readOnly="true" pattern="%d W"></state>
     	<config-description>
     		<parameter name="refreshTime" type="decimal">
     			<label>Sensor refresh intervall</label><description>Specifies how often you want to update the power consumption sensor value. NOTE: A too low value can disturb the DigitalSTROM system!</description>
@@ -38,11 +40,13 @@
     </channel-type>
     <channel-type id="electricMeterValue">
     	<item-type>Number</item-type>
-    	<label>Electric meter value</label>
+    	<label>ElectricMeterValue</label>
+    	<state readOnly="true"></state>
     </channel-type>
     <channel-type id="energyMeterValue">
     	<item-type>Number</item-type>
-    	<label>Energy meter value</label>
+    	<label>EnergyMeterValue</label>
+    	<state readOnly="true"></state>
     </channel-type>
 
 </thing:thing-descriptions>

@@ -110,7 +110,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
         			
         			if(eshDevice != null && deviceStatusListeners.get(currentDeviceDSID) != null){
-        				
+        				logger.debug("Check device updates");
         				if(!eshDevice.isESHThingUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
@@ -126,11 +126,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				}
         				
         			} else{
-        				logger.debug("Found new Device!");
+        				//logger.debug("Found new Device!");
         				
         				if(trashDevices.isEmpty()){
         					deviceMap.put(currentDeviceDSID, currentDevice);
-        					logger.debug("trashDevices are empty, add Device to the deviceMap!");
+        					//logger.debug("trashDevices are empty, add Device to the deviceMap!");
         				} else{
         					logger.debug("Search device in trashDevices.");
         					
@@ -147,22 +147,24 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
         				//Testen ob das nötig ist, evtl muss erst das Thing über den DeviceDiscoveryService erstellt werden
-        				logger.debug("inform DeviceStatusListener: " 
+        				/*logger.debug("inform DeviceStatusListener: \"" 
         						+ DeviceStatusListener.DEVICE_DESCOVERY 
-        						+ " about Device: " 
-        						+ currentDevice 
-        						+ " added.");
-        				try {
+        						+ "\" about Device with DSID: \"" 
+        						+ currentDevice.getDSID().getValue() 
+        						+ "\" added.");
+        				/*try {
 							wait(100);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
-						}
-        				deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
-        				logger.debug("inform DeviceStatusListener: " 
-        						+ currentDevice 
-        						+ " about Device: " 
-        						+ currentDevice 
-        						+ " added.");
+						}*/
+        				if(deviceStatusListeners.get(currentDeviceDSID) != null){
+        					deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
+        					logger.debug("inform DeviceStatusListener: \"" 
+        							+ currentDevice.getDSID().getValue() 
+        							+ "\" about Device: \"" 
+        							+ currentDevice.getDSID().getValue()
+        							+ "\" added.");
+        				}
         			}
         		}
         		        		
@@ -247,13 +249,13 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			(DigitalSTROMJSONImpl) digitalSTROMClient, 
         			this);
         			
-        	//this.digitalSTROMEventListener.start();
+        	this.digitalSTROMEventListener.start();;
         	
         	//vieleiecht besser bei updateSensorData?
-        	//this.sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
-        	//this.sensorJobExecuter.run();
+        	this.sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
+        	this.sensorJobExecuter.start();
         	
-        	//onUpdate();
+        	onUpdate();
         	
         } else{
             logger.warn("Cannot connect to DigitalSTROMSever. Host address is not set.");
@@ -264,13 +266,13 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         logger.debug("Handler disposed.");
-       /* this.digitalSTROMEventListener.shutdown();
-        this.sensorJobExecuter.shutdown();
+       //this.digitalSTROMEventListener.shutdown();
+        //this.sensorJobExecuter.shutdown();
         
         if(pollingJob!=null && !pollingJob.isCancelled()) {
         	pollingJob.cancel(true);
         	pollingJob = null;
-        }*/
+        }
         //TODO: füllen mit allem rest
     }
 
@@ -292,6 +294,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
      */
     public void updateSensorData(SensorJob sensorJob, String priority){
 		if(sensorJob != null && priority != null){
+			logger.debug("Add new sensorJob to sensorJobExecuter");
 			switch(priority){
 				case DigitalSTROMBindingConstants.REFRESH_PRIORITY_HIGH:
 					sensorJobExecuter.addHighPriorityJob(sensorJob);
@@ -328,6 +331,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	 * @param device
 	 */
 	public void sendComandsToDSS(Device device){
+		if(device.isDeviceUpToDate()){
+			logger.debug("Get send command but Device is alraedy up to date");
+		}
 		while(!device.isDeviceUpToDate() && checkConnection()){
 			
 			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
@@ -345,14 +351,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						if(deviceStateUpdate.getValue() > 0){
 							requestSucsessfull = digitalSTROMClient.turnDeviceOn(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								//digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
-									//	(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
+								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+										(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
 							}
 						} else{
 							requestSucsessfull = digitalSTROMClient.turnDeviceOff(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								//digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
-									//	(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
+								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+										(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
 							}
 						}
 						break;
@@ -366,9 +372,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				}
 				
 				if(requestSucsessfull){
+					logger.debug("Send {} command to DSS and updateInternalDeviceState", deviceStateUpdate.getType());
 					device.updateInternalDeviceState(deviceStateUpdate);
 				} else{
-					//TODO: Fehlerausgabe
+					logger.debug("Can't send {} command to DSS!", deviceStateUpdate.getType());
 				}
 			}
 		}
@@ -420,6 +427,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			onUpdate();
 		    // inform the listener initially about the device and their states
 		    if(id != DeviceStatusListener.DEVICE_DESCOVERY){
+		    	logger.debug("inform listener about the added Device");
 		    	deviceStatusListener.onDeviceAdded(deviceMap.get(id));
 		    }
 		} else {
@@ -506,7 +514,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		//logger.debug("checkConnection HTTP Status: {}",this.digitalSTROMClient.checkConnection(sessionToken));
 		switch(this.digitalSTROMClient.checkConnection(sessionToken)) {
 			case HttpURLConnection.HTTP_OK:
-				lastConnectionState = true;
+				if(!lastConnectionState){ 
+					logger.debug("Connection to DigitalSTROM-Server established.");
+					onConnectionResumed();
+					lastConnectionState = true;
+				}
 				break;
 			case HttpURLConnection.HTTP_UNAUTHORIZED:
 				logger.info("DigitalSTROM server  {} send HTTPStatus {}", this.getConfig().get(HOST), HttpURLConnection.HTTP_UNAUTHORIZED);
@@ -626,6 +638,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     public void onConnectionResumed() {
         logger.debug("DigitalSTROM-Server connection resumed. Updating thing status to ONLINE.");
         updateStatus(ThingStatus.ONLINE);
+        //TODO: pollingJob wieder starten
         // now also re-initialize all light handlers
         for(Thing thing : getThing().getThings()) {
         	ThingHandler handler = thing.getHandler();

@@ -87,12 +87,12 @@ public class DigitalSTROMEventListener extends Thread {
 					this.ID, 
 					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
 					DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
-
-			logger.info("Sessiontoken = {}",this.dssBridgeHandler.getSessionToken());
 			
 			if (!transmitted) {
 				this.shutdown = true;
 				logger.error("Couldn't subscribe eventListener ... maybe timeout because system is to busy ...");
+			}else{
+				logger.debug("subscribe successfull");
 			}
 		} else {
 			logger.error("Couldn't subscribe eventListener because there is no token (no connection)");
@@ -102,10 +102,10 @@ public class DigitalSTROMEventListener extends Thread {
 	@Override
 	public void run() {
 		this.sensorJobExecutor = new SensorJobExecutor(digitalSTROM, this.dssBridgeHandler);
-		sensorJobExecutor.run();
-		
+		sensorJobExecutor.start();
+		//logger.debug("läuuuuft1");
 		while (!this.shutdown) {
-
+			//logger.debug("läuuuuft");
 			String request = this.getEventAsRequest(this.ID, 500);
 
 			if (request != null) {
@@ -154,6 +154,7 @@ public class DigitalSTROMEventListener extends Thread {
 				}
 			}
 		}
+		sensorJobExecutor.shutdown();
 	}
 
 	private String getEventAsRequest(int subscriptionID, int timeout) {
@@ -810,10 +811,12 @@ public class DigitalSTROMEventListener extends Thread {
 	}
 
 	private void initDeviceOutputValue(Device device, short index) {
+		logger.debug("event detectet, add to sensorJobExecuter");
 		sensorJobExecutor.addHighPriorityJob(new DeviceOutputValueSensorJob(device, index));
 	}
 
 	private void initSceneOutputValue(Device device, short sceneId) {
+		logger.debug("event detectet, add to sensorJobExecuter");
 		sensorJobExecutor.addMediumPriorityJob(new SceneOutputValueSensorJob(device, sceneId));
 	}
 

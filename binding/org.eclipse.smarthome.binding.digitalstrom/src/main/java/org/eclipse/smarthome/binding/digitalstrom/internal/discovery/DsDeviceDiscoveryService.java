@@ -60,7 +60,11 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 			ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
 	        Map<String, Object> properties = new HashMap<>(2);
 	        properties.put(DEVICE_ID, device.getDSID().getValue());
-	        properties.put(DEVICE_NAME, device.getName());
+	        if(device.getName() != null){
+	        	properties.put(DEVICE_NAME, device.getName());
+	        } else{
+	        	properties.put(DEVICE_NAME, device.getDSID().getValue());
+	        }
 	        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID)
 	        		.withProperties(properties)
 	        		.withBridge(bridgeUID)

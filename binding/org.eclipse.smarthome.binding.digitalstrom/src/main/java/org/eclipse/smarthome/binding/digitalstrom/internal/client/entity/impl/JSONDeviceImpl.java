@@ -8,6 +8,7 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -228,9 +229,9 @@ public class JSONDeviceImpl implements Device {
 	@Override
 	public void setIsOn(boolean flag) {
 		if(flag){
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
-		} else {
 			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
+		} else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
 		}
 		
 		//if device is off set power consumption and energy meter value to 0
@@ -579,8 +580,8 @@ public class JSONDeviceImpl implements Device {
 
 	//for ESH
 	
-	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();
-	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();
+	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();// Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
+	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();//Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
 	
 	//save the last update time of the sensor data
 	private long lastElectricMeterUpdate = 0 ;
@@ -605,9 +606,9 @@ public class JSONDeviceImpl implements Device {
 	
 	@Override
 	public boolean isPowerConsumptionUpToDate(){
-		return isOn && !isRollershutter() ?
+		return //isOn && !isRollershutter() ?
 				(this.lastPowerConsumptionUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis() 
-				:true;
+				;//:true;
 	}
 	 
 	@Override
@@ -630,10 +631,10 @@ public class JSONDeviceImpl implements Device {
 	//   da diese der Bridge-config entnommen werden muss
 	@Override
 	public boolean isSensorDataUpToDate(){
-		return isOn && !isRollershutter() ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
-				isPowerConsumptionUpToDate() ||
-				isElectricMeterUpToDate() ||
-				isEnergyMeterUpToDate()
+		return isOn /*&& !isRollershutter()*/ ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
+				isPowerConsumptionUpToDate()// ||
+				//isElectricMeterUpToDate() ||
+				//isEnergyMeterUpToDate()
 				:true;
 	}
 	
@@ -703,6 +704,7 @@ public class JSONDeviceImpl implements Device {
 					return;
 				default: return;
 			}
+			logger.debug("Add deviceStatusUpdate command {} to eshThingUpdates", deviceStateUpdate.getType());
 			this.eshThingStateUpdates.add(deviceStateUpdate);
 		}
 	}
