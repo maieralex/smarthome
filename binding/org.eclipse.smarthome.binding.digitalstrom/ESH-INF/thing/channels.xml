@@ -19,7 +19,7 @@
     <channel-type id="powerConsumption">
     	<item-type>Number</item-type>
     	<label>PowerConsumption</label>
-    	<category>PowerConsumtion</category>
+    	<category>Energy</category>
     	<state readOnly="true" pattern="%d W"></state>
     	<config-description>
     		<parameter name="refreshTime" type="decimal">
@@ -41,12 +41,14 @@
     <channel-type id="electricMeterValue">
     	<item-type>Number</item-type>
     	<label>ElectricMeterValue</label>
-    	<state readOnly="true"></state>
+    	<category>Energy</category>
+    	<state readOnly="true" pattern="%d mA"></state>
     </channel-type>
     <channel-type id="energyMeterValue">
     	<item-type>Number</item-type>
     	<label>EnergyMeterValue</label>
-    	<state readOnly="true"></state>
+    	<category>Energy</category>
+    	<state readOnly="true" pattern="%d Wh"></state>
     </channel-type>
 
 </thing:thing-descriptions>

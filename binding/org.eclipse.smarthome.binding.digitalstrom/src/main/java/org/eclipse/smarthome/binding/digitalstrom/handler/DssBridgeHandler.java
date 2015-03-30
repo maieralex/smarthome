@@ -108,7 +108,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			Device currentDevice = currentDeviceList.remove(0);
         			String currentDeviceDSID = currentDevice.getDSID().getValue();
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
-        			
+        			//logger.debug("ESHDevice: "+eshDevice+" DSID: "+currentDeviceDSID);
         			if(eshDevice != null && deviceStatusListeners.get(currentDeviceDSID) != null){
         				logger.debug("Check device updates");
         				if(!eshDevice.isESHThingUpToDate()){
@@ -119,6 +119,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				}
         				
         				if(!eshDevice.isSensorDataUpToDate()){
+        					logger.info("Device need SensorData update");
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
         							+ currentDeviceDSID
@@ -144,8 +145,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         						 logger.debug("Can't find device in trashDevices, add Device to the deviceMap!");
         					 }
         				}
-        				
-        				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
+        				//TODO: wieder einfügen!!!!
+        				//deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
         				//Testen ob das nötig ist, evtl muss erst das Thing über den DeviceDiscoveryService erstellt werden
         				/*logger.debug("inform DeviceStatusListener: \"" 
         						+ DeviceStatusListener.DEVICE_DESCOVERY 
@@ -266,7 +267,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     @Override
     public void dispose() {
         logger.debug("Handler disposed.");
-       //this.digitalSTROMEventListener.shutdown();
+        //this.digitalSTROMEventListener.shutdown();
         //this.sensorJobExecuter.shutdown();
         
         if(pollingJob!=null && !pollingJob.isCancelled()) {
@@ -295,16 +296,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     public void updateSensorData(SensorJob sensorJob, String priority){
 		if(sensorJob != null && priority != null){
 			logger.debug("Add new sensorJob to sensorJobExecuter");
-			switch(priority){
-				case DigitalSTROMBindingConstants.REFRESH_PRIORITY_HIGH:
-					sensorJobExecuter.addHighPriorityJob(sensorJob);
-					break;
-				case DigitalSTROMBindingConstants.REFRESH_PRIORITY_MEDIUM:
+			if(priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_HIGH)){
+				sensorJobExecuter.addHighPriorityJob(sensorJob);
+			}
+			if(priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_MEDIUM)){
 					sensorJobExecuter.addMediumPriorityJob(sensorJob);
-					break;
-				case DigitalSTROMBindingConstants.REFRESH_PRIORITY_LOW:
+			}
+			if(priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_LOW)){
 					sensorJobExecuter.addLowPriorityJob(sensorJob);
-					break;
 			}
 		}
 	}
@@ -423,23 +422,30 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		
 		if (id != null) {
 			logger.debug("Added DeviceStatusListener {}",id);
-			deviceStatusListeners.put(id, deviceStatusListener);
-			onUpdate();
-		    // inform the listener initially about the device and their states
-		    if(id != DeviceStatusListener.DEVICE_DESCOVERY){
-		    	logger.debug("inform listener about the added Device");
-		    	deviceStatusListener.onDeviceAdded(deviceMap.get(id));
-		    }
-		} else {
-			throw new NullPointerException("It's not allowed to pass a null ID.");
+			if(deviceStatusListeners.put(id, deviceStatusListener) != null){
+				onUpdate();
+				// inform the listener initially about the device and their states
+		    	if(id != DeviceStatusListener.DEVICE_DESCOVERY){
+		    		logger.debug("inform listener about the added Device");
+		    		deviceStatusListener.onDeviceAdded(deviceMap.get(id));
+				} else {
+					throw new NullPointerException("It's not allowed to pass a null ID.");
+				}
+			}
 		}
 	}
 		 
 	public void unregisterDeviceStatusListener(String id) {
 		if(id != null){
-			deviceStatusListeners.remove(id);
+			if(deviceStatusListeners.remove(id) != null){
+				logger.debug("Delete deviceStatuslistener from device with DSID {}.", id);
+			}
+			if(trashDevices.add(new TrashDevice(deviceMap.remove(id)))){
+				logger.debug("Add Device with DSID {} to trashMap.", id);
+			}
 			onUpdate();     
 			sensorJobExecuter.removeSensorJobs(new DSID(id));
+			logger.debug("Remove SensorJobs from device with DSID {}.", id);
 		} else{
 			throw new NullPointerException("It's not allowed to pass a null ID.");
 		}

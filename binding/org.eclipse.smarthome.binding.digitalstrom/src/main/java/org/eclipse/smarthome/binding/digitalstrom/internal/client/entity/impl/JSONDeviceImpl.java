@@ -8,7 +8,6 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -415,6 +414,7 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (powerConsumption < 0) {
+			logger.debug("add ESHStatUpdate to eshThingStateUpdates");
 			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
 			this.powerConsumption = 0;
 		}
@@ -584,9 +584,9 @@ public class JSONDeviceImpl implements Device {
 	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();//Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
 	
 	//save the last update time of the sensor data
-	private long lastElectricMeterUpdate = 0 ;
-	private long lastEnergyMeterUpdate = 0;
-	private long lastPowerConsumptionUpdate = 0;
+	private long lastElectricMeterUpdate = System.currentTimeMillis();
+	private long lastEnergyMeterUpdate = System.currentTimeMillis();
+	private long lastPowerConsumptionUpdate = System.currentTimeMillis();
 	
 	//get methoden doch nicht nötig
 	@Override
@@ -606,22 +606,22 @@ public class JSONDeviceImpl implements Device {
 	
 	@Override
 	public boolean isPowerConsumptionUpToDate(){
-		return //isOn && !isRollershutter() ?
-				(this.lastPowerConsumptionUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis() 
-				;//:true;
+		return isOn && !isRollershutter() ?
+				(this.lastPowerConsumptionUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis() 
+				:true;
 	}
 	 
 	@Override
 	public boolean isElectricMeterUpToDate(){
 		return isOn && !isRollershutter() ?
-				(this.lastElectricMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis()
+				(this.lastElectricMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis()
 				:true;
 	}
 	
 	@Override
 	public boolean isEnergyMeterUpToDate(){
 		return isOn && !isRollershutter() ?
-				(this.lastEnergyMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) < System.currentTimeMillis()
+				(this.lastEnergyMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis()
 				:true;
 	}
 	
@@ -631,10 +631,10 @@ public class JSONDeviceImpl implements Device {
 	//   da diese der Bridge-config entnommen werden muss
 	@Override
 	public boolean isSensorDataUpToDate(){
-		return isOn /*&& !isRollershutter()*/ ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
-				isPowerConsumptionUpToDate()// ||
-				//isElectricMeterUpToDate() ||
-				//isEnergyMeterUpToDate()
+		return isOn && !isRollershutter() ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
+				isPowerConsumptionUpToDate() ||
+				isElectricMeterUpToDate() ||
+				isEnergyMeterUpToDate()
 				:true;
 	}
 	

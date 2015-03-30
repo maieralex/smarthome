@@ -1,2 +1,0 @@
-yahooweather:weather:berlin [ location="638242" ]
-yahooweather:weather:losangeles [ location="2442047", unit="us", refresh=120 ]

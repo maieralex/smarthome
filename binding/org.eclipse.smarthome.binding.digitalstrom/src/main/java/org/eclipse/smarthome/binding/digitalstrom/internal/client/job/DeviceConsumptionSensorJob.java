@@ -42,15 +42,16 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 	@Override
 	public void execute(DigitalSTROMAPI digitalSTROM, String token) {
 		int consumption = digitalSTROM.getDeviceSensorValue(token, this.device.getDSID(), null, this.sensorIndex);
-		logger.info("DeviceConsumption : "+consumption+", DSID: "+this.device.getDSID().getValue());
+		logger.info("SensorIndex: "+this.sensorIndex+", DeviceConsumption : "+consumption+", DSID: "+this.device.getDSID().getValue());
 
 		switch (this.sensorIndex) {
 	
 			case ACTIVE_POWER:
+							//logger.info("DeviceConsumption : "+consumption+", DSID: "+this.device.getDSID().getValue());
 							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, consumption));
 							break;
 			case OUTPUT_CURRENT:
-							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, consumption));
+							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, consumption));
 							break;
 			case ELECTRIC_METER:
 							this.device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, consumption));

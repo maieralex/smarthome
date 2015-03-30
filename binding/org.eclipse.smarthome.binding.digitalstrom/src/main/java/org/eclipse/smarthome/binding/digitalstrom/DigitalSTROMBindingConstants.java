@@ -36,7 +36,9 @@ public class DigitalSTROMBindingConstants {
     public static final String CHANNEL_POWER_CONSUMPTION = "powerConsumption";
     
     //Sensor data channel properties
-    public static final String CHANNEL_REFRESH_PRIORITY = "refreshPriority";
+    public static final String POWER_CONSUMTION_REFRESH_PRIORITY = "PowerConsumptionRefreshPriority";
+    public static final String ELECTRIC_METER_REFRESH_PRIORITY = "ElectricMeterRefreshPriority";
+    public static final String ENERGY_METER_REFRESH_PRIORITY = "EnergyMeterRefreshPriority";
     	//options
     	public static final String REFRESH_PRIORITY_NEVER = "never";
     	public static final String REFRESH_PRIORITY_LOW = "low";

@@ -29,6 +29,42 @@
             	<label>Device Name</label>
             	<description>The Name of a DigitalStrom device.</description>
             	<default></default></parameter>
+            <parameter name="PowerConsumptionRefreshPriority" type="text">
+            	<label>Power consumption refresh priority</label>
+            	<description>Set the refresh priority for the power consumption sensor value. Can be never, low priority, medium priority or high priority.</description>
+            	<options>
+    				<option value="never">never</option>
+    				<option value="high">high priority</option>
+    				<option value="medium">medium priority</option>
+    				<option value="low">low priority</option>
+    			</options>
+    			<default>never</default>
+    			<required>false</required>
+    		</parameter>
+    		<parameter name="ElectricMeterRefreshPriority" type="text">
+            	<label>Electric meter refresh priority</label>
+            	<description>Set the refresh priority for the Electric meter sensor value. Can be never, low priority, medium priority or high priority.</description>
+            	<options>
+    				<option value="never">never</option>
+    				<option value="high">high priority</option>
+    				<option value="medium">medium priority</option>
+    				<option value="low">low priority</option>
+    			</options>
+    			<default>never</default>
+    			<required>false</required>
+    		</parameter>
+    		<parameter name="EnergyMeterRefreshPriority" type="text">
+            	<label>Energy meter refresh priority</label>
+            	<description>Set the refresh priority for the Energy meter sensor value. Can be never, low priority, medium priority or high priority.</description>
+            	<options>
+    				<option value="never">never</option>
+    				<option value="high">high priority</option>
+    				<option value="medium">medium priority</option>
+    				<option value="low">low priority</option>
+    			</options>
+    			<default>never</default>
+    			<required>false</required>
+    		</parameter>
         </config-description>
     </thing-type>
 </thing:thing-descriptions>

@@ -7,7 +7,13 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.*;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_BRIGHTNESS;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ELECTRIC_METER;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ENERGY_METER;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DS_ID;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KL200;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KM200;
 
 import java.util.Set;
 
@@ -21,7 +27,6 @@ import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -58,6 +63,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	
     @Override
     public void initialize() {
+    	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
         final String configDSId = getConfig().get(DS_ID).toString();
         
         if (configDSId != null) {
@@ -168,14 +174,18 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 				if(stateUpdate != null){
 					switch(stateUpdate.getType()){
 						case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
-							updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
+							if(stateUpdate.getValue() > 0){
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
 									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
+							} else{
+								setSensorDataOnZeroAndDeviceOFF();
+							}
 							break;
 						case DeviceStateUpdate.UPDATE_ON_OFF: 
 							if(stateUpdate.getValue() > 0) {
 								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON); 
 							} else {
-								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
+								setSensorDataOnZeroAndDeviceOFF();
 							}
 							break;
 						case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
@@ -194,7 +204,13 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 			}
 		}		
 	}
-	
+
+	private void setSensorDataOnZeroAndDeviceOFF(){
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(0));
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(0));
+		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(0));
+	}
 	private int fromValueToPercent(int value, int max) {
 		if (value < 0 || value == 0) {
 			return 0;
@@ -233,49 +249,41 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 				updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
 			}
 		
-			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(device.getElectricMeterValue()));
+			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType((long) device.getElectricMeterValue()));
 		
-			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(device.getEnergyMeterValue()));
+			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType((long) device.getEnergyMeterValue()));
 		
-			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(device.getPowerConsumption()));
+			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType((long) device.getPowerConsumption()));
 		}
 	}
 
 	@Override
 	public void onDeviceNeededSensorDataUpdate(Device device) {
-				
-		for(Channel channel: this.getThing().getChannels()){
-			switch(channel.getUID().getId()){
-				case DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION:
-					if(!device.isPowerConsumptionUpToDate()){
-						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
-					}
-					break;
-				case DigitalSTROMBindingConstants.CHANNEL_ENERGY_METER:
-					if(!device.isEnergyMeterUpToDate()){
-						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
-					}
-					break;
-				case DigitalSTROMBindingConstants.CHANNEL_ELECTRIC_METER:
-					if(!device.isElectricMeterUpToDate()){
-						sendUpdateSensorDataToBridge(device, channel, SensorIndexEnum.OUTPUT_CURRENT);
-					}
-					break;
-			}
-		}
-	}
-
-	private void sendUpdateSensorDataToBridge(Device device, Channel channel, SensorIndexEnum sensorIndex){
 		DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
 		
 		if (dssBridgeHandler == null) {
             logger.warn("DigitalSTROM bridge handler not found. Cannot handle command without bridge.");
             return;
-        }
+        }		
+
+		String priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString();
 		
-		String priority = channel.getConfiguration().get(DigitalSTROMBindingConstants.CHANNEL_REFRESH_PRIORITY).toString();
-		if(priority != DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER && priority != null){
-			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, sensorIndex), priority);	
+		if(!device.isPowerConsumptionUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.ACTIVE_POWER), priority);
 		}
+		
+		priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString();
+		
+		if(!device.isEnergyMeterUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.OUTPUT_CURRENT), priority);
+		}
+		
+		priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString();
+					
+		if(!device.isElectricMeterUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.ELECTRIC_METER), priority);
+		}
+		
 	}
+
 }
