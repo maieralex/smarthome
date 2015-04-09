@@ -675,6 +675,7 @@ public class JSONDeviceImpl implements Device {
 						this.isOn = false;
 						setPowerConsumption(0);
 						setEnergyMeterValue(0);
+						setElectricMeterValue(0);
 					} else{
 						this.isOn = true;
 					}
@@ -685,6 +686,7 @@ public class JSONDeviceImpl implements Device {
 						this.isOn = false;
 						setPowerConsumption(0);
 						setEnergyMeterValue(0);
+						setElectricMeterValue(0);
 					} else{
 						this.outputValue = this.maxOutputValue;
 						this.isOn = true;

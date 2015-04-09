@@ -12,7 +12,7 @@
         <config-description><!--Application token--><parameter name="applicationToken" type="text">
             	<label>Application Token</label>
             	<description>The application token for this application.</description>
-            	<required>false</required></parameter><!--ipAddress-->
+            	<required>true</required></parameter><!--ipAddress-->
             <parameter name="ipAddress" type="text">
                 <context>network_address</context>
                 <label>Network Address</label>
@@ -37,7 +37,9 @@
             	<label>Name of the DigitalStrom installation</label>
             	<description>The user defined name of the DigitalStrom installation.</description>
             	<required>false</required></parameter>
-            
+            <parameter name="sensorDataUpdateIntervall" type="text">
+            	<default>10000</default></parameter>
+
         </config-description>
     </bridge-type>
 

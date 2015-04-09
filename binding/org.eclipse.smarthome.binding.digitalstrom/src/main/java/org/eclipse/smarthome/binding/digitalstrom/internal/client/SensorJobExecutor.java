@@ -167,6 +167,7 @@ public class SensorJobExecutor extends Thread {
 					iter.remove();
 			}
 		}
+		logger.debug("Remove SensorJobs from device with DSID {}.", dsid);
 	}
 
 }

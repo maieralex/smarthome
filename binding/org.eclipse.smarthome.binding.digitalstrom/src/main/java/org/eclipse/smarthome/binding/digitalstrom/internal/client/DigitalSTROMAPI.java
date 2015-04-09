@@ -189,7 +189,7 @@ public interface DigitalSTROMAPI {
 	 * @param subscriptionID	required
 	 * @return					true on success
 	 */
-	public boolean subscribeEvent(String token, String name, int subscriptionID, int connectTimeout, int readTimeout);
+	public boolean subscribeEvent(String token, String name, int subscriptionID, int connectionTimeout, int readTimeout);
 	
 	/**
 	 * Unsubscribes from an event given by the name. The subscriptionID is a unique 
@@ -199,7 +199,7 @@ public interface DigitalSTROMAPI {
 	 * @param subscriptionID	required
 	 * @return					true on success
 	 */
-	public boolean unsubscribeEvent(String token, String name, int subscriptionID, int connectTimeout, int readTimeout);
+	public boolean unsubscribeEvent(String token, String name, int subscriptionID, int connectionTimeout, int readTimeout);
 	
 	/**
 	 * Get event information and output. The subscriptionID is a unique id 

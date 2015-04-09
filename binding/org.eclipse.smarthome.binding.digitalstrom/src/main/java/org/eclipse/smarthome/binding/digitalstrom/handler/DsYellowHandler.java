@@ -174,7 +174,9 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 				if(stateUpdate != null){
 					switch(stateUpdate.getType()){
 						case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
+							logger.debug("value: {}",stateUpdate.getValue());
 							if(stateUpdate.getValue() > 0){
+								logger.debug("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
 									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
 							} else{
@@ -267,8 +269,9 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
         }		
 
 		String priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString();
-		
+		//logger.debug("vor if, prio = {} ",priority);
 		if(!device.isPowerConsumptionUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			//logger.debug("nach if, prio = {} ",priority);
 			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.ACTIVE_POWER), priority);
 		}
 		

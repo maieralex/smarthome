@@ -14,9 +14,22 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 
+
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.Security;
+
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.security.cert.CertificateException;
+import javax.security.cert.X509Certificate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +50,25 @@ public class HttpTransport {
 
 	
 	public HttpTransport(String uri, int connectTimeout, int readTimeout) {
+		if(!uri.startsWith("https://")) uri = "https://" + uri;
+		if(!uri.endsWith(":8080")) uri = uri + ":8080";
 		this.uri = uri;
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
+		
+		//check SSL certificate is installated
+		try {
+			URL url = new URL(uri);
+			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+			connection.connect();
+			connection.disconnect();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			setupHttpsConnection();
+		}
+		
 	}
 	
 	public String execute(String request) {
@@ -49,18 +78,19 @@ public class HttpTransport {
 	public String execute(String request, int connectTimeout, int readTimeout) {
 		if (request != null && !request.trim().equals("")) {
 			
-			HttpURLConnection connection = null;
+			HttpsURLConnection connection = null;
 			
 			StringBuilder response = new StringBuilder();
 			BufferedReader in = null;
 			try {
 				URL url = new URL(this.uri+request);
 				
-				connection = (HttpURLConnection) url.openConnection();
+				connection = (HttpsURLConnection) url.openConnection();
 				int responseCode =-1;
 				if (connection != null) {
 					connection.setConnectTimeout(connectTimeout);
 					connection.setReadTimeout(readTimeout);
+					
 				
 					try {
 						connection.connect();
@@ -143,6 +173,71 @@ public class HttpTransport {
 			}
 		}
 		return -1;
+	}
+	
+	private void setupHttpsConnection(){
+		Security.addProvider(Security.getProvider("SunJCE"));
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+               
+                public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    return;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+                    return;
+                }
+
+				@Override
+				public void checkClientTrusted(
+						java.security.cert.X509Certificate[] chain,
+						String authType)
+						throws java.security.cert.CertificateException {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void checkServerTrusted(
+						java.security.cert.X509Certificate[] chain,
+						String authType)
+						throws java.security.cert.CertificateException {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					// TODO Auto-generated method stub
+					return null;
+				}
+            }
+        };
+
+        HostnameVerifier allHostValid = new HostnameVerifier(){
+
+			@Override
+			public boolean verify(String hostname, SSLSession session) {
+				// TODO Auto-generated method stub
+				return true;
+			}
+			
+		};
+		
+		try {
+			SSLContext sslContext = SSLContext.getInstance("SSL");			
+      
+			sslContext.init(null, trustAllCerts, new SecureRandom());
+			
+			HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostValid);
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }

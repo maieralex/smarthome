@@ -28,7 +28,7 @@ public interface DeviceStateUpdate {
 	 * 
 	 * NOTE: For the OnOff-type is the value for off < 0 and for on > 0. 
 	 * 
-	 * @return
+	 * @return new Statevalue
 	 */
 	public int getValue();
 	

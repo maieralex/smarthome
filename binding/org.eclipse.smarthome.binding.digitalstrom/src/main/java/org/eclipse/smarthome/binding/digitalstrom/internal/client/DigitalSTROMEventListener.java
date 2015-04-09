@@ -49,7 +49,7 @@ public class DigitalSTROMEventListener extends Thread {
 	private final DssBridgeHandler dssBridgeHandler;
 	private SensorJobExecutor sensorJobExecutor;
 	
-	private int timeout = 1000;
+	//private int timeout = 1000;
 
 	private final String INVALID_SESSION = "Invalid session!";// Invalid
 																// session!
@@ -69,8 +69,8 @@ public class DigitalSTROMEventListener extends Thread {
 
 	public DigitalSTROMEventListener(String uri, DigitalSTROMJSONImpl digitalSTROM, DssBridgeHandler dssBridgeHandler) {
 		this.handler = new JSONResponseHandler();
-		this.transport = new HttpTransport(uri, 
-				DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT, 
+		this.transport = new HttpTransport(uri,
+				DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
 				DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 		this.digitalSTROM = digitalSTROM;
 		this.dssBridgeHandler = dssBridgeHandler;
@@ -84,7 +84,7 @@ public class DigitalSTROMEventListener extends Thread {
 			boolean transmitted = digitalSTROM.subscribeEvent(
 					this.dssBridgeHandler.getSessionToken(), 
 					EVENT_NAME, 
-					this.ID, 
+					this.ID,
 					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
 					DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 			
@@ -103,15 +103,14 @@ public class DigitalSTROMEventListener extends Thread {
 	public void run() {
 		this.sensorJobExecutor = new SensorJobExecutor(digitalSTROM, this.dssBridgeHandler);
 		sensorJobExecutor.start();
-		//logger.debug("läuuuuft1");
+		logger.debug("DigitalSTROMEventListener startet");
 		while (!this.shutdown) {
 			//logger.debug("läuuuuft");
 			String request = this.getEventAsRequest(this.ID, 500);
 
 			if (request != null) {
 
-				String response = this.transport.execute(request,
-						2 * this.timeout, this.timeout);
+				String response = this.transport.execute(request);
 
 				JSONObject responseObj = this.handler
 						.toJSONObject(response);
@@ -174,8 +173,8 @@ public class DigitalSTROMEventListener extends Thread {
 		if (this.dssBridgeHandler.checkConnection()) {
 			return digitalSTROM.unsubscribeEvent(this.dssBridgeHandler.getSessionToken(),
 					EVENT_NAME, 
-					this.ID, 
-					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT, 
+					this.ID,
+					DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
 					DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 		}
 		return false;

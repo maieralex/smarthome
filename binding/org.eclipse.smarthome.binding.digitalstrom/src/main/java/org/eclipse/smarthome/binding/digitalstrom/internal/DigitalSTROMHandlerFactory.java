@@ -121,7 +121,9 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 
 	private ThingUID getBridgeThingUID(ThingTypeUID thingTypeUID,
 			ThingUID thingUID, Configuration configuration) {
-		digitalSTROMClient = new DigitalSTROMJSONImpl(configuration.get(HOST).toString(), DEFAULT_CONNECTION_TIMEOUT, DEFAULT_READ_TIMEOUT);
+		digitalSTROMClient = new DigitalSTROMJSONImpl(configuration.get(HOST).toString(), 
+				DEFAULT_CONNECTION_TIMEOUT, 
+				DEFAULT_READ_TIMEOUT);
 		
 		int responseCode = digitalSTROMClient.checkConnection("test"); 
 		if( responseCode == HttpURLConnection.HTTP_NOT_FOUND || 

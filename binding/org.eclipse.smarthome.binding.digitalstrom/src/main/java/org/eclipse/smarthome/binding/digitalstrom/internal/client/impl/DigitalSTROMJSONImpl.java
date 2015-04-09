@@ -54,7 +54,8 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	private JSONResponseHandler	handler = null;
 	
 	public DigitalSTROMJSONImpl(String uri, int connectTimeout, int readTimeout) {
-		
+		//if(!uri.startsWith("https://")) uri = "https://" + uri;
+		//if(!uri.endsWith(":8080")) uri = uri + ":8080";
 		this.transport = new HttpTransport(uri, connectTimeout, readTimeout);
 		this.handler = new JSONResponseHandler();
 	}
@@ -763,13 +764,14 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	}
 
 	@Override
-	public boolean subscribeEvent(String token, String name, int subscriptionID, int connectTimeout, int readTimeout) {
+	public boolean subscribeEvent(String token, String name, int subscriptionID, int connectionTimeout, int readTimeout) {
 		if (name != null && !name.trim().equals("") && withParameterSubscriptionID(subscriptionID)) {
 			String response = null;
 			
 			response = transport.execute(JSONRequestConstants.JSON_EVENT_SUBSCRIBE+JSONRequestConstants.PARAMETER_TOKEN+token+
 					JSONRequestConstants.INFIX_PARAMETER_NAME+name+
-					JSONRequestConstants.INFIX_PARAMETER_SUBSCRIPTION_ID+subscriptionID, connectTimeout, readTimeout);
+					JSONRequestConstants.INFIX_PARAMETER_SUBSCRIPTION_ID+subscriptionID,
+					connectionTimeout, readTimeout);
 			
 			if (handler.checkResponse(handler.toJSONObject(response))) {
 				return true;
@@ -780,13 +782,14 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	}
 
 	@Override
-	public boolean unsubscribeEvent(String token, String name, int subscriptionID, int connectTimeout, int readTimeout) {
+	public boolean unsubscribeEvent(String token, String name, int subscriptionID, int connectionTimeout, int readTimeout) {
 		if (name != null && !name.trim().equals("") && withParameterSubscriptionID(subscriptionID)) {
 			String response = null;
 			
 			response = transport.execute(JSONRequestConstants.JSON_EVENT_UNSUBSCRIBE+JSONRequestConstants.PARAMETER_TOKEN+token+
 					JSONRequestConstants.INFIX_PARAMETER_NAME+name+
-					JSONRequestConstants.INFIX_PARAMETER_SUBSCRIPTION_ID+subscriptionID, connectTimeout, readTimeout);
+					JSONRequestConstants.INFIX_PARAMETER_SUBSCRIPTION_ID+subscriptionID,
+					connectionTimeout, readTimeout);
 			
 			if (handler.checkResponse(handler.toJSONObject(response))) {
 				return true;

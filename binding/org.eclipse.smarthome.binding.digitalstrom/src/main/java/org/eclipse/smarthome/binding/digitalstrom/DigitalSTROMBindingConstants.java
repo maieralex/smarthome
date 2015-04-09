@@ -7,7 +7,11 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom;
 
+import java.util.Set;
+
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@link DigitalSTROMBinding} class defines common constants, which are 
@@ -28,6 +32,8 @@ public class DigitalSTROMBindingConstants {
     public final static ThingTypeUID THING_TYPE_DSS_BRIDGE = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_DSS_BRIDGE);
     public final static ThingTypeUID THING_TYPE_GE_KM200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KM200);
     public final static ThingTypeUID THING_TYPE_GE_KL200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KL200);
+    
+    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = ImmutableSet.of(THING_TYPE_DSS_BRIDGE);
     
     // List of all Channels
     public static final String CHANNEL_BRIGHTNESS = "brightness";
@@ -52,6 +58,7 @@ public class DigitalSTROMBindingConstants {
 	public static final String APPLICATION_TOKEN = "applicationToken";
 	public static final String DS_ID = "deviceId";
 	public static final String DS_NAME = "dsName";
+	public static final String SENSOR_DATA_UPDATE_INTERVALL = "sensorDataUpdateIntervall";
 	
 	public static final int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted
 	
@@ -69,5 +76,5 @@ public class DigitalSTROMBindingConstants {
 	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 10000;
 	
 	//SensorData
-	public final static int DEFAULT_SENSORDATA_REFRESH_INTERVAL = 10000;
+	public static int DEFAULT_SENSORDATA_REFRESH_INTERVAL = 10000; //namen ändern
 }
