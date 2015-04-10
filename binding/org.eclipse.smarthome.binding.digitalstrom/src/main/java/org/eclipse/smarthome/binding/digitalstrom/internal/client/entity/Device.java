@@ -182,6 +182,15 @@ public interface Device {
 	
 	public boolean isSensorDataUpToDate();
 	
+	public void setSensorDataRefreshPriority(String powerConsumptionRefreshPriority, 
+			String electricMeterRefreshPriority, 
+			String energyMeterRefreshPriority);
+	
+	public String getPowerConsumptionRefreshPriority();
+	
+	public String getElectricMeterRefreshPriority();
+	
+	public String getEnergyMeterRefreshPriority();
 	/**
 	 * Adds a DeviceStateUpdate to a queue for ESH-Thing-Updates.
 	 * 

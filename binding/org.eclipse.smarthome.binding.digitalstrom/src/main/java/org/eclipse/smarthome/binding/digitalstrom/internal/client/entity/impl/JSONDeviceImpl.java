@@ -588,6 +588,11 @@ public class JSONDeviceImpl implements Device {
 	private long lastEnergyMeterUpdate = System.currentTimeMillis();
 	private long lastPowerConsumptionUpdate = System.currentTimeMillis();
 	
+	//sensor data refresh priorities
+	private String powerConsumptionRefreshPriority = DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER; 
+	private String electricMeterRefreshPriority = DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER; 
+	private String energyMeterRefreshPriority = DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER;
+	
 	//get methoden doch nicht nötig
 	@Override
 	public long getLastPowerConsumptionUpdate(){
@@ -606,21 +611,21 @@ public class JSONDeviceImpl implements Device {
 	
 	@Override
 	public boolean isPowerConsumptionUpToDate(){
-		return isOn && !isRollershutter() ?
+		return isOn && !isRollershutter() && !this.powerConsumptionRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER) ?
 				(this.lastPowerConsumptionUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis() 
 				:true;
 	}
 	 
 	@Override
 	public boolean isElectricMeterUpToDate(){
-		return isOn && !isRollershutter() ?
+		return isOn && !isRollershutter() && !this.electricMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER) ?
 				(this.lastElectricMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis()
 				:true;
 	}
 	
 	@Override
 	public boolean isEnergyMeterUpToDate(){
-		return isOn && !isRollershutter() ?
+		return isOn && !isRollershutter() && !this.energyMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER) ?
 				(this.lastEnergyMeterUpdate + DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL) > System.currentTimeMillis()
 				:true;
 	}
@@ -644,8 +649,55 @@ public class JSONDeviceImpl implements Device {
 			this.eshThingStateUpdates.add(eshThingStateUpdate);
 		}
 	}*/
+	@Override
+	public void setSensorDataRefreshPriority(String powerConsumptionRefreshPriority, 
+			String electricMeterRefreshPriority, 
+			String energyMeterRefreshPriority){
+		if(checkPriority(powerConsumptionRefreshPriority) != null){
+			this.powerConsumptionRefreshPriority = powerConsumptionRefreshPriority;
+		}
+		if(checkPriority(electricMeterRefreshPriority) != null){
+			this.electricMeterRefreshPriority = electricMeterRefreshPriority;
+		}
+		if(checkPriority(energyMeterRefreshPriority) != null){
+			this.energyMeterRefreshPriority = energyMeterRefreshPriority;
+		}
+		
+	}
 	
+	//TODO: checken ob das mit switsh case oder nur mit contains geht 
+	private String checkPriority(String priority){
+		switch(priority){
+		case DigitalSTROMBindingConstants.REFRESH_PRIORITY_HIGH:
+			break;
+		case DigitalSTROMBindingConstants.REFRESH_PRIORITY_MEDIUM:
+			break;
+		case DigitalSTROMBindingConstants.REFRESH_PRIORITY_LOW:
+			break;
+		case DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER:
+			return null;
+		default:
+			logger.error("Sensor data update priority do not exist! Please check the input!");
+			return null;
+		}
+		return priority;
+	}
 
+	@Override
+	public String getPowerConsumptionRefreshPriority(){
+		return this.powerConsumptionRefreshPriority;
+	}
+	
+	@Override
+	public String getElectricMeterRefreshPriority(){
+		return this.electricMeterRefreshPriority;
+	}
+	
+	@Override
+	public String getEnergyMeterRefreshPriority(){
+		return this.energyMeterRefreshPriority;
+	}
+	
 	@Override
 	public DeviceStateUpdate getNextESHThingUpdateStates() {
 		return !this.eshThingStateUpdates.isEmpty()?this.eshThingStateUpdates.remove(0):null;

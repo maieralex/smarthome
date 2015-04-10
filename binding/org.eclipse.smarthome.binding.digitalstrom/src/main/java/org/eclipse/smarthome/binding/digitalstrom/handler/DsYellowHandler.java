@@ -235,6 +235,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		//if (device.getDSID().getValue() == dsID) {
 	        	getThing().setStatus(ThingStatus.ONLINE);
 	        	onDeviceStateInitial(device);
+	        	
 	     //}		
 	}
 	

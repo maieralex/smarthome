@@ -31,6 +31,7 @@ import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMEventListener;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.SensorJobExecutor;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
@@ -40,6 +41,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceS
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Zone;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.SensorJob;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -108,7 +110,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			String currentDeviceDSID = currentDevice.getDSID().getValue();
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
         			//logger.debug("ESHDevice: "+eshDevice+" DSID: "+currentDeviceDSID);
-        			if(eshDevice != null && deviceStatusListeners.get(currentDeviceDSID) != null){
+        			if(eshDevice != null /*&& deviceStatusListeners.get(currentDeviceDSID) != null*/){
+        				//einrücken wenn geht
+        				if(deviceStatusListeners.get(currentDeviceDSID) != null){
         				logger.debug("Check device updates");
         				if(!eshDevice.isESHThingUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
@@ -119,12 +123,25 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(!eshDevice.isSensorDataUpToDate()){
         					logger.info("Device need SensorData update");
-        					deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
+        					/*deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
         							+ currentDeviceDSID
         							+ "\" about Sensordata need update");
+        					*/
+        					if(!eshDevice.isPowerConsumptionUpToDate()){
+        						//logger.debug("nach if, prio = {} ",priority);
+        						updateSensorData(new DeviceConsumptionSensorJob(eshDevice, SensorIndexEnum.ACTIVE_POWER), eshDevice.getPowerConsumptionRefreshPriority());
+        					}
+        					
+        					if(!eshDevice.isEnergyMeterUpToDate()){
+        						updateSensorData(new DeviceConsumptionSensorJob(eshDevice, SensorIndexEnum.OUTPUT_CURRENT), eshDevice.getEnergyMeterRefreshPriority());
+        					}
+        					
+        					if(!eshDevice.isElectricMeterUpToDate()){
+        						updateSensorData(new DeviceConsumptionSensorJob(eshDevice, SensorIndexEnum.ELECTRIC_METER), eshDevice.getEnergyMeterRefreshPriority());
+        					}
         				}
-        				
+        				}
         			} else{
         				//logger.debug("Found new Device!");
         				
@@ -163,7 +180,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 							wait(100);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
-						}*/
+						}
         				if(deviceStatusListeners.get(currentDeviceDSID) != null){
         					deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
         					logger.debug("inform DeviceStatusListener: \"" 
@@ -171,7 +188,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         							+ "\" about Device: \"" 
         							+ currentDevice.getDSID().getValue()
         							+ "\" added.");
-        				}
+        				}*/
         			}
         		}
         		        		
@@ -366,10 +383,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		if(device.isDeviceUpToDate()){
 			logger.debug("Get send command but Device is alraedy up to date");
 		}
+		boolean requestSucsessfull;
 		while(!device.isDeviceUpToDate() && checkConnection()){
 			
 			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
-			boolean requestSucsessfull = false;
+			requestSucsessfull = false;
 			
 			if(deviceStateUpdate != null){
 				switch(deviceStateUpdate.getType()){
