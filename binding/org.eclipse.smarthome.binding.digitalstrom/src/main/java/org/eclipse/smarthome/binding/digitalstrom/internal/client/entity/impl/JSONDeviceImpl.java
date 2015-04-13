@@ -637,8 +637,8 @@ public class JSONDeviceImpl implements Device {
 	@Override
 	public boolean isSensorDataUpToDate(){
 		return isOn && !isRollershutter() ? //Überprüfen ob es noch weitere gibt, bei denen es keinen Sinn macht Sensordaten zu erfassen
-				isPowerConsumptionUpToDate() ||
-				isElectricMeterUpToDate() ||
+				isPowerConsumptionUpToDate() &&
+				isElectricMeterUpToDate() &&
 				isEnergyMeterUpToDate()
 				:true;
 	}

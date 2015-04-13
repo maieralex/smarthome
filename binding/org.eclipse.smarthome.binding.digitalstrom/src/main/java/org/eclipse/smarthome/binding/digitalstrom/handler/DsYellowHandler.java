@@ -22,6 +22,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.Sens
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -174,9 +175,9 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 				if(stateUpdate != null){
 					switch(stateUpdate.getType()){
 						case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
-							logger.debug("value: {}",stateUpdate.getValue());
+							//logger.debug("value: {}",stateUpdate.getValue());
 							if(stateUpdate.getValue() > 0){
-								logger.debug("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+								//logger.debug("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
 									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
 							} else{
@@ -232,11 +233,13 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void onDeviceAdded(Device device) {
-		//if (device.getDSID().getValue() == dsID) {
-	        	getThing().setStatus(ThingStatus.ONLINE);
-	        	onDeviceStateInitial(device);
-	        	
-	     //}		
+	       getThing().setStatus(ThingStatus.ONLINE);
+	       onDeviceStateInitial(device);
+	       logger.debug("Add sensor prioritys");
+	       Configuration config = getThing().getConfiguration();
+	       device.setSensorDataRefreshPriority(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString(),
+	    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString(),
+	    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString()); 	     		
 	}
 	
 	private void onDeviceStateInitial(Device device){

@@ -106,12 +106,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         		List<Device> currentDeviceList = new LinkedList<Device>(digitalSTROMClient.getApartmentDevices(sessionToken, false));
         		
         		while (!currentDeviceList.isEmpty()){
+        			
         			Device currentDevice = currentDeviceList.remove(0);
         			String currentDeviceDSID = currentDevice.getDSID().getValue();
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
         			//logger.debug("ESHDevice: "+eshDevice+" DSID: "+currentDeviceDSID);
         			if(eshDevice != null /*&& deviceStatusListeners.get(currentDeviceDSID) != null*/){
         				//einrücken wenn geht
+        				
         				if(deviceStatusListeners.get(currentDeviceDSID) != null){
         				logger.debug("Check device updates");
         				if(!eshDevice.isESHThingUpToDate()){
@@ -120,7 +122,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         							+ currentDeviceDSID
         							+ "\" about update ESH-Update");
         				}
-        				
+        				//logger.debug("{}",!eshDevice.isSensorDataUpToDate());        				
         				if(!eshDevice.isSensorDataUpToDate()){
         					logger.info("Device need SensorData update");
         					/*deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
@@ -143,11 +145,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				}
         				}
         			} else{
-        				//logger.debug("Found new Device!");
+        				logger.debug("Found new Device!");
         				
         				if(trashDevices.isEmpty()){
         					deviceMap.put(currentDeviceDSID, currentDevice);
-        					//logger.debug("trashDevices are empty, add Device to the deviceMap!");
+        					logger.debug("trashDevices are empty, add Device to the deviceMap!");
         				} else{
         					logger.debug("Search device in trashDevices.");
         					
@@ -169,7 +171,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					 }
         				}
         				//TODO: wieder einfügen!!!!
-        				//deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
+        				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
         				//Testen ob das nötig ist, evtl muss erst das Thing über den DeviceDiscoveryService erstellt werden
         				/*logger.debug("inform DeviceStatusListener: \"" 
         						+ DeviceStatusListener.DEVICE_DESCOVERY 
@@ -494,16 +496,20 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		
 		if (id != null) {
 			logger.debug("Added DeviceStatusListener {}",id);
-			if(deviceStatusListeners.put(id, deviceStatusListener) != null){
+			logger.debug("{}",!id.contains(DeviceStatusListener.DEVICE_DESCOVERY));
+			//if(deviceStatusListeners.put(id, deviceStatusListener) != null){
+				deviceStatusListeners.put(id, deviceStatusListener);
 				onUpdate();
 				// inform the listener initially about the device and their states
-		    	if(id != DeviceStatusListener.DEVICE_DESCOVERY){
+				//logger.debug("{}",!id.contains(DeviceStatusListener.DEVICE_DESCOVERY));
+		    	if(!id.contains(DeviceStatusListener.DEVICE_DESCOVERY)){
 		    		logger.debug("inform listener about the added Device");
 		    		deviceStatusListener.onDeviceAdded(deviceMap.get(id));
-				} else {
+		    		logger.debug("inform listener about the added Device");
+				} 
+				//}
+			}else {
 					throw new NullPointerException("It's not allowed to pass a null ID.");
-				}
-			}
 		}
 	}
 		 

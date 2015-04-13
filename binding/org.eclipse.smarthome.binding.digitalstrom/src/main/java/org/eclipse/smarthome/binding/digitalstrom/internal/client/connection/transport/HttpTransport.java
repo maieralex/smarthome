@@ -52,7 +52,7 @@ public class HttpTransport {
 	private final String CERT_EXCEPTION = "java.security.cert.CertificateException";
 	//sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 	private final String PKIX_PATH_FAILD = "PKIX path building failed";
-	private final String HOSTNAME_VERIFIER = "No name matching found";
+	private final String HOSTNAME_VERIFIER = "No name matching";
 	private final String UNKOWN_HOST = "unknownHost";
 	
 	private static final Logger logger = LoggerFactory.getLogger(HttpTransport.class);
@@ -73,6 +73,7 @@ public class HttpTransport {
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
 		
+		//Check SSL Certificate
 		if(DigitalSTROMBindingConstants.TRUST_CERT_PATH != null){			
 			logger.info("Certification path is set, generate the certification and accept it.");
 			trustedCertPath = DigitalSTROMBindingConstants.TRUST_CERT_PATH;
@@ -90,8 +91,15 @@ public class HttpTransport {
 				certInputStream = HttpTransport.class.getClassLoader().getResourceAsStream(trustedCertPath);
 			}
 			setupWithCertPath();
+			String conCheck = this.checkConnection();
+			if(conCheck != null && conCheck.contains(CERT_EXCEPTION)){
+				logger.error("Invalid certification at path " + this.trustedCertPath);
+				
+				
+			}
+			
 		}
-		//Check SSL Certificate
+		
 		checkSSLCert();
 	}
 	
@@ -209,7 +217,7 @@ public class HttpTransport {
 			switch(conCheck){
 			case CERT_EXCEPTION:
 				logger.info("No certification installated");
-				/*trustedCertPath = DigitalSTROMBindingConstants.TRUST_CERT_PATH; 
+				trustedCertPath = DigitalSTROMBindingConstants.TRUST_CERT_PATH; 
 				if(trustedCertPath != null && !trustedCertPath.isEmpty()){
 					logger.info("Certification path is set, generate the certification and accept it.");
 					setupWithCertPath();
@@ -218,13 +226,18 @@ public class HttpTransport {
 						logger.error("Invalid certification at path " + this.trustedCertPath);
 						return;
 					}
-					checkSSLCert();
-				} else{*/
+					//checkSSLCert();
+				} else{
 					//check SSL certificate is installated
 					logger.info("No certification path is set, accept all certifications.");
 					setupAcceptAllSSLCertificats();
+					conCheck = checkConnection();
+					if(conCheck != null && conCheck.contains(CERT_EXCEPTION)){
+						System.err.println("Invalid certification at parth " + this.trustedCertPath);
+						return;
+					}
 					checkSSLCert();
-				//}
+				}
 				break;
 			case HOSTNAME_VERIFIER:
 				logger.info("Can't verifi hostname, accept hostname: dss.local.");
@@ -259,7 +272,7 @@ public class HttpTransport {
 			String msg = e.getMessage();
 			
 			if(e instanceof javax.net.ssl.SSLHandshakeException){
-				//logger.info(e.getMessage() );
+				logger.info(e.getMessage() );
 				if(msg.contains(CERT_EXCEPTION) || msg.contains(PKIX_PATH_FAILD)){
 					if(msg.contains(HOSTNAME_VERIFIER)){
 						//logger.info("Hostname");
@@ -267,9 +280,7 @@ public class HttpTransport {
 					}
 					return CERT_EXCEPTION;
 				}
-				if(msg.contains(HOSTNAME_VERIFIER)){
-					return HOSTNAME_VERIFIER;
-				}
+				
 			}
 			 
 			if(e instanceof java.net.UnknownHostException){
@@ -295,14 +306,14 @@ public class HttpTransport {
 				@Override
 				public void checkClientTrusted(X509Certificate[] arg0,
 						String arg1) throws CertificateException {
-					// TODO Auto-generated method stub
+					
 					
 				}
 
 				@Override
 				public void checkServerTrusted(X509Certificate[] arg0,
 						String arg1) throws CertificateException {
-					// TODO Auto-generated method stub
+					
 					
 				}
             }
