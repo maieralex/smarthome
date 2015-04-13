@@ -267,10 +267,26 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			DEFAULT_READ_TIMEOUT);
 
         	if(configuration.get(APPLICATION_TOKEN) != null && 
-        			!(this.applicationToken = configuration.get(APPLICATION_TOKEN).toString()).isEmpty()){
+        			!(this.applicationToken = configuration.get(APPLICATION_TOKEN).toString()).trim().isEmpty()){
         		
-        	
-        		DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL = Integer.parseInt(configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).toString());
+        		//get Configurations
+        		if(configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL) != null &&
+        				!configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).toString().trim().isEmpty()){
+        			DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL = Integer.
+        					parseInt(configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).
+        							toString());
+        		}
+        		if(configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY) != null &&
+        				!configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY).toString().trim().isEmpty()){
+        			DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME = Integer.
+        					parseInt(configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY).
+        							toString());
+        		}
+        		if(configuration.get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY) != null &&
+        				!configuration.get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString().trim().isEmpty()){
+        			DigitalSTROMBindingConstants.TRUST_CERT_PATH = configuration.
+        					get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString();
+        		}
         		//deviceMap.putAll(getDigitalSTROMDeviceHashMap());
         	
         		if(checkConnection()){
@@ -315,8 +331,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         	this.sensorJobExecuter.shutdown();
         	this.sensorJobExecuter = null;
         }
-        
-        updateStatus(ThingStatus.OFFLINE);
+        if(this.getThing().getStatus().equals(ThingStatus.ONLINE)){
+        	updateStatus(ThingStatus.OFFLINE);
+        }
         
         if(pollingJob!=null && !pollingJob.isCancelled()) {
         	pollingJob.cancel(true);

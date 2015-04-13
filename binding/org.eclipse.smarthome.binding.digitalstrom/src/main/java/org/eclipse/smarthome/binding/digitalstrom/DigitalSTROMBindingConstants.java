@@ -59,8 +59,11 @@ public class DigitalSTROMBindingConstants {
 	public static final String DS_ID = "deviceId";
 	public static final String DS_NAME = "dsName";
 	public static final String SENSOR_DATA_UPDATE_INTERVALL = "sensorDataUpdateIntervall";
+	public static final String DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY = "defaultTrashBinDeleateTime";
+	public static final String TRUST_CERT_PATH_KEY = "trustCertPath";
 	
-	public static final int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted
+	public static int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted
+	public static String TRUST_CERT_PATH = null;
 	
     // Device config properties
 	public static final String DEVICE_ID = "deviceId";

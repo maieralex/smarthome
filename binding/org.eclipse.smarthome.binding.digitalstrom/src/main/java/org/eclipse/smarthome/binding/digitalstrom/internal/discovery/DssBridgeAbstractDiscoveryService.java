@@ -60,7 +60,7 @@ public class DssBridgeAbstractDiscoveryService extends AbstractDiscoveryService 
 			DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT, 
 			DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT);
 		dsid = digitalSTROMClient.getDSID("123");
-		logger.debug("test connection, dsid = {}",dsid);
+		//logger.debug("test connection, dsid = {}",dsid);
 		if(dsid != null){
 				return new ThingUID(DigitalSTROMBindingConstants.THING_TYPE_DSS_BRIDGE,
 				dsid);

@@ -6,21 +6,27 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
+
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.connection.transport;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-
-
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -28,9 +34,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.security.cert.CertificateException;
-import javax.security.cert.X509Certificate;
 
+import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +46,26 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpTransport {
 	
+	//Exceptions:
+	//Messages
+	private final String NO_CERT_AT_PATH = "Missing input stream";
+	private final String CERT_EXCEPTION = "java.security.cert.CertificateException";
+	//sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+	private final String PKIX_PATH_FAILD = "PKIX path building failed";
+	private final String HOSTNAME_VERIFIER = "No name matching found";
+	private final String UNKOWN_HOST = "unknownHost";
+	
 	private static final Logger logger = LoggerFactory.getLogger(HttpTransport.class);
 	
 	private final String uri;
+	private String trustedCertPath;
+	private X509Certificate	trustedCert;
+	private InputStream certInputStream;
 	
 	private final int connectTimeout;
 	private final int readTimeout;
 
-	
+		
 	public HttpTransport(String uri, int connectTimeout, int readTimeout) {
 		if(!uri.startsWith("https://")) uri = "https://" + uri;
 		if(!uri.endsWith(":8080")) uri = uri + ":8080";
@@ -56,19 +73,26 @@ public class HttpTransport {
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
 		
-		//check SSL certificate is installated
-		try {
-			URL url = new URL(uri);
-			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-			connection.connect();
-			connection.disconnect();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			setupHttpsConnection();
+		if(DigitalSTROMBindingConstants.TRUST_CERT_PATH != null){			
+			logger.info("Certification path is set, generate the certification and accept it.");
+			trustedCertPath = DigitalSTROMBindingConstants.TRUST_CERT_PATH;
+			
+			File dssCert = new File(trustedCertPath);
+			if(dssCert.isAbsolute()){
+				try {
+					certInputStream = new FileInputStream(dssCert);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					logger.error("Can't find a certificationfile at the certificationpath: " + trustedCertPath + 
+							"\nPlease check the path!");
+				}
+			} else{
+				certInputStream = HttpTransport.class.getClassLoader().getResourceAsStream(trustedCertPath);
+			}
+			setupWithCertPath();
 		}
-		
+		//Check SSL Certificate
+		checkSSLCert();
 	}
 	
 	public String execute(String request) {
@@ -175,62 +199,122 @@ public class HttpTransport {
 		return -1;
 	}
 	
-	private void setupHttpsConnection(){
+	
+	/****SSL Check****/
+	
+	private void checkSSLCert(){
+		logger.info("Check SSL Certificate");
+		String conCheck = checkConnection();
+		if(conCheck != null){
+			switch(conCheck){
+			case CERT_EXCEPTION:
+				logger.info("No certification installated");
+				/*trustedCertPath = DigitalSTROMBindingConstants.TRUST_CERT_PATH; 
+				if(trustedCertPath != null && !trustedCertPath.isEmpty()){
+					logger.info("Certification path is set, generate the certification and accept it.");
+					setupWithCertPath();
+					conCheck = checkConnection();
+					if(conCheck != null && conCheck.contains(CERT_EXCEPTION)){
+						logger.error("Invalid certification at path " + this.trustedCertPath);
+						return;
+					}
+					checkSSLCert();
+				} else{*/
+					//check SSL certificate is installated
+					logger.info("No certification path is set, accept all certifications.");
+					setupAcceptAllSSLCertificats();
+					checkSSLCert();
+				//}
+				break;
+			case HOSTNAME_VERIFIER:
+				logger.info("Can't verifi hostname, accept hostname: dss.local.");
+				this.setupHostnameVerifierForDssLocal();
+				conCheck = checkConnection();
+				if(conCheck != null && conCheck.contains(HOSTNAME_VERIFIER)){
+					logger.info("Can't verifi hostname, accept all hostnames");
+					this.setupHostnameVerifier();
+				}
+				checkSSLCert();
+				break;
+			case UNKOWN_HOST:
+				return;
+			default: return;
+			}
+		}else{
+			logger.info("All right, SSL Certificate is installeted");
+		}
+		
+	}
+	
+	private String checkConnection(){
+		try {
+			URL url = new URL(uri);
+			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+			connection.connect();
+			connection.disconnect();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			String msg = e.getMessage();
+			
+			if(e instanceof javax.net.ssl.SSLHandshakeException){
+				//logger.info(e.getMessage() );
+				if(msg.contains(CERT_EXCEPTION) || msg.contains(PKIX_PATH_FAILD)){
+					if(msg.contains(HOSTNAME_VERIFIER)){
+						//logger.info("Hostname");
+						return HOSTNAME_VERIFIER;
+					}
+					return CERT_EXCEPTION;
+				}
+				if(msg.contains(HOSTNAME_VERIFIER)){
+					return HOSTNAME_VERIFIER;
+				}
+			}
+			 
+			if(e instanceof java.net.UnknownHostException){
+				logger.error("Can't find host: " + msg);
+				return UNKOWN_HOST;
+			}
+			e.printStackTrace();			
+		}
+		return null;
+	}
+	
+	private void setupAcceptAllSSLCertificats(){
 		Security.addProvider(Security.getProvider("SunJCE"));
         TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
-               
-                public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-                    return;
-                }
-
-                public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
-                    return;
-                }
-
-				@Override
-				public void checkClientTrusted(
-						java.security.cert.X509Certificate[] chain,
-						String authType)
-						throws java.security.cert.CertificateException {
-					// TODO Auto-generated method stub
-					
-				}
-
-				@Override
-				public void checkServerTrusted(
-						java.security.cert.X509Certificate[] chain,
-						String authType)
-						throws java.security.cert.CertificateException {
-					// TODO Auto-generated method stub
-					
-				}
 
 				@Override
 				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
 					// TODO Auto-generated method stub
 					return null;
 				}
+
+				@Override
+				public void checkClientTrusted(X509Certificate[] arg0,
+						String arg1) throws CertificateException {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] arg0,
+						String arg1) throws CertificateException {
+					// TODO Auto-generated method stub
+					
+				}
             }
         };
 
-        HostnameVerifier allHostValid = new HostnameVerifier(){
-
-			@Override
-			public boolean verify(String hostname, SSLSession session) {
-				// TODO Auto-generated method stub
-				return true;
-			}
-			
-		};
-		
+       		
 		try {
 			SSLContext sslContext = SSLContext.getInstance("SSL");			
       
 			sslContext.init(null, trustAllCerts, new SecureRandom());
 			
 			HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-			HttpsURLConnection.setDefaultHostnameVerifier(allHostValid);
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -238,6 +322,93 @@ public class HttpTransport {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private void setupWithCertPath() {
+		 
+		CertificateFactory certificateFactory;
+		try {
+			certificateFactory = CertificateFactory.getInstance("X.509");
+		
+			trustedCert = (X509Certificate) certificateFactory.generateCertificate(this.certInputStream);
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			if(e.getMessage().contains(NO_CERT_AT_PATH)){
+				logger.error("Can't find a certificationfile at the certificationpath: " + trustedCertPath + 
+						"\nPlease check the path!");
+				return;
+			} else {
+				e.printStackTrace();
+			}
+		}
+				
+ 
+ 
+		final TrustManager[] trustManager = new TrustManager[] { new X509TrustManager() {
+ 
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+ 
+				return null;
+ 
+			}
+ 
+ 
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) throws CertificateException { 
+				if (!certs[0].equals(trustedCert))
+					throw new CertificateException();
+			}
+ 
+ 
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) throws CertificateException {
+ 
+				if (!certs[0].equals(trustedCert))
+					throw new CertificateException();
+ 
+			}
+ 
+		} };
+ 
+		SSLContext sslContext;
+		
+		try {
+			sslContext = SSLContext.getInstance("SSL");
+			sslContext.init(null, trustManager, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+	}
+	
+	private void setupHostnameVerifier(){
+		 HostnameVerifier allHostValid = new HostnameVerifier(){
+
+				@Override
+				public boolean verify(String arg0, SSLSession arg1) {
+					// TODO Auto-generated method stub
+					return true;
+				}
+				
+		};
+			
+		HttpsURLConnection.setDefaultHostnameVerifier(allHostValid);
+	}
+	
+	private void setupHostnameVerifierForDssLocal(){
+		 HostnameVerifier allHostValid = new HostnameVerifier(){
+
+				@Override
+				public boolean verify(String arg0, SSLSession arg1) {
+					// TODO Auto-generated method stub
+					return arg0.contains("dss.local.");
+				}
+				
+		};
+			
+		HttpsURLConnection.setDefaultHostnameVerifier(allHostValid);
 	}
 	
 }
