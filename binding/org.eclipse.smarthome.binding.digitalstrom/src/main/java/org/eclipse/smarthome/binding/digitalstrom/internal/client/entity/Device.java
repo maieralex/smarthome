@@ -23,6 +23,8 @@ public interface Device {
 	
 	public DSID getDSID();
 	
+	public String getDSUID();
+	
 	public String getHWinfo();
 	
 	public String getName();

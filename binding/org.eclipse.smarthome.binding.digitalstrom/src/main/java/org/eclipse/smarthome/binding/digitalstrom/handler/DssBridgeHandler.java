@@ -106,28 +106,30 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         		List<Device> currentDeviceList = new LinkedList<Device>(digitalSTROMClient.getApartmentDevices(sessionToken, false));
         		
         		while (!currentDeviceList.isEmpty()){
+        			handleStructure(digitalSTROMClient
+        					.getApartmentStructure(sessionToken));
         			
         			Device currentDevice = currentDeviceList.remove(0);
-        			String currentDeviceDSID = currentDevice.getDSID().getValue();
-        			Device eshDevice = tempDeviceMap.remove(currentDeviceDSID);
-        			//logger.debug("ESHDevice: "+eshDevice+" DSID: "+currentDeviceDSID);
-        			if(eshDevice != null /*&& deviceStatusListeners.get(currentDeviceDSID) != null*/){
+        			String currentDeviceDSUID = currentDevice.getDSUID();
+        			Device eshDevice = tempDeviceMap.remove(currentDeviceDSUID);
+        			//logger.debug("ESHDevice: "+eshDevice+" DSID: "+currentDeviceDSUID);
+        			if(eshDevice != null /*&& deviceStatusListeners.get(currentDeviceDSUID) != null*/){
         				//einrücken wenn geht
         				
-        				if(deviceStatusListeners.get(currentDeviceDSID) != null){
+        				if(deviceStatusListeners.get(currentDeviceDSUID) != null){
         				logger.debug("Check device updates");
         				if(!eshDevice.isESHThingUpToDate()){
-        					deviceStatusListeners.get(currentDeviceDSID).onDeviceStateChanged(eshDevice);
+        					deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
-        							+ currentDeviceDSID
+        							+ currentDeviceDSUID
         							+ "\" about update ESH-Update");
         				}
         				//logger.debug("{}",!eshDevice.isSensorDataUpToDate());        				
         				if(!eshDevice.isSensorDataUpToDate()){
         					logger.info("Device need SensorData update");
-        					/*deviceStatusListeners.get(currentDeviceDSID).onDeviceNeededSensorDataUpdate(eshDevice);
+        					/*deviceStatusListeners.get(currentDeviceDSUID).onDeviceNeededSensorDataUpdate(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
-        							+ currentDeviceDSID
+        							+ currentDeviceDSUID
         							+ "\" about Sensordata need update");
         					*/
         					if(!eshDevice.isPowerConsumptionUpToDate()){
@@ -148,7 +150,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				logger.debug("Found new Device!");
         				
         				if(trashDevices.isEmpty()){
-        					deviceMap.put(currentDeviceDSID, currentDevice);
+        					deviceMap.put(currentDeviceDSUID, currentDevice);
         					logger.debug("trashDevices are empty, add Device to the deviceMap!");
         				} else{
         					logger.debug("Search device in trashDevices.");
@@ -166,7 +168,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					 } 
         					
         					if(!found){
-        						 deviceMap.put(currentDeviceDSID, currentDevice);
+        						 deviceMap.put(currentDeviceDSUID, currentDevice);
         						 logger.debug("Can't find device in trashDevices, add Device to the deviceMap!");
         					 }
         				}
@@ -183,8 +185,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-        				if(deviceStatusListeners.get(currentDeviceDSID) != null){
-        					deviceStatusListeners.get(currentDeviceDSID).onDeviceAdded(currentDevice);
+        				if(deviceStatusListeners.get(currentDeviceDSUID) != null){
+        					deviceStatusListeners.get(currentDeviceDSUID).onDeviceAdded(currentDevice);
         					logger.debug("inform DeviceStatusListener: \"" 
         							+ currentDevice.getDSID().getValue() 
         							+ "\" about Device: \"" 
@@ -496,7 +498,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		
 		if (id != null) {
 			logger.debug("Added DeviceStatusListener {}",id);
-			logger.debug("{}",!id.contains(DeviceStatusListener.DEVICE_DESCOVERY));
+			//logger.debug("{}",!id.contains(DeviceStatusListener.DEVICE_DESCOVERY));
 			//if(deviceStatusListeners.put(id, deviceStatusListener) != null){
 				deviceStatusListeners.put(id, deviceStatusListener);
 				onUpdate();

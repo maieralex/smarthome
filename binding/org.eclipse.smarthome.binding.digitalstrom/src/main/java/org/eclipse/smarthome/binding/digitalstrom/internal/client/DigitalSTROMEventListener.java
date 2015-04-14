@@ -16,8 +16,10 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSON
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SceneToStateMapper;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Event;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.EventItem;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.DeviceStateUpdateImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONEventImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.EventPropertyEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
@@ -216,7 +218,9 @@ public class DigitalSTROMEventListener extends Thread {
 
 			boolean isDeviceCall = false;
 			String dsidStr = null;
-
+			/*for(EventPropertyEnum key : eventItem.getProperties().keySet()){
+				logger.debug("Event! Key: {} value {}", key, eventItem.getProperties().get(key));
+			}*/
 			String zoneIDStr = eventItem.getProperties().get(
 					EventPropertyEnum.ZONEID);
 			if (zoneIDStr != null) {
@@ -281,10 +285,10 @@ public class DigitalSTROMEventListener extends Thread {
 
 									if (!device.doIgnoreScene(sceneId)) {
 										if (shouldBeOn) {
-											device.setOutputValue(device
-													.getMaxOutPutValue());
+											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
+													.getMaxOutPutValue()));
 										} else {
-											device.setOutputValue(0);
+											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 										}
 									}
 								} else {
@@ -292,7 +296,7 @@ public class DigitalSTROMEventListener extends Thread {
 										short value = device
 												.getSceneOutputValue(sceneId);
 										if (value != -1) {
-											device.setOutputValue(value);
+											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
 										} else {
 											initDeviceOutputValue(
 													device,
@@ -407,10 +411,10 @@ public class DigitalSTROMEventListener extends Thread {
 															.doIgnoreScene(sceneId)) {
 
 														if (shouldBeOn) {
-															device.setOutputValue(device
-																	.getMaxOutPutValue());
+															device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
+																	.getMaxOutPutValue()));
 														} else {
-															device.setOutputValue(0);
+															device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 														}
 
 													}
@@ -442,10 +446,10 @@ public class DigitalSTROMEventListener extends Thread {
 																.doIgnoreScene(sceneId)) {
 
 															if (shouldBeOn) {
-																device.setOutputValue(device
-																		.getMaxOutPutValue());
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
+																		.getMaxOutPutValue()));
 															} else {
-																device.setOutputValue(0);
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 															}
 
 														}
@@ -490,7 +494,7 @@ public class DigitalSTROMEventListener extends Thread {
 																		device,
 																		sceneId);
 															} else {
-																device.setOutputValue(sceneValue);
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, sceneValue));
 															}
 														}
 													}
@@ -551,16 +555,20 @@ public class DigitalSTROMEventListener extends Thread {
 									Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
 
 									if (map != null) {
-
+										//logger.debug("1");
 										if (groupId != -1) {
+											//logger.debug("2");
 											List<String> devicesInGroup = map
 													.get(groupId);
 											if (devicesInGroup != null) {
+												//logger.debug("3");
 												for (String dsid : devicesInGroup) {
+													//logger.debug("ja");
 													Device device = deviceMap
 															.get(dsid);
 
 													if (device != null) {
+														//logger.debug("4");
 														if (!device
 																.containsSceneConfig(sceneId)) {
 															dssBridgeHandler.getSceneSpec(
@@ -570,11 +578,12 @@ public class DigitalSTROMEventListener extends Thread {
 
 														if (!device
 																.doIgnoreScene(sceneId)) {
+															//logger.debug("5");
 															if (shouldBeOn) {
-																device.setOutputValue(device
-																		.getMaxOutPutValue());
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
+																		.getMaxOutPutValue()));
 															} else {
-																device.setOutputValue(0);
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 															}
 														}
 
@@ -618,7 +627,7 @@ public class DigitalSTROMEventListener extends Thread {
 																		device,
 																		sceneId);
 															} else {
-																device.setOutputValue(outputValue);
+																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, outputValue));
 															}
 														}
 													}
@@ -758,7 +767,7 @@ public class DigitalSTROMEventListener extends Thread {
 					if (!device.doIgnoreScene(sceneId)) {
 						short output = device.getSceneOutputValue(sceneId);
 						if (output != -1) {
-							device.setOutputValue(output);
+							device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, output));
 						} else {
 							initDeviceOutputValue(device,
 									DeviceConstants.DEVICE_SENSOR_OUTPUT);
@@ -786,7 +795,7 @@ public class DigitalSTROMEventListener extends Thread {
 						if (!device.doIgnoreScene(sceneId)) {
 							short output = device.getSceneOutputValue(sceneId);
 							if (output != -1) {
-								device.setOutputValue(output);
+								device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, output));
 							} else {
 								initDeviceOutputValue(device,
 										DeviceConstants.DEVICE_SENSOR_OUTPUT);

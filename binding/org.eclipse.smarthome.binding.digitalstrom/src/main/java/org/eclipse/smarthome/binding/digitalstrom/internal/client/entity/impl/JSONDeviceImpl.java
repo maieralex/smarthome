@@ -40,6 +40,8 @@ public class JSONDeviceImpl implements Device {
 
 	private DSID dsid = null;
 	
+	private String dSUID = null;
+	
 	private String hwInfo;
 	
 	private String name = null;
@@ -97,6 +99,10 @@ public class JSONDeviceImpl implements Device {
 			this.dsid = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_ID_QUERY.getKey()).toString());
 		}
 
+		if (object.get(JSONApiResponseKeysEnum.DEVICE_DSUID.getKey()) != null) {
+			this.dSUID = object.get(JSONApiResponseKeysEnum.DEVICE_DSUID.getKey()).toString();
+		}
+		
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_ID.getKey()) != null) {
 			this.hwInfo = object.get(JSONApiResponseKeysEnum.DEVICE_HW_INFO.getKey()).toString();
 		}
@@ -190,6 +196,10 @@ public class JSONDeviceImpl implements Device {
 		return dsid;
 	}
 
+	@Override
+	public String getDSUID(){
+		return this.dSUID;
+	}
 	@Override
 	public String getHWinfo() {
 		return hwInfo;

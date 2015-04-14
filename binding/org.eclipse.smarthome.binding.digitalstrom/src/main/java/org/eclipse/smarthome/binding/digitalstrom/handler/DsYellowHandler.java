@@ -11,7 +11,6 @@ import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingCons
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ELECTRIC_METER;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ENERGY_METER;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DS_ID;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KL200;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KM200;
 
@@ -53,7 +52,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet(THING_TYPE_GE_KM200, THING_TYPE_GE_KL200);
     
-    private String dsID = null;
+    private String dSUID = null;
 
 	private DssBridgeHandler dssBridgeHandler;
 	
@@ -65,10 +64,10 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     @Override
     public void initialize() {
     	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
-        final String configDSId = getConfig().get(DS_ID).toString();
+        final String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
         
-        if (configDSId != null) {
-            dsID = configDSId;
+        if (configDSUId != null) {
+            dSUID = configDSUId;
         	// note: this call implicitly registers our handler as a listener on the bridge
             if(getDssBridgeHandler()!=null) { 
             	getThing().setStatus(getBridge().getStatus());
@@ -80,12 +79,12 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     @Override
     public void dispose() {
         logger.debug("Handler disposes. Unregistering listener.");
-        if (dsID != null) {
+        if (dSUID != null) {
             DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
         	if(dssBridgeHandler != null) {
-        		getDssBridgeHandler().unregisterDeviceStatusListener(dsID);
+        		getDssBridgeHandler().unregisterDeviceStatusListener(dSUID);
         	}
-            dsID = null;
+            dSUID = null;
         }
     }
 
@@ -93,7 +92,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     	DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
     	if(dssBridgeHandler != null) {
     		//logger.debug("get DssBridgeHandler");
-    		return dssBridgeHandler.getDeviceByDSID(dsID);
+    		return dssBridgeHandler.getDeviceByDSID(dSUID);
     	}
         return null;
     }
@@ -158,7 +157,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	        
 	        if (handler instanceof DssBridgeHandler) {
 	        	this.dssBridgeHandler =  (DssBridgeHandler) handler;
-	        	this.dssBridgeHandler.registerDeviceStatusListener(dsID, this);
+	        	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
 	        } else{
 	        	return null;
 	        }

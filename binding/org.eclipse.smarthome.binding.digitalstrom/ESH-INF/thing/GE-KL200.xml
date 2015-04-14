@@ -19,9 +19,9 @@
         		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
         
-        <config-description><!--deviceID-->
-            <parameter name="deviceId" type="text">
-                <label>Device ID</label>
+        <config-description><!--dSUID-->
+            <parameter name="dSUID" type="text">
+                <label>Device UID</label>
                 <description>The device identifier identifies one DigitalStrom device.</description>
                 <required>true</required>
             </parameter><!--deviceName-->

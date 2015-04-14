@@ -59,7 +59,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 		if(thingUID!=null) {
 			ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
 	        Map<String, Object> properties = new HashMap<>(2);
-	        properties.put(DEVICE_ID, device.getDSID().getValue());
+	        properties.put(DEVICE_UID, device.getDSUID());
 	        if(device.getName() != null){
 	        	properties.put(DEVICE_NAME, device.getName());
 	        } else{
@@ -73,7 +73,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	        
 	        thingDiscovered(discoveryResult);
 		} else {
-			logger.debug("discovered unsupported device hardware type '{}' with id {}", device.getHWinfo(), device.getDSID().getValue());
+			logger.debug("discovered unsupported device hardware type '{}' with uid {}", device.getHWinfo(), device.getDSUID());
 		}
     }
     
@@ -82,7 +82,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 		ThingTypeUID thingTypeUID = new ThingTypeUID(BINDING_ID, device.getHWinfo());
 				
 		if(getSupportedThingTypes().contains(thingTypeUID)) {
-		    String thingDeviceId = device.getDSID().getValue();
+		    String thingDeviceId = device.getDSUID();
 		    ThingUID thingUID = new ThingUID(thingTypeUID, bridgeUID, thingDeviceId);
 			return thingUID;
 		} else {

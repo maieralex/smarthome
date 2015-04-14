@@ -10,8 +10,8 @@ package org.eclipse.smarthome.binding.digitalstrom.internal;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.APPLICATION_TOKEN;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEVICE_ID;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DS_ID;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEVICE_UID;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.HOST;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.PASSWORD;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.USER_NAME;
@@ -112,7 +112,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 
 	private ThingUID getLightUID(ThingTypeUID thingTypeUID, ThingUID thingUID,
 			Configuration configuration, ThingUID bridgeUID) {
-		String lightId = configuration.get(DEVICE_ID).toString();
+		String lightId = configuration.get(DEVICE_UID).toString();
 		if (thingUID == null) {
 	          thingUID = new ThingUID(thingTypeUID, lightId, bridgeUID.getId());
 	    }
