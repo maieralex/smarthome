@@ -8,6 +8,7 @@
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.APPLICATION_TOKEN;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEFAULT_READ_TIMEOUT;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.HOST;
@@ -31,9 +32,12 @@ import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMEventListener;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.SensorJobExecutor;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringTypeEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringUnitsEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.CachedMeteringValue;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
@@ -44,6 +48,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalST
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.SensorJob;
 import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -79,6 +84,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     /****States****/
     private boolean lastConnectionState = false;
     private long lastBinCheck = 0;
+    private int consumption = 0;
     
     /****Maps****/
     private HashMap<String, DeviceStatusListener> deviceStatusListeners = new HashMap<String, DeviceStatusListener>();
@@ -105,6 +111,21 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         		HashMap<String, Device> tempDeviceMap = new HashMap<String, Device>(deviceMap);
         		List<Device> currentDeviceList = new LinkedList<Device>(digitalSTROMClient.getApartmentDevices(sessionToken, false));
         		
+        		int tempConsumtion = 0;
+        		for(CachedMeteringValue value:digitalSTROMClient.getLatest(sessionToken, 
+        						MeteringTypeEnum.consumption, 
+        						".meters"+ 
+        						digitalSTROMClient.getMeterList(sessionToken).toString().replace(" ", "").replace("[", "(").replace("]", ")"), 
+        						MeteringUnitsEnum.W)){
+        			tempConsumtion += value.getValue();
+        		}
+        		if(tempConsumtion != consumption){
+        			consumption = tempConsumtion;
+        			updateState(new ChannelUID(getThing().getUID(), 
+        				CHANNEL_POWER_CONSUMPTION), 
+        				new DecimalType(consumption));
+        		}
+        		
         		while (!currentDeviceList.isEmpty()){
         			handleStructure(digitalSTROMClient
         					.getApartmentStructure(sessionToken));
@@ -118,6 +139,24 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(deviceStatusListeners.get(currentDeviceDSUID) != null){
         				logger.debug("Check device updates");
+        				
+        				while(!eshDevice.isDeviceUpToDate()){
+        					DeviceStateUpdate deviceStateUpdate = eshDevice.getNextDeviceUpdateState();
+        					 if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
+        						 sendComandsToDSS(eshDevice, deviceStateUpdate);
+        					 } else{
+        						 DeviceStateUpdate nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
+        						 while(nextDeviceStateUpdate != null && nextDeviceStateUpdate.getType() == DeviceStateUpdate.UPDATE_BRIGHTNESS){
+        							 deviceStateUpdate = nextDeviceStateUpdate;
+        							 nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
+        						 }
+        						 sendComandsToDSS(eshDevice, deviceStateUpdate);
+        						 if(nextDeviceStateUpdate != null){
+        							 sendComandsToDSS(eshDevice, nextDeviceStateUpdate);
+        						 }
+        					 }
+        					 
+        				}
         				if(!eshDevice.isESHThingUpToDate()){
         					deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         					logger.debug("inform deviceStatusListener from  Device \""
@@ -400,14 +439,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	 * 
 	 * @param device
 	 */
-	public void sendComandsToDSS(Device device){
-		if(device.isDeviceUpToDate()){
+	public void sendComandsToDSS(Device device , DeviceStateUpdate deviceStateUpdate){
+		/*if(device.isDeviceUpToDate()){
 			logger.debug("Get send command but Device is alraedy up to date");
-		}
+		}*/
 		boolean requestSucsessfull;
-		if(!device.isDeviceUpToDate() && checkConnection()){
+		if(checkConnection()){
 			
-			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
+			//DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
 			requestSucsessfull = false;
 			
 			if(deviceStateUpdate != null){
@@ -425,13 +464,13 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						if(deviceStateUpdate.getValue() > 0){
 							requestSucsessfull = digitalSTROMClient.turnDeviceOn(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+								digitalSTROMEventListener.addEcho(device.getDSUID(),
 										(short) ZoneSceneEnum.MAXIMUM.getSceneNumber());
 							}
 						} else{
 							requestSucsessfull = digitalSTROMClient.turnDeviceOff(sessionToken, device.getDSID(), null);
 							if(requestSucsessfull){
-								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
+								digitalSTROMEventListener.addEcho(device.getDSUID(),
 										(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
 							}
 							this.sensorJobExecuter.removeSensorJobs(device.getDSID());

@@ -132,7 +132,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 			logger.warn("Command send to an unknown channel id: " + channelUID);
 		}
 		logger.debug("Inform DssBridgeHandler about command {}", command.toString());
-		dssBridgeHandler.sendComandsToDSS(device);
+		//dssBridgeHandler.sendComandsToDSS(device);
 		
 	}
 	

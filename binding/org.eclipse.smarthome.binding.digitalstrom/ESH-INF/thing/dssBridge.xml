@@ -8,6 +8,9 @@
     <bridge-type id="dssBridge">
         <label>DigitalSTROM Server</label>
         <description>The DigitalSTROM server represents an interface to the DigitalSTROM system.</description>
+        <channels>
+        	<channel typeId="powerConsumption" id="powerConsumption" />
+        </channels>
 
         <config-description><!--Application token--><parameter name="applicationToken" type="text">
             	<label>Application-Token</label>
