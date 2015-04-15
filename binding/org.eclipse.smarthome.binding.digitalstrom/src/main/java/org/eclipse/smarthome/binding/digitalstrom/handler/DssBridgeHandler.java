@@ -405,7 +405,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			logger.debug("Get send command but Device is alraedy up to date");
 		}
 		boolean requestSucsessfull;
-		while(!device.isDeviceUpToDate() && checkConnection()){
+		if(!device.isDeviceUpToDate() && checkConnection()){
 			
 			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
 			requestSucsessfull = false;
@@ -550,7 +550,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				digitalSTROMZoneGroupMap);
 	}
 	
-	private HashMap<String, Device> getDigitalSTROMDeviceHashMap(){
+	/*private HashMap<String, Device> getDigitalSTROMDeviceHashMap(){
     	HashMap<String, Device> tempDeviceMap = new HashMap<String, Device>();
     	
     	if(checkConnection()){
@@ -559,7 +559,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     		}
     	}
     	return tempDeviceMap;
-    }
+    }*/
 	
 	public String getSessionToken(){
 		return sessionToken;

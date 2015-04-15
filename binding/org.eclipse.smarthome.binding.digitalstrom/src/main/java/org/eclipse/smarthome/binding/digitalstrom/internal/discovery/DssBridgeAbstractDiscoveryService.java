@@ -17,7 +17,7 @@ import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.core.thing.ThingUID;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * The {@link DssBridgeAbstractDiscoveryParticipant} is responsible for discovering new and
@@ -33,7 +33,7 @@ public class DssBridgeAbstractDiscoveryService extends AbstractDiscoveryService 
 	}
 
 
-	private org.slf4j.Logger logger = LoggerFactory.getLogger(DssBridgeAbstractDiscoveryService.class);
+	//private org.slf4j.Logger logger = LoggerFactory.getLogger(DssBridgeAbstractDiscoveryService.class);
 	
 	private String hostAdress = "dss.local."; 
 	private String dsid = null;

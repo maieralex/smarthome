@@ -11,41 +11,35 @@ import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
 import static org.junit.matchers.JUnitMatchers.*
 
-import java.util.Collection;
-import java.util.Locale;
-
 import org.eclipse.smarthome.config.core.Configuration
-import org.eclipse.smarthome.core.items.GenericItem;
-import org.eclipse.smarthome.core.items.GroupItem;
-import org.eclipse.smarthome.core.items.Item;
-import org.eclipse.smarthome.core.items.ItemRegistry;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingRegistry;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.eclipse.smarthome.core.items.GroupItem
+import org.eclipse.smarthome.core.items.Item
+import org.eclipse.smarthome.core.items.ItemRegistry
+import org.eclipse.smarthome.core.thing.Channel
+import org.eclipse.smarthome.core.thing.ChannelUID
+import org.eclipse.smarthome.core.thing.Thing
+import org.eclipse.smarthome.core.thing.ThingRegistry
+import org.eclipse.smarthome.core.thing.ThingTypeUID
 import org.eclipse.smarthome.core.thing.ThingUID
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
-import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
-import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.eclipse.smarthome.core.thing.binding.ThingTypeProvider;
+import org.eclipse.smarthome.core.thing.binding.BaseThingHandler
+import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory
+import org.eclipse.smarthome.core.thing.binding.ThingHandler
+import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory
+import org.eclipse.smarthome.core.thing.binding.ThingTypeProvider
 import org.eclipse.smarthome.core.thing.link.ItemChannelLinkRegistry
 import org.eclipse.smarthome.core.thing.link.ItemThingLinkRegistry
-import org.eclipse.smarthome.core.thing.setup.ThingSetupManager;
-import org.eclipse.smarthome.core.thing.type.ChannelDefinition;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupDefinition;
-import org.eclipse.smarthome.core.thing.type.ChannelType;
-import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
-import org.eclipse.smarthome.core.thing.type.ThingType;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.StateDescription;
-import org.eclipse.smarthome.core.types.StateDescriptionProvider;
+import org.eclipse.smarthome.core.thing.setup.ThingSetupManager
+import org.eclipse.smarthome.core.thing.type.ChannelDefinition
+import org.eclipse.smarthome.core.thing.type.ChannelType
+import org.eclipse.smarthome.core.thing.type.ChannelTypeUID
+import org.eclipse.smarthome.core.thing.type.ThingType
+import org.eclipse.smarthome.core.types.Command
+import org.eclipse.smarthome.core.types.StateDescription
 import org.eclipse.smarthome.core.types.StateOption
 import org.eclipse.smarthome.test.OSGiTest
 import org.junit.Before
 import org.junit.Test
-import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentContext
 
 /**
  * 
@@ -53,14 +47,20 @@ import org.osgi.service.component.ComponentContext;
  * by {@link ThingLinkManager}.
  * 
  * @author Alex Tugarev - Initial contribution
+ * @author Dennis Nobel - Added test for bug 459628 (lifecycle problem)
+ * @author Thomas Höfer - Thing type constructor modified because of thing properties introduction
  */
 class ThingLinkManagerOSGiTest extends OSGiTest{
     
     def ThingRegistry thingRegistry 
     def ThingSetupManager thingSetupManager
-
+    
+    Map context = new HashMap<>()
+    
     @Before
     void setup() {
+        context.clear();
+        
         registerVolatileStorageService()
         
         thingRegistry = getService(ThingRegistry)
@@ -78,7 +78,7 @@ class ThingLinkManagerOSGiTest extends OSGiTest{
         
         def ChannelType channelType = new ChannelType(new ChannelTypeUID("hue:alarm"), false, "Number", " ", "", null, null, state, null)
         
-        def thingTypeProvider = new TestThingTypeProvider([ new ThingType(new ThingTypeUID("hue:lamp"), null, " ", null, [ new ChannelDefinition("1", channelType) ], null, null) ])
+        def thingTypeProvider = new TestThingTypeProvider([ new ThingType(new ThingTypeUID("hue:lamp"), null, " ", null, [ new ChannelDefinition("1", channelType) ], null, null, null) ])
         registerService(thingTypeProvider)
 
         thingSetupManager = getService(ThingSetupManager)
@@ -128,6 +128,51 @@ class ThingLinkManagerOSGiTest extends OSGiTest{
         assertThat linkedItems.size(), is(0)
     }
     
+    @Test
+    void 'assert that existing things are linked'() {
+        def componentContext = [getBundleContext: {getBundleContext()}] as ComponentContext
+        def thingManger = new ThingManager()
+        try {
+            ThingUID thingUID = new ThingUID("hue:lamp:lamp1")
+            thingSetupManager.addThing(thingUID, new Configuration(), /* bridge */ null)
+            
+            Thing thing = thingRegistry.get(thingUID)
+            assertThat thing, is(notNullValue())
+            
+            // create thing manager manually to simulate start up of declarative service
+            thingManger.setItemRegistry(getService(ItemRegistry))
+            thingManger.setThingRegistry(getService(ThingRegistry))
+            thingManger.setItemChannelLinkRegistry(getService(ItemChannelLinkRegistry))
+            thingManger.setItemThingLinkRegistry(getService(ItemThingLinkRegistry))
+            thingManger.activate(componentContext)
+            
+            def channels = thing.getChannels()
+            assertThat channels.size(), is(1)
+            Channel channel = channels.first()
+            
+            def linkedItems = channel.getLinkedItems()
+            assertThat linkedItems.size(), is(1)
+        } finally {
+            thingManger.deactivate(componentContext)
+        }
+    }
+    
+    @Test
+    void 'assert that channelLinked and channelUnlinked at ThingHandler is called'() {
+        ThingUID thingUID = new ThingUID("hue:lamp:lamp1")
+        thingSetupManager.addThing(thingUID, new Configuration(), /* bridge */ null)
+        
+        def channelUID = new ChannelUID(thingUID, "1")
+        
+        assertThat context.get("linkedChannel"), is(equalTo(channelUID))
+        assertThat context.get("unlinkedChannel"), is(null)
+        
+        thingSetupManager.disableChannel(channelUID)
+        
+        assertThat context.get("unlinkedChannel"), is(equalTo(channelUID))
+    }
+    
+    
     /*
      * Helper
      */
@@ -142,6 +187,8 @@ class ThingLinkManagerOSGiTest extends OSGiTest{
         protected ThingHandler createHandler(Thing thing) {
             return new BaseThingHandler(thing) {
                 public void handleCommand(ChannelUID channelUID, Command command) { }
+                void channelLinked(ChannelUID channelUID) {ThingLinkManagerOSGiTest.this.context.put("linkedChannel", channelUID)};
+                void channelUnlinked(ChannelUID channelUID) {ThingLinkManagerOSGiTest.this.context.put("unlinkedChannel", channelUID)};
             }
         }
     }

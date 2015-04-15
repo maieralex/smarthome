@@ -45,7 +45,6 @@ public class YahooWeatherHandler extends BaseThingHandler {
     private Logger logger = LoggerFactory.getLogger(YahooWeatherHandler.class);
 
     private String location;
-    private String unit;
     private BigDecimal refresh;
 
     private String weatherData = null;
@@ -64,9 +63,6 @@ public class YahooWeatherHandler extends BaseThingHandler {
         Configuration config = getThing().getConfiguration();
 
         location = (String) config.get("location");
-        if ("us".equalsIgnoreCase((String) config.get("unit"))) {
-            unit = "f";
-        }
 
         try {
             refresh = (BigDecimal) config.get("refresh");
@@ -129,7 +125,7 @@ public class YahooWeatherHandler extends BaseThingHandler {
     }
 
     private synchronized boolean updateWeatherData() {
-        String urlString = "http://weather.yahooapis.com/forecastrss?w=" + location + "&u=" + unit;
+        String urlString = "http://weather.yahooapis.com/forecastrss?w=" + location + "&u=c";
         try {
             URL url = new URL(urlString);
             URLConnection connection = url.openConnection();

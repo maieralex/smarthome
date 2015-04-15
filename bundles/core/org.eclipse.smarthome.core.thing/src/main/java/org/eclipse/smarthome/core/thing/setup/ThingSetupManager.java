@@ -45,6 +45,9 @@ import org.slf4j.LoggerFactory;
  * contrast to the {@link ThingRegistry}, the {@link ThingManager} also creates
  * Items and Links automatically and removes it, when the according thing is
  * removed.
+ * 
+ * @author Dennis Nobel - Initial contribution
+ * @author Alex Tugarev - addThing operation returns created Thing instance
  */
 public class ThingSetupManager {
 
@@ -68,12 +71,14 @@ public class ThingSetupManager {
      *            name of group to be added
      * @param label
      *            label of the group to be added
+     * @return created {@link GroupItem} instance
      */
-    public void addHomeGroup(String itemName, String label) {
+    public GroupItem addHomeGroup(String itemName, String label) {
         GroupItem groupItem = new GroupItem(itemName);
         groupItem.setLabel(label);
         groupItem.addTag(TAG_HOME_GROUP);
         itemRegistry.add(groupItem);
+        return groupItem;
     }
 
     /**
@@ -81,28 +86,34 @@ public class ThingSetupManager {
      * channels.
      *
      * See {@link ThingSetupManager#addThing(ThingUID, Configuration, ThingUID, String, List, boolean)}
+     * 
+     * @return created {@link Thing} instance (can be null)
      */
-    public void addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID) {
-        addThing(thingUID, configuration, bridgeUID, null);
+    public Thing addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID) {
+        return addThing(thingUID, configuration, bridgeUID, null);
     }
 
     /**
      * Adds a thing without group names, but enables all channels.
      *
      * See {@link ThingSetupManager#addThing(ThingUID, Configuration, ThingUID, String, List, boolean)}
+     * 
+     * @return created {@link Thing} instance (can be null)
      */
-    public void addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label) {
-        addThing(thingUID, configuration, bridgeUID, label, new ArrayList<String>());
+    public Thing addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label) {
+        return addThing(thingUID, configuration, bridgeUID, label, new ArrayList<String>());
     }
 
     /**
      * Adds a thing and enables all channels.
      *
      * See {@link ThingSetupManager#addThing(ThingUID, Configuration, ThingUID, String, List, boolean)}
+     * 
+     * @return created {@link Thing} instance (can be null)
      */
-    public void addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label,
+    public Thing addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label,
             List<String> groupNames) {
-        addThing(thingUID, configuration, bridgeUID, label, groupNames, true);
+        return addThing(thingUID, configuration, bridgeUID, label, groupNames, true);
     }
 
     /**
@@ -122,8 +133,9 @@ public class ThingSetupManager {
      * @param enableChannels
      *            defines if all not 'advanced' channels should be enabled
      *            directly
+     * @return created {@link Thing} instance (can be null)
      */
-    public void addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label,
+    public Thing addThing(ThingUID thingUID, Configuration configuration, ThingUID bridgeUID, String label,
             List<String> groupNames, boolean enableChannels) {
 
         ThingTypeUID thingTypeUID = thingUID.getThingTypeUID();
@@ -132,7 +144,7 @@ public class ThingSetupManager {
         if (thing == null) {
             logger.warn("Cannot create thing. No binding found that supports creating a thing" + " of type {}.",
                     thingTypeUID);
-            return;
+            return null;
         }
 
         String itemName = toItemName(thing.getUID());
@@ -168,6 +180,7 @@ public class ThingSetupManager {
                 }
             }
         }
+        return thing;
     }
 
     /**
@@ -247,6 +260,7 @@ public class ThingSetupManager {
                     }
                     item.addTags(channelType.getTags());
                     item.setCategory(channelType.getCategory());
+                    item.setLabel(channelType.getLabel());
                     this.itemRegistry.add(item);
                     this.itemChannelLinkRegistry.add(new ItemChannelLink(itemName, channelUID));
                 }
@@ -358,6 +372,21 @@ public class ThingSetupManager {
         } else {
             throw new IllegalArgumentException("No item is linked with thing '" + thingUID.toString() + "'.");
         }
+    }
+
+    /**
+     * Sets the given label for the home group identified by the given item name.
+     * 
+     * @param itemName the name of the home group
+     * @param label the new label for the home group
+     */
+    public void setHomeGroupLabel(String itemName, String label) {
+        GroupItem groupItem = (GroupItem) itemRegistry.get(itemName);
+        if (groupItem == null) {
+            throw new IllegalArgumentException("No group item found with item name " + itemName);
+        }
+        groupItem.setLabel(label);
+        itemRegistry.update(groupItem);
     }
 
     /**
