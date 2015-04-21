@@ -260,12 +260,14 @@ public interface DigitalSTROMAPI {
 	
 	/**
 	 * Revokes an application token, caller must be logged in.
+	 * 
 	 * @param applicationToken
 	 */
 	public boolean revokeToken(String applicationToken);
 	
 	/**
 	 * Enables an application token, caller must be logged in.
+	 * 
 	 * @param applicationToken required
 	 */
 	public boolean enableApplicationToken(String applicationToken, String sessionToken);
@@ -294,5 +296,10 @@ public interface DigitalSTROMAPI {
 	
 	//TODO: Doc
 	public int checkConnection(String token);
+	
+	public boolean increaseValue(String sessionToken, DSID dsid);
+	
+	public boolean decreaseValue(String sessionToken, DSID dsid);
+
 
 }

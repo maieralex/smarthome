@@ -28,6 +28,7 @@ public class SensorJobExecutor extends Thread {
 	 * Optimierung: 
 	 * 1. Thread schlafen legen wenn es keine Jobs gibt und wecken, wenn ein neuer Job hinzugefügt wird
 	 * 2. evtl. statt LinkedList Prioritätswarteschlange
+	 * 3. zusätzlich nach Stromkreisen ordnen wegen pro Stromkreis 1. min Wartezeit 
 	 */
 	
 	private boolean shutdown = false;
@@ -81,6 +82,12 @@ public class SensorJobExecutor extends Thread {
 
 	public synchronized void shutdown() {
 		this.shutdown = true;
+	}
+	
+	
+	public synchronized void wackeUp(){
+		this.shutdown = false;
+		this.run();
 	}
 	
 	public void addHighPriorityJob(SensorJob sensorJob) {

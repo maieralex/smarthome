@@ -16,22 +16,54 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.DeviceL
 
 
 /**
- * @author 	Alexander Betker
+ * The {@link Device} represents a DigitalSTROM device in ESH.
+ * 
+ * @author 	Alexander Betker - Initial contribution
  * @since 1.3.0
+ * @author Michael Ochel - add methods for ESH and JavaDoc
+ * @author Mathias Siegele - add methods for ESH and JavaDoc
  */
 public interface Device {
 	
+	/**
+	 * Returns the dSID of this device.
+	 * @return {@link DSID} dSID 
+	 */
 	public DSID getDSID();
 	
+	/**
+	 * Returns the dSUID of this device.
+	 * @return dSID
+	 */
 	public String getDSUID();
 	
+	/**
+	 * Returns the hardware info of this device. 
+	 * You can see all available hardware info here {@link http://www.digitalstrom.com/Partner/Support/Techn-Dokumentation/}
+	 *   
+	 * @return hardware info
+	 */
 	public String getHWinfo();
 	
+	/**
+	 * Returns the user defined name of this device.
+	 * 
+	 * @return name of this device
+	 */
 	public String getName();
 	
+	/**
+	 * Sets the name of this device;
+	 * 
+	 * @param new name for this device
+	 */
 	public void setName(String name);
 	
-	
+	/**
+	 * Returns the zone id in which the device is.
+	 *  
+	 * @return zone id
+	 */
 	public int getZoneId();
 	
 	/**
@@ -39,18 +71,43 @@ public interface Device {
 	 * Every 24h the dSM (meter) checks, if the devices are
 	 * plugged in
 	 * 
-	 * @return	true, if device is plugged into the wall
+	 * @return	true, if device is available otherwise false
 	 */
 	public boolean isPresent();
 	
+	/**
+	 * Set this device is available in his zone or not.
+	 * 
+	 * @param isPresent (true = available | false = not available)
+	 */
+	public void setIsPresent(boolean isPresent);
 	
+	/**
+	 * Returns true if this device is on otherwise false.
+	 * 
+	 * @return is on (true = on | false = off)
+	 */
 	public boolean isOn();
 	
+	/**
+	 * Set this device on if the flag is true or off if it is false.
+	 * 
+	 * @param flag (true = on | false = off)
+	 */
 	public void setIsOn(boolean flag);
 	
-	
+	/**
+	 * Return true if this device is dimmable, otherwise false. 
+	 * 
+	 * @return is dimmable (true = yes | false = no)
+	 */
 	public boolean isDimmable();
 	
+	/**
+	 * Returns true if this device is a shade device (grey), otherwise false.
+	 *  
+	 * @return is shade (true = yes | false = no)
+	 */
 	public boolean isRollershutter();
 	
 	/**
@@ -70,6 +127,10 @@ public interface Device {
 	
 	public int getSlatPosition();
 	
+	/**
+	 * 
+	 * @param position
+	 */
 	public void setSlatPosition(int position);
 	
 	public int getMaxSlatPosition();
@@ -98,21 +159,37 @@ public interface Device {
 	 */
 	public int getEnergyMeterValue();
 	
+	/**
+	 * set the energy meter value of this device
+	 * 
+	 * @param energy meter value in wh
+	 */
 	public void setEnergyMeterValue(int value);
 	
 	/**
 	 * amperage of this device
+	 * 
 	 * @return	electric meter value in mA 
 	 */
 	public int getElectricMeterValue();
 	
+	/**
+	 * set the amperage of this device
+	 * 
+	 * @param electric meter value in mA
+	 */
 	public void setElectricMeterValue(int electricMeterValue);
 	
-	
+	/**
+	 * Return a list with group id's in which the device is
+	 * 
+	 * @return List of group id's
+	 */
 	public List<Short> getGroups();
 	
 	
 	public short getSceneOutputValue(short sceneId);
+	
 	
 	public void setSceneOutputValue(short sceneId, short value);
 	
@@ -170,12 +247,6 @@ public interface Device {
 	
 	//for ESH
 	
-	public long getLastPowerConsumptionUpdate();
-	
-	public long getLastElectricMeterUpdate();
-	
-	public long getLastEnergyMeterUpdate();
-	
 	public boolean isPowerConsumptionUpToDate();
 	
 	public boolean isElectricMeterUpToDate();
@@ -193,12 +264,10 @@ public interface Device {
 	public String getElectricMeterRefreshPriority();
 	
 	public String getEnergyMeterRefreshPriority();
-	/**
-	 * Adds a DeviceStateUpdate to a queue for ESH-Thing-Updates.
-	 * 
-	 * @param eshThingStateUpdate
-	 */
-	//public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate);
+	
+	public boolean isAddToESH();
+	
+	public void setIsAddToESH(boolean isAdd);
 	
 	/**
 	 * Returns the next ESH-Thing-State-Update.

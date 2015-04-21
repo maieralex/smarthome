@@ -1134,6 +1134,28 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	}
 	
 	@Override
+	public boolean increaseValue(String sessionToken, DSID dsid) {
+		String response = transport
+				.execute("/json/device/increaseValue?dsid="+dsid.getValue()+"&token="+sessionToken);
+
+		JSONObject responseObj = handler.toJSONObject(response);
+		
+		return handler.checkResponse(responseObj);
+		
+	}
+	
+	@Override
+	public boolean decreaseValue(String sessionToken, DSID dsid) {
+		String response = transport
+				.execute("/json/device/increaseValue?dsid="+dsid.getValue()+"&token="+sessionToken);
+
+		JSONObject responseObj = handler.toJSONObject(response);
+		
+		return handler.checkResponse(responseObj);
+		
+	}
+	
+	@Override
 	public int checkConnection(String token){
 		return transport.checkConnection("/json/apartment/getName?token="+token);
 	}

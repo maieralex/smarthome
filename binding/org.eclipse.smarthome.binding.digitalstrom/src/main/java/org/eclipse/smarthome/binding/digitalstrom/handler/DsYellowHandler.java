@@ -19,6 +19,7 @@ import java.util.Set;
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
 import org.eclipse.smarthome.config.core.Configuration;
@@ -41,9 +42,10 @@ import com.google.common.collect.Sets;
 
 /**
  * The {@link DsYellowHandler} is responsible for handling commands, which are
- * sent to one of the channels of an yellow (light) DigitalStrom device.
+ * sent to one of the channels of an yellow (light) DigitalSTROM device.
  * 
- * @author Michael
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
  *
  */
 public class DsYellowHandler extends BaseThingHandler implements DeviceStatusListener{
@@ -58,24 +60,34 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	
 	public DsYellowHandler(Thing thing) {
 		super(thing);
-		// TODO Auto-generated constructor stub
 	}
 	
     @Override
     public void initialize() {
     	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
-        final String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
-        
-        if (configDSUId != null) {
-            dSUID = configDSUId;
-        	// note: this call implicitly registers our handler as a listener on the bridge
-            if(getDssBridgeHandler()!=null) { 
-            	getThing().setStatus(getBridge().getStatus());
-            	logger.debug("Set status on {}", getThing().getStatus());
-            }
-        }
     }
 
+    @Override
+    protected void bridgeHandlerInitialized(ThingHandler thingHandler, Bridge bridge) {
+    	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
+    	
+    	if (configDSUId != null) {
+            dSUID = configDSUId;
+            
+            if (thingHandler instanceof DssBridgeHandler) {
+	        	this.dssBridgeHandler =  (DssBridgeHandler) thingHandler;
+	        	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
+	        	
+	        	// note: this call implicitly registers our handler as a listener on the bridge
+	            getThing().setStatus(bridge.getStatus());
+	        	logger.debug("Set status on {}", getThing().getStatus());
+	        	
+	        	saveConfigSceneSpecificationIntoDevice(getDevice());
+	        	logger.debug("Load saved scene specification into device");
+	        }
+        }
+    }
+    
     @Override
     public void dispose() {
         logger.debug("Handler disposes. Unregistering listener.");
@@ -167,27 +179,28 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void onDeviceStateChanged(Device device) {
-		if(device != null /*&& device.getDSID().getValue() == dsID*/){
-			while(!device.isESHThingUpToDate()){
+		if(device != null){
+			if(!device.isESHThingUpToDate()){
 				logger.debug("Update ESH State");
 				DeviceStateUpdate stateUpdate = device.getNextESHThingUpdateStates();
 				if(stateUpdate != null){
 					switch(stateUpdate.getType()){
 						case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
 							//logger.debug("value: {}",stateUpdate.getValue());
-							if(stateUpdate.getValue() > 0){
-								//logger.debug("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+							//if(stateUpdate.getValue() > 0){
 								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
 									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
-							} else{
+							/*} else{
 								setSensorDataOnZeroAndDeviceOFF();
-							}
+							}*/
 							break;
 						case DeviceStateUpdate.UPDATE_ON_OFF: 
 							if(stateUpdate.getValue() > 0) {
-								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON); 
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON);
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), new PercentType(100));
 							} else {
-								setSensorDataOnZeroAndDeviceOFF();
+								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
+								//setSensorDataOnZeroAndDeviceOFF();
 							}
 							break;
 						case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
@@ -207,12 +220,15 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		}		
 	}
 
+	/* müsste eigendlich schon im Device abgefangen werden
 	private void setSensorDataOnZeroAndDeviceOFF(){
 		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
 		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(0));
 		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(0));
 		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(0));
 	}
+	*/
+	
 	private int fromValueToPercent(int value, int max) {
 		if (value < 0 || value == 0) {
 			return 0;
@@ -225,16 +241,14 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void onDeviceRemoved(Device device) {
-		//if (device.getDSID().getValue() == dsID) {
         	getThing().setStatus(ThingStatus.OFFLINE);
-        //}
 	}
 
 	@Override
 	public void onDeviceAdded(Device device) {
 	       getThing().setStatus(ThingStatus.ONLINE);
 	       onDeviceStateInitial(device);
-	       logger.debug("Add sensor prioritys");
+	       logger.debug("Add sensor prioritys to device");
 	       Configuration config = getThing().getConfiguration();
 	       device.setSensorDataRefreshPriority(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString(),
 	    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString(),
@@ -263,32 +277,12 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	}
 
 	@Override
-	public void onDeviceNeededSensorDataUpdate(Device device) {
-		DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
-		
-		if (dssBridgeHandler == null) {
-            logger.warn("DigitalSTROM bridge handler not found. Cannot handle command without bridge.");
-            return;
-        }		
-
-		String priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString();
-		//logger.debug("vor if, prio = {} ",priority);
-		if(!device.isPowerConsumptionUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			//logger.debug("nach if, prio = {} ",priority);
-			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.ACTIVE_POWER), priority);
-		}
-		
-		priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString();
-		
-		if(!device.isEnergyMeterUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.OUTPUT_CURRENT), priority);
-		}
-		
-		priority = this.getThing().getConfiguration().get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString();
-					
-		if(!device.isElectricMeterUpToDate() && priority != null && !priority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			dssBridgeHandler.updateSensorData(new DeviceConsumptionSensorJob(device, SensorIndexEnum.ELECTRIC_METER), priority);
-		}
+	public void onSceneConfigAdded(short sceneId, DeviceSceneSpec sceneSpec){
+		//TODO: save DeviceSceneSpec persistent to Thing
+	}
+	
+	private void saveConfigSceneSpecificationIntoDevice(Device device){
+		//TODO: get persistence saved DeviceSceneSpec from Thing and save it in the Device, must call after Bride is added to ThingHandler
 		
 	}
 

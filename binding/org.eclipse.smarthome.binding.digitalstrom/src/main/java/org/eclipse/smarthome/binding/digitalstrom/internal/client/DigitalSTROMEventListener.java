@@ -34,8 +34,10 @@ import org.slf4j.LoggerFactory;
  * If someone turns a device or a zone etc. on, we will get a notification
  * to update the state of the item
  * 
- * @author Alexander Betker
+ * @author Alexander Betker - Initial contribution
  * @since 1.3.0
+ * @author Michael Ochel - Changed to ESH concept
+ * @author Mathias Siegele - Changed to ESH concept
  * 
  */
 public class DigitalSTROMEventListener extends Thread {
@@ -67,6 +69,13 @@ public class DigitalSTROMEventListener extends Thread {
 		this.shutdown = true;
 		this.sensorJobExecutor.shutdown();
 		unsubscribe();
+	}
+	
+	public synchronized void wakeUp() {
+		this.shutdown = false;
+		this.sensorJobExecutor.wackeUp();;
+		this.subscribe();
+		this.run();
 	}
 
 	public DigitalSTROMEventListener(String uri, DigitalSTROMJSONImpl digitalSTROM, DssBridgeHandler dssBridgeHandler) {
@@ -128,6 +137,7 @@ public class DigitalSTROMEventListener extends Thread {
 								.get(JSONApiResponseKeysEnum.EVENT_GET_EVENT
 										.getKey());
 						try {
+							//TODO: Scene an DssBridgehandler weiter geben um ggf. Scenen Thing zu aktuallisieren
 							handleEvent(array);
 						} catch (Exception e) {
 							logger.warn("EXCEPTION in eventListener thread : "
@@ -267,7 +277,8 @@ public class DigitalSTROMEventListener extends Thread {
 					if (isDeviceCall) {
 
 						if (dsidStr != null) {
-							Device device = dssBridgeHandler.getDsidToDeviceMap().get(dsidStr);
+							//TODO: checken ob man auch die dsuid im event abrufen kann sonst zusätzliche map mit dsuid zu dsid oder dsid zu device in dssBridgeHandler verwalten
+							Device device = dssBridgeHandler.getDeviceByDSID(dsidStr);
 
 							if (device != null) {
 								if (!device.containsSceneConfig(sceneId)) {
@@ -317,7 +328,7 @@ public class DigitalSTROMEventListener extends Thread {
 							if (zoneId == 0) {
 								if (isDimmScene(sceneId)) {
 
-									Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+									Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 
 									if (groupId == 0) {
 
@@ -392,7 +403,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 									if (groupId == 0) {
 
-										Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+										Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 										Set<String> dsidSet = deviceMap
 												.keySet();
 										if (dsidSet != null) {
@@ -425,7 +436,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 										Map<Short, List<String>> map = dssBridgeHandler.getDigitalSTROMZoneGroupMap()
 												.get(zoneId);
-										Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+										Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 										if (map != null) {
 											List<String> dsidList = map
 													.get(groupId);
@@ -460,7 +471,7 @@ public class DigitalSTROMEventListener extends Thread {
 									}
 								} else {
 
-									Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+									Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 
 									if (groupId != -1) {
 										Map<Short, List<String>> map = dssBridgeHandler.getDigitalSTROMZoneGroupMap()
@@ -516,7 +527,7 @@ public class DigitalSTROMEventListener extends Thread {
 											List<String> devicesInGroup = map
 													.get(groupId);
 											if (devicesInGroup != null) {
-												Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+												Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 
 												for (String dsid : devicesInGroup) {
 													Device device = deviceMap
@@ -552,7 +563,7 @@ public class DigitalSTROMEventListener extends Thread {
 											.getMapping(sceneId);
 									Map<Short, List<String>> map = dssBridgeHandler.getDigitalSTROMZoneGroupMap()
 											.get(zoneId);
-									Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+									Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 
 									if (map != null) {
 										//logger.debug("1");
@@ -596,7 +607,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 									Map<Short, List<String>> map = dssBridgeHandler.getDigitalSTROMZoneGroupMap()
 											.get(zoneId);
-									Map<String, Device> deviceMap = dssBridgeHandler.getDsidToDeviceMap();
+									Map<String, Device> deviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 									if (map != null) {
 
 										if (groupId != -1) {
@@ -752,7 +763,7 @@ public class DigitalSTROMEventListener extends Thread {
 	private void handleApartmentScene(short sceneId, short groupId) {
 
 		if (groupId == 0) {
-			Map<String, Device> clonedDeviceMap = dssBridgeHandler.getDsidToDeviceMap();
+			Map<String, Device> clonedDeviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 			Set<String> dsidSet = clonedDeviceMap.keySet();
 
 			for (String dsid : dsidSet) {
@@ -778,7 +789,7 @@ public class DigitalSTROMEventListener extends Thread {
 			}
 		} else if (groupId != -1) {
 
-			Map<String, Device> clonedDeviceMap = dssBridgeHandler.getDsidToDeviceMap();
+			Map<String, Device> clonedDeviceMap = dssBridgeHandler.getDsuidToDeviceMap();
 			Map<Short, List<String>> map = dssBridgeHandler.getDigitalSTROMZoneGroupMap().get(0);
 			List<String> dsidList = map.get(groupId);
 

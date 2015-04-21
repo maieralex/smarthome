@@ -12,6 +12,7 @@ import org.eclipse.smarthome.binding.digitalstrom.handler.DeviceStatusListener;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
@@ -95,12 +96,6 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	public void onDeviceStateChanged(Device device) {
 		//nothing to do
 	}
-
-
-	@Override
-	public void onDeviceNeededSensorDataUpdate(Device device) {
-		//nothing to do
-	}
 	
 	
 	@Override
@@ -116,6 +111,12 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	@Override
 	public void onDeviceAdded(Device device) {
 		onDeviceAddedInternal(device);		
+	}
+
+	@Override
+	public void onSceneConfigAdded(short sceneId, DeviceSceneSpec sceneSpec) {
+		//nothing to do
+		
 	}
 
 	

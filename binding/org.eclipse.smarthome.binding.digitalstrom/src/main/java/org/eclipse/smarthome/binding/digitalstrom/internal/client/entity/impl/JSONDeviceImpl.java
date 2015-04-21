@@ -229,6 +229,11 @@ public class JSONDeviceImpl implements Device {
 	public boolean isPresent() {
 		return isPresent;
 	}
+	
+	@Override
+	public void setIsPresent(boolean isPresent){
+		this.isPresent = isPresent;
+	}
 
 	@Override
 	public boolean isOn() {
@@ -293,11 +298,11 @@ public class JSONDeviceImpl implements Device {
 				return;
 			}
 			if ((outputValue + getDimmStep()) > maxOutputValue) {
-				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, maxOutputValue));
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
 				//outputValue = maxOutputValue;
 			}
 			else {
-				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, outputValue + getDimmStep()));
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS_INCREASE, outputValue + getDimmStep()));
 				//outputValue += getDimmStep();
 			}
 			//setIsOn(true);
@@ -313,7 +318,7 @@ public class JSONDeviceImpl implements Device {
 				//outputValue = maxOutputValue;
 			}
 			else {
-				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, slatPosition + getDimmStep()));
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLAT_INCREASE, slatPosition + getDimmStep()));
 				//outputValue += getDimmStep();
 			}
 		}
@@ -332,24 +337,12 @@ public class JSONDeviceImpl implements Device {
 			if ((outputValue - getDimmStep()) <= minOutputValue) {
 							
 				if (isOn) {
-					System.out.println("Device isOn");
-					this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, minOutputValue));
-					//outputValue = minOutputValue;
+					this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
 				}
-				
-				/*if (minOutputValue == 0) {
-					setIsOn(false);
-				}
-				else {
-					if (outputValue != 0) {
-						setIsOn(true);
-					}
-				}*/
 			}
 			else {
-				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, outputValue - getDimmStep()));
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS_DECREASE, outputValue - getDimmStep()));
 			}
-			//notifyDeviceListener(this.dsid.getValue());
 		}
 		
 		if(isRollershutter()){
@@ -360,7 +353,7 @@ public class JSONDeviceImpl implements Device {
 				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, minSlatPosition));
 			}
 			else {
-				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, slatPosition - getDimmStep()));
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLAT_DECREASE, slatPosition - getDimmStep()));
 			}
 		}
 
@@ -424,16 +417,13 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (powerConsumption < 0) {
-			logger.debug("add ESHStatUpdate to eshThingStateUpdates");
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, 0));
 			this.powerConsumption = 0;
 		}
 		else {
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
 			this.powerConsumption = powerConsumption;
 		}
-		
-		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	@Override
@@ -450,15 +440,13 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (energyMeterValue < 0) {
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, 0));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, 0));
 			this.energyMeterValue = 0;
 		}
 		else {
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
 			this.energyMeterValue = energyMeterValue;
 		}
-		
-		//notifyDeviceListener(this.dsid.getValue());
 	}
 
 	@Override
@@ -502,11 +490,11 @@ public class JSONDeviceImpl implements Device {
 		}
 		
 		if (electricMeterValue < 0) {
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, 0));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, 0));
 			this.electricMeterValue = 0; 
 		}
 		else {
-			this.eshThingStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
 			this.electricMeterValue = electricMeterValue;
 		}
 		
@@ -593,6 +581,8 @@ public class JSONDeviceImpl implements Device {
 	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();// Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
 	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();//Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
 	
+	private boolean isAddToESH = false;
+	
 	//save the last update time of the sensor data
 	private long lastElectricMeterUpdate = System.currentTimeMillis();
 	private long lastEnergyMeterUpdate = System.currentTimeMillis();
@@ -603,20 +593,14 @@ public class JSONDeviceImpl implements Device {
 	private String electricMeterRefreshPriority = DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER; 
 	private String energyMeterRefreshPriority = DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER;
 	
-	//get methoden doch nicht nötig
 	@Override
-	public long getLastPowerConsumptionUpdate(){
-		return this.lastPowerConsumptionUpdate;
+	public boolean isAddToESH(){
+		return this.isAddToESH;
 	}
 	
 	@Override
-	public long getLastEnergyMeterUpdate(){
-		return this.lastEnergyMeterUpdate;
-	}
-	
-	@Override
-	public long getLastElectricMeterUpdate(){
-		return this.lastElectricMeterUpdate;
+	public void setIsAddToESH(boolean isAdd){
+		this.isAddToESH = isAdd;
 	}
 	
 	@Override
@@ -653,12 +637,7 @@ public class JSONDeviceImpl implements Device {
 				:true;
 	}
 	
-	/*@Override
-	public void addESHThingUpdateState(DeviceStateUpdate eshThingStateUpdate) {
-		if(eshThingStateUpdate != null){
-			this.eshThingStateUpdates.add(eshThingStateUpdate);
-		}
-	}*/
+	
 	@Override
 	public void setSensorDataRefreshPriority(String powerConsumptionRefreshPriority, 
 			String electricMeterRefreshPriority, 
@@ -675,7 +654,7 @@ public class JSONDeviceImpl implements Device {
 		
 	}
 	
-	//TODO: checken ob das mit switsh case oder nur mit contains geht 
+	 
 	private String checkPriority(String priority){
 		switch(priority){
 		case DigitalSTROMBindingConstants.REFRESH_PRIORITY_HIGH:
@@ -731,6 +710,8 @@ public class JSONDeviceImpl implements Device {
 	public void updateInternalDeviceState(DeviceStateUpdate deviceStateUpdate) {
 		if(deviceStateUpdate != null){			
 			switch(deviceStateUpdate.getType()){
+				case DeviceStateUpdate.UPDATE_BRIGHTNESS_DECREASE:
+				case DeviceStateUpdate.UPDATE_BRIGHTNESS_INCREASE:
 				case DeviceStateUpdate.UPDATE_BRIGHTNESS: 
 					this.outputValue = deviceStateUpdate.getValue();
 					if(this.outputValue <= 0){
@@ -754,6 +735,8 @@ public class JSONDeviceImpl implements Device {
 						this.isOn = true;
 					}
 					break;
+				case DeviceStateUpdate.UPDATE_SLAT_DECREASE:
+				case DeviceStateUpdate.UPDATE_SLAT_INCREASE:
 				case DeviceStateUpdate.UPDATE_SLATPOSITION: 
 					this.slatPosition = deviceStateUpdate.getValue();
 					break;
@@ -768,8 +751,21 @@ public class JSONDeviceImpl implements Device {
 					return;
 				default: return;
 			}
+			
+			addEshThingStateUpdate(deviceStateUpdate);
+		}
+	}
+	
+	/**
+	 *  if the device is added to ESH we save ever device state update to change it in ESH
+	 * 	if the device isn't added ESH we only save the current device state
+	 */
+	private void addEshThingStateUpdate(DeviceStateUpdate deviceStateUpdate){
+		if(isAddToESH){
 			logger.debug("Add deviceStatusUpdate command {} to eshThingUpdates", deviceStateUpdate.getType());
 			this.eshThingStateUpdates.add(deviceStateUpdate);
+		}else{
+			this.eshThingStateUpdates.clear();
 		}
 	}
 			

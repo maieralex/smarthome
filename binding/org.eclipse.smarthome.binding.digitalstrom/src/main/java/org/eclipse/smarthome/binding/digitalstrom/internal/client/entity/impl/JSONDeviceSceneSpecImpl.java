@@ -18,8 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author 	Alexander Betker
+ * 
+ * 
+ * @author 	Alexander Betker 
  * @since 1.3.0
+ * 
+ * 
  */
 public class JSONDeviceSceneSpecImpl implements DeviceSceneSpec {
 	

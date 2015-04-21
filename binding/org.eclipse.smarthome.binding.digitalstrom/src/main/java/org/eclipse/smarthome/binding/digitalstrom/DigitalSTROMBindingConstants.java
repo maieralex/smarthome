@@ -75,6 +75,7 @@ public class DigitalSTROMBindingConstants {
 	public final static int DEFAULT_READ_TIMEOUT = 10000;
 	public final static String APPLICATION_NAME = "ESH";
 
+	//TODO: wird die noch benutzt? ja in sensorjobexecuter doch name is schlecht und solle noch änderbar sein in dssBidge config
 	//DeviceListener refresh interval
 	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 10000;
 	
