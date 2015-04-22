@@ -304,7 +304,7 @@ public class DigitalSTROMEventListener extends Thread {
 									}
 								} else {
 									if (!device.doIgnoreScene(sceneId)) {
-										short value = device
+										int value = device
 												.getSceneOutputValue(sceneId);
 										if (value != -1) {
 											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
@@ -495,7 +495,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 														if (!device
 																.doIgnoreScene(sceneId)) {
-															short sceneValue = device
+															int sceneValue = device
 																	.getSceneOutputValue(sceneId);
 															if (sceneValue == -1) {
 																initDeviceOutputValue(
@@ -628,7 +628,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 														if (!device
 																.doIgnoreScene(sceneId)) {
-															short outputValue = device
+															int outputValue = device
 																	.getSceneOutputValue(sceneId);
 															if (outputValue == -1) {
 																initDeviceOutputValue(
@@ -776,7 +776,7 @@ public class DigitalSTROMEventListener extends Thread {
 					}
 
 					if (!device.doIgnoreScene(sceneId)) {
-						short output = device.getSceneOutputValue(sceneId);
+						int output = device.getSceneOutputValue(sceneId);
 						if (output != -1) {
 							device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, output));
 						} else {
@@ -804,7 +804,7 @@ public class DigitalSTROMEventListener extends Thread {
 						}
 
 						if (!device.doIgnoreScene(sceneId)) {
-							short output = device.getSceneOutputValue(sceneId);
+							int output = device.getSceneOutputValue(sceneId);
 							if (output != -1) {
 								device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, output));
 							} else {

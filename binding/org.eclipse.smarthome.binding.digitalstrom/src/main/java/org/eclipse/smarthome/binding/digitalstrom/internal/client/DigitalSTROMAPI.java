@@ -159,6 +159,16 @@ public interface DigitalSTROMAPI {
 	public DeviceSceneSpec getDeviceSceneMode(String token, DSID dsid, String name, short sceneID);
 	
 	/**
+	 * Gets the scene value from a specific scene from a device.
+	 * 
+	 * @param token
+	 * @param dsid
+	 * @param sceneID
+	 * @return Scene value
+	 */
+	public int getSceneValue(String token, DSID dsid, short sceneID);
+	
+	/**
 	 * Request the sensor value of a given index
 	 * 
 	 * @param dsid			needs either dsid id or name

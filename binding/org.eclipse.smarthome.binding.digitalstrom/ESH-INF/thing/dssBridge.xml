@@ -42,9 +42,9 @@
             	<required>false</required>
             </parameter>
             <!--sensorDataUpdateIntervall--><parameter name="sensorDataUpdateIntervall" type="text">
-            	<default>10000</default>
+            	<default>60</default>
             	<label>Sensor update interval</label>
-            	<description>Time after the DigitalSTROM device sensor data is updated.</description>
+            	<description>Seceonds after the DigitalSTROM device sensor data is updated.</description>
             	<required>false</required></parameter><!--TrashBinDeleateTime-->
         	<parameter name="defaultTrashBinDeleateTime" type="text">
             	<default>7</default>

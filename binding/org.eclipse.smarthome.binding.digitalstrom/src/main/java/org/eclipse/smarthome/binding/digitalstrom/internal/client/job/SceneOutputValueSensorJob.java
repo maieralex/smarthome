@@ -39,11 +39,12 @@ public class SceneOutputValueSensorJob implements SensorJob {
 	 */
 	@Override
 	public void execute(DigitalSTROMAPI digitalSTROM, String token) {
-		DeviceConfig config = digitalSTROM.getDeviceConfig(token, this.device.getDSID(), null, DeviceParameterClassEnum.CLASS_128, this.sceneId);
-	
-		if (config != null) {
-			this.device.setSceneOutputValue(this.sceneId, (short) config.getValue());
-			logger.info("UPDATED sceneOutputValue for dsid: "+this.device.getDSID()+", sceneID: "+sceneId+", value: "+config.getValue());
+		//DeviceConfig config = digitalSTROM.getDeviceConfig(token, this.device.getDSID(), null, DeviceParameterClassEnum.CLASS_128, this.sceneId);
+		int sceneValue = digitalSTROM.getSceneValue(token, this.device.getDSID(), this.sceneId);
+		
+		if (sceneValue != -1) {
+			this.device.setSceneOutputValue(this.sceneId, sceneValue);
+			logger.info("UPDATED sceneOutputValue for dsid: "+this.device.getDSID()+", sceneID: "+sceneId+", value: " + sceneValue);
 		}
 	}
 

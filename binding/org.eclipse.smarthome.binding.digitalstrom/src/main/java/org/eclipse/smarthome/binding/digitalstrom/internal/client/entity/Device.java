@@ -188,10 +188,10 @@ public interface Device {
 	public List<Short> getGroups();
 	
 	
-	public short getSceneOutputValue(short sceneId);
+	public int getSceneOutputValue(short sceneId);
 	
 	
-	public void setSceneOutputValue(short sceneId, short value);
+	public void setSceneOutputValue(short sceneId, int sceneValue);
 	
 	/**
 	 * This configuration is very important. The devices can

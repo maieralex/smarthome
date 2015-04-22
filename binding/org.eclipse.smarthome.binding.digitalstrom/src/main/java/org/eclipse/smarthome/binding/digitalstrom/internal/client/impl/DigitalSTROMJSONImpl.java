@@ -659,6 +659,27 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	}
 
 	@Override
+	public int getSceneValue(String token, DSID dsid, short sceneID){
+		if (((dsid != null && dsid.getValue() != null)) && sceneID >-1 ) {
+			String response = null;
+			
+			if (dsid != null && dsid.getValue() != null) {
+				response = transport.execute("/json/device/getSceneValue?dsid="+dsid.getValue()+
+						"&sceneID="+sceneID+"&token="+token);
+			}
+			
+			JSONObject responseObj = handler.toJSONObject(response);
+			
+			if (handler.checkResponse(responseObj)) {
+				JSONObject sceneValueObj = handler.getResultJSONObject(responseObj);
+				return Integer.parseInt(sceneValueObj.get("value").toString());
+			}
+			
+		}
+		return -1;
+	}
+	
+	@Override
 	public short getDeviceSensorValue(String token, DSID dsid, String name, SensorIndexEnum sensorIndex) {
 		if (((dsid != null && dsid.getValue() != null) || name != null) && sensorIndex != null ) {
 			String response = null;

@@ -65,6 +65,11 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     @Override
     public void initialize() {
     	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
+    	/*String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
+    	
+    	if (configDSUId != null) {
+            dSUID = configDSUId;
+    	}*/
     }
 
     @Override
@@ -104,7 +109,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     	DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
     	if(dssBridgeHandler != null) {
     		//logger.debug("get DssBridgeHandler");
-    		return dssBridgeHandler.getDeviceByDSID(dSUID);
+    		return dssBridgeHandler.getDeviceByDSUID(dSUID);
     	}
         return null;
     }
@@ -143,7 +148,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		} else {
 			logger.warn("Command send to an unknown channel id: " + channelUID);
 		}
-		logger.debug("Inform DssBridgeHandler about command {}", command.toString());
+		//logger.debug("Inform DssBridgeHandler about command {}", command.toString());
 		//dssBridgeHandler.sendComandsToDSS(device);
 		
 	}
@@ -180,7 +185,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	@Override
 	public void onDeviceStateChanged(Device device) {
 		if(device != null){
-			if(!device.isESHThingUpToDate()){
+			while(!device.isESHThingUpToDate()){
 				logger.debug("Update ESH State");
 				DeviceStateUpdate stateUpdate = device.getNextESHThingUpdateStates();
 				if(stateUpdate != null){
@@ -246,13 +251,22 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	@Override
 	public void onDeviceAdded(Device device) {
-	       getThing().setStatus(ThingStatus.ONLINE);
-	       onDeviceStateInitial(device);
-	       logger.debug("Add sensor prioritys to device");
-	       Configuration config = getThing().getConfiguration();
-	       device.setSensorDataRefreshPriority(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString(),
-	    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString(),
-	    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString()); 	     		
+	       if(device.isPresent()){
+	    	   getThing().setStatus(ThingStatus.ONLINE);
+	    	   onDeviceStateInitial(device);
+		       logger.debug("Add sensor prioritys to device");
+		       Configuration config = getThing().getConfiguration();
+		       logger.debug(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString() + ", " +
+		    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString()  + ", " +
+		    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString());
+		       
+		       device.setSensorDataRefreshPriority(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString(),
+		    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString(),
+		    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString());
+	       } else{
+	    	   onDeviceRemoved(device);
+	       }
+	        	     		
 	}
 	
 	private void onDeviceStateInitial(Device device){

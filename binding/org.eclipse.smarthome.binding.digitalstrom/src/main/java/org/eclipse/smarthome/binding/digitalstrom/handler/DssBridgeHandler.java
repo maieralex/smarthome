@@ -138,7 +138,6 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSUID);
         			
         			if(eshDevice != null){
-            			logger.debug("current is present {} != esh is present {} = {}",currentDevice.isPresent(), eshDevice.isPresent(), currentDevice.isPresent() != eshDevice.isPresent());
         				//check device availability has changed and inform the deviceStatusListener about the change
         				if(currentDevice.isPresent() != eshDevice.isPresent()){
         					eshDevice.setIsPresent(currentDevice.isPresent());
@@ -154,7 +153,15 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				if(deviceStatusListeners.get(currentDeviceDSUID) != null && eshDevice.isPresent()){
         					logger.debug("Check device updates");
         					if(!eshDevice.isAddToESH()){
+        						logger.debug("Set device is add to esh");
         						eshDevice.setIsAddToESH(true);
+        						logger.debug("inform listener about the added Device");
+        			    		if(eshDevice.isPresent()){
+        			    			deviceStatusListeners.get(currentDeviceDSUID).onDeviceAdded(eshDevice);
+        			    		}else{
+        			    			deviceStatusListeners.get(currentDeviceDSUID).onDeviceRemoved(eshDevice);
+        			    		}
+        						
         					}
         					while(!eshDevice.isDeviceUpToDate()){
         						DeviceStateUpdate deviceStateUpdate = eshDevice.getNextDeviceUpdateState();
@@ -173,7 +180,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         						}
         					 
         					}
-        					while(!eshDevice.isESHThingUpToDate()){
+        					
+        					if(!eshDevice.isESHThingUpToDate()){
         						deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         						logger.debug("inform deviceStatusListener from  Device \""
         								+ currentDeviceDSUID
@@ -203,7 +211,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(trashDevices.isEmpty()){
         					deviceMap.put(currentDeviceDSUID, currentDevice);
-        					dSUIDtoDSID.put(currentDeviceDSUID, currentDevice.getDSID().getValue());
+        					dSUIDtoDSID.put(currentDevice.getDSID().getValue(), currentDeviceDSUID);
         					logger.debug("trashDevices are empty, add Device to the deviceMap!");
         				} else{
         					logger.debug("Search device in trashDevices.");
@@ -213,7 +221,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         						if(trashDevice.getDevice().equals(currentDevice)){
         							Device device =  trashDevice.getDevice();
         							trashDevices.remove(trashDevice);
-        							deviceMap.put(device.getDSID().getValue(), device);
+        							deviceMap.put(device.getDSUID(), device);
         							found = true;
         							logger.debug("Found device in trashDevices, add TrashDevice to the deviceMap!");
         						}
@@ -229,29 +237,29 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				logger.debug("inform DeviceStatusListener: \"" 
         						+ DeviceStatusListener.DEVICE_DESCOVERY 
         						+ "\" about Device with DSID: \"" 
-        						+ currentDevice.getDSID().getValue() 
+        						+ currentDevice.getDSUID() 
         						+ "\" added.");
         			}
         		}
         		        		
         		for(Device device: tempDeviceMap.values()){
         			logger.debug("Found removed Devices.");
-        			String dsID = device.getDSID().getValue();
+        			String dSUID = device.getDSUID();
         			
-        			trashDevices.add(new TrashDevice(deviceMap.remove(dsID)));
+        			trashDevices.add(new TrashDevice(deviceMap.remove(dSUID)));
         			logger.debug("Add Device: "+ device.getDSID().getValue() + " to trashDevices");
         			
-        			deviceStatusListeners.get(dsID).onDeviceRemoved(device);
+        			deviceStatusListeners.get(dSUID).onDeviceRemoved(device);
         			logger.debug("inform DeviceStatusListener: " 
-    						+ dsID
+    						+ dSUID
     						+ " about Device: " 
-    						+ dsID 
+    						+ dSUID 
     						+ " removed.");
         			deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceRemoved(device);
         			logger.debug("inform DeviceStatusListener: " 
     						+ DeviceStatusListener.DEVICE_DESCOVERY
     						+ " about Device: " 
-    						+ dsID 
+    						+ dSUID 
     						+ " removed.");
         		}
         		
@@ -331,7 +339,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     		}
     		
     		//if right connect data are set and the connection to the server
-        	if(checkConnection() && configuration.get(APPLICATION_TOKEN) != null && 
+        	/*if(checkConnection() && configuration.get(APPLICATION_TOKEN) != null && 
         			!(this.applicationToken = configuration.get(APPLICATION_TOKEN).toString()).trim().isEmpty()){
         	
         		handleStructure(digitalSTROMClient
@@ -345,16 +353,16 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				this);
         			
         		this.digitalSTROMEventListener.start();
-        	
+        	*/
         		//vieleiecht besser bei updateSensorData?
         		/*this.sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
         		this.sensorJobExecuter.start();
         	*/
-        		onUpdate();
+        	/*	onUpdate();
         		
-        	} else{
+        	} else{*/
         		onUpdate();
-        	}
+        	//}
         } else{
         	logger.warn("Cannot connect to DigitalSTROMSever. Host address is not set.");
         }
@@ -372,14 +380,17 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         	this.sensorJobExecuter.shutdown();
         	this.sensorJobExecuter = null;
         }
-        if(this.getThing().getStatus().equals(ThingStatus.ONLINE)){
-        	updateStatus(ThingStatus.OFFLINE);
-        }
         
         if(pollingJob!=null && !pollingJob.isCancelled()) {
         	pollingJob.cancel(true);
         	pollingJob = null;
         }
+        
+        if(this.getThing().getStatus().equals(ThingStatus.ONLINE)){
+        	updateStatus(ThingStatus.OFFLINE);
+        }
+        
+        
         //TODO: füllen mit allem rest
     }
 
@@ -495,7 +506,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 								digitalSTROMEventListener.addEcho(device.getDSID().getValue(),
 										(short) ZoneSceneEnum.MINIMUM.getSceneNumber());
 							}
-							this.sensorJobExecuter.removeSensorJobs(device.getDSID());
+							if(sensorJobExecuter != null){
+								this.sensorJobExecuter.removeSensorJobs(device.getDSID());
+							}
 						}
 						break;
 					case DeviceStateUpdate.UPDATE_SLATPOSITION: 
@@ -561,10 +574,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			logger.debug("Added DeviceStatusListener {}",id);
 				deviceStatusListeners.put(id, deviceStatusListener);
 				//save in device that it is added to ESH
-				Device device = this.deviceMap.get(id); 
+				//Device device = this.deviceMap.get(id); 
 				
 				onUpdate();
-		    	if(!id.contains(DeviceStatusListener.DEVICE_DESCOVERY) && device != null){
+		    	/*if(!id.contains(DeviceStatusListener.DEVICE_DESCOVERY) && device != null){
 		    		logger.debug("inform listener about the added Device");
 		    		device.setIsAddToESH(true);
 		    		if(device.isPresent()){
@@ -572,7 +585,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		    		}else{
 		    			deviceStatusListener.onDeviceRemoved(device);
 		    		}
-				} 
+				} */
 			}else {
 					throw new NullPointerException("It's not allowed to pass a null ID.");
 		}
@@ -586,11 +599,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			if(deviceStatusListeners.remove(id) != null){
 				logger.debug("Delete deviceStatuslistener from device with DSUID {}.", id);
 			}
-			if(trashDevices.add(new TrashDevice(deviceMap.remove(id)))){
+			Device device = deviceMap.remove(id);
+			if(trashDevices.add(new TrashDevice(device))){
 				logger.debug("Add Device with DSUID {} to trashMap.", id);
 			}
-			onUpdate();     
-			sensorJobExecuter.removeSensorJobs(new DSID(id));
+			onUpdate(); 
+			if(sensorJobExecuter != null){
+				sensorJobExecuter.removeSensorJobs(device.getDSID());
+			}
 			//logger.debug("Remove SensorJobs from device with DSID {}.", id);
 		} else{
 			throw new NullPointerException("It's not allowed to pass a null ID.");
@@ -609,6 +625,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	
 	public Device getDeviceByDSID(String dsID){
 		return deviceMap.get(dSUIDtoDSID.get(dsID));
+	}
+	
+	public Device getDeviceByDSUID(String dSUID){
+		return deviceMap.get(dSUID);
 	}
 	
 	public Map<Integer, Map<Short, List<String>>> getDigitalSTROMZoneGroupMap() {
@@ -668,8 +688,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			case HttpURLConnection.HTTP_OK:
 				if(!lastConnectionState){ 
 					logger.debug("Connection to DigitalSTROM-Server established.");
-					onConnectionResumed();
 					lastConnectionState = true;
+					onConnectionResumed();
 				}
 				break;
 			case HttpURLConnection.HTTP_UNAUTHORIZED:
@@ -715,7 +735,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	private void onNotAuthentificated(){
 				
 		String applicationToken;
-		String sessionToken;
+		//String sessionToken;
 		Configuration configuration = getConfig();
 		
 		boolean isAutentificated = false;
@@ -723,7 +743,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		logger.info("DigitalSTROM server {} is not authentificated - please set a applicationToken or username and password.", configuration.get(HOST));
 
 		if(configuration.get(APPLICATION_TOKEN) != null && 
-				(applicationToken = configuration.get(APPLICATION_TOKEN).toString()).isEmpty()){
+				!(applicationToken = configuration.get(APPLICATION_TOKEN).toString()).isEmpty()){
 			sessionToken = digitalSTROMClient.loginApplication(applicationToken);
 			if(digitalSTROMClient.checkConnection(sessionToken) == HttpURLConnection.HTTP_OK) {
 				logger.info("User defined Applicationtoken can be used.");

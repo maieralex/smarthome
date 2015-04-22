@@ -83,7 +83,7 @@ public class JSONDeviceImpl implements Device {
 	
 	private Map<Short, DeviceSceneSpec> sceneConfigMap = Collections.synchronizedMap(new HashMap<Short, DeviceSceneSpec>());
 	
-	private Map<Short, Short> sceneOutputMap = Collections.synchronizedMap(new HashMap<Short, Short>());
+	private Map<Short, Integer> sceneOutputMap = Collections.synchronizedMap(new HashMap<Short, Integer>());
 	
 	
 	public JSONDeviceImpl(JSONObject object) {
@@ -525,7 +525,7 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	@Override
-	public short getSceneOutputValue(short sceneId) {
+	public int getSceneOutputValue(short sceneId) {
 		synchronized(sceneOutputMap) {
 			if (sceneOutputMap.containsKey(sceneId)) {
 				return sceneOutputMap.get(sceneId);
@@ -535,7 +535,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public void setSceneOutputValue(short sceneId, short value) {
+	public void setSceneOutputValue(short sceneId, int value) {
 		synchronized(sceneOutputMap) {
 			sceneOutputMap.put(sceneId, value);
 		}
