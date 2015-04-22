@@ -2,7 +2,8 @@
 <thing:thing-descriptions bindingId="digitalstrom"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
-    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 
+    	http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
     <!--GE-KL200 DigitalStrom device for lights (see  http://www.digitalstrom.com/documents/20130319_GE-KL200SW-KL200.pdf)-->
     <thing-type id="GE-KL200">
@@ -19,17 +20,8 @@
         		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
         
-        <config-description><!--dSUID-->
-            <parameter name="dSUID" type="text">
-                <label>Device UID</label>
-                <description>The device identifier identifies one DigitalStrom device.</description>
-                <required>true</required>
-            </parameter><!--deviceName-->
-            <parameter name="deviceName" type="text">
-            	<label>Device Name</label>
-            	<description>The Name of a DigitalStrom device.</description>
-            	<default></default></parameter>
-        </config-description>
-        
+
+
+
     </thing-type>
 </thing:thing-descriptions>

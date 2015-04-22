@@ -7,43 +7,72 @@
     <!--Channel for lights-->
     <channel-type id="brightness">
         <item-type>Dimmer</item-type>
-        <label>Brightness</label>
+        <label>Light brightness</label>
         <description>The brightness channel allows to control the brightness of a light.
             It is also possible to switch the light on and off.
         </description>
-        <category>category</category>
+        <category>DimmableLight</category>
     </channel-type>
-    <channel-type id="">
-    	<item-type>item-type</item-type>
-    	<label>label</label>
-    </channel-type><!--Channel for shades-->
-    <channel-type id="">
-    	<item-type>item-type</item-type>
-    	<label>label</label>
-    </channel-type><!--Scene channel-->
-    <channel-type id="">
-    	<item-type>item-type</item-type>
-    	<label>label</label>
+    <channel-type id="lightSwitch">
+    	<item-type>Switch</item-type>
+    	<label>Light switch</label>
+    	<description>The light switch channel allows to switch the light on and off.
+        </description>
+        <category>Light</category>
+    </channel-type>
+    <!--Channel for shades-->
+    <channel-type id="shade">
+    	<item-type>Rollershutter</item-type>
+    	<label>Shade control</label>
+    	<description>The Shade controll channel allows to control shade device e.g. a rollershutter.
+        </description>
+        <category>Blinds</category>
+    </channel-type>
+    <!--Plug adapter--><channel-type id="plugAdapter">
+    	<item-type>Switch</item-type>
+    	<label>Plug adapter</label>
+    	<description>The plug adapter channel allows to switch the plug adapter on or off.
+        </description>
+        <category>Light</category>
+    </channel-type>
+    <!--Scene channel-->
+    <channel-type id="scene">
+    	<item-type>Switch</item-type>
+    	<label>Scene</label>
+    	<description>The scene channel allows to call or undo a scene from DigitalSTROM.
+        </description>
+    	<tags>
+    		<tag>Scene</tag>
+    	</tags>
     </channel-type><!--Sensor channels-->
     <channel-type id="powerConsumption">
     	<item-type>Number</item-type>
-    	<label>PowerConsumption</label>
-    	<description>description</description>
+    	<label>Power consumption</label>
+    	<description>The power consumption channel shows the current power consumption from this device.</description>
     	<category>Energy</category>
+    	<tags>
+    	    	<tag>power consumption</tag>
+    	</tags>
     	<state readOnly="true" pattern="%d W"></state>
     </channel-type>
     <channel-type id="electricMeterValue">
     	<item-type>Number</item-type>
-    	<label>ElectricMeterValue</label>
-    	<description>description</description>
+    	<label>Electric meter value</label>
+    	<description>The electric meter value channel shows the current electric meter value from this device.</description>
     	<category>Energy</category>
+    	<tags>
+    	    	<tag>electric meter value</tag>
+    	</tags>
     	<state readOnly="true" pattern="%d mA"></state>
     </channel-type>
     <channel-type id="energyMeterValue">
     	<item-type>Number</item-type>
-    	<label>EnergyMeterValue</label>
-    	<description>description</description>
+    	<label>Energy meter value</label>
+    	<description>The energy meter value channel shows the current energy meter value from this device.</description>
     	<category>Energy</category>
+    	<tags>
+    		<tag>energy meter value</tag>
+    	</tags>
     	<state readOnly="true" pattern="%d Wh"></state>
     </channel-type>
 
