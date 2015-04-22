@@ -138,7 +138,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSUID);
         			
         			if(eshDevice != null){
-            			
+            			logger.debug("current is present {} != esh is present {} = {}",currentDevice.isPresent(), eshDevice.isPresent(), currentDevice.isPresent() != eshDevice.isPresent());
         				//check device availability has changed and inform the deviceStatusListener about the change
         				if(currentDevice.isPresent() != eshDevice.isPresent()){
         					eshDevice.setIsPresent(currentDevice.isPresent());
@@ -153,7 +153,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(deviceStatusListeners.get(currentDeviceDSUID) != null && eshDevice.isPresent()){
         					logger.debug("Check device updates");
-        				
+        					if(!eshDevice.isAddToESH()){
+        						eshDevice.setIsAddToESH(true);
+        					}
         					while(!eshDevice.isDeviceUpToDate()){
         						DeviceStateUpdate deviceStateUpdate = eshDevice.getNextDeviceUpdateState();
         						if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
@@ -560,10 +562,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				deviceStatusListeners.put(id, deviceStatusListener);
 				//save in device that it is added to ESH
 				Device device = this.deviceMap.get(id); 
-				device.setIsAddToESH(true);
+				
 				onUpdate();
-		    	if(!id.contains(DeviceStatusListener.DEVICE_DESCOVERY)){
+		    	if(!id.contains(DeviceStatusListener.DEVICE_DESCOVERY) && device != null){
 		    		logger.debug("inform listener about the added Device");
+		    		device.setIsAddToESH(true);
 		    		if(device.isPresent()){
 		    			deviceStatusListener.onDeviceAdded(device);
 		    		}else{
