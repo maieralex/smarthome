@@ -1,18 +1,18 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.discovery;
 
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.*;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.BINDING_ID;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEVICE_NAME;
+import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.DEVICE_UID;
 
 import java.util.HashMap;
 import java.util.Map;
-
-
 import java.util.Set;
 
+import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DeviceStatusListener;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
@@ -59,8 +59,13 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
         ThingUID thingUID = getThingUID(device);
 		if(thingUID!=null) {
 			ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
-	        Map<String, Object> properties = new HashMap<>(2);
+	        Map<String, Object> properties = new HashMap<>(7);
 	        properties.put(DEVICE_UID, device.getDSUID());
+	        properties.put(DigitalSTROMBindingConstants.DEVICE_DSID, device.getDSID().getValue());
+	        properties.put(DigitalSTROMBindingConstants.DEVICE_HW_INFO, device.getHWinfo());
+	        properties.put(DigitalSTROMBindingConstants.DEVICE_GROUPS, device.getGroups().toString());
+	        properties.put(DigitalSTROMBindingConstants.DEVICE_OUTPUT_MODE, device.getOutputMode());
+	        properties.put(DigitalSTROMBindingConstants.DEVICE_ZONE_ID, device.getZoneId());
 	        if(device.getName() != null){
 	        	properties.put(DEVICE_NAME, device.getName());
 	        } else{
@@ -80,6 +85,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
     
 	private ThingUID getThingUID(Device device) {
         ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
+        //TODO: ggf. outputmode beachten
 		ThingTypeUID thingTypeUID = new ThingTypeUID(BINDING_ID, device.getHWinfo());
 				
 		if(getSupportedThingTypes().contains(thingTypeUID)) {
@@ -114,7 +120,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	}
 
 	@Override
-	public void onSceneConfigAdded(short sceneId, DeviceSceneSpec sceneSpec) {
+	public void onSceneConfigAdded(short sceneId, Device device) {
 		//nothing to do
 		
 	}

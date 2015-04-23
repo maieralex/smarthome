@@ -18,13 +18,138 @@
             	typeId="powerConsumption" id="powerConsumption" /><channel
         		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
+        <properties>
+        	<property name="scene0"></property>
+        	<property name="scene1"></property>
+        	<property name="scene2"></property>
+        	<property name="scene3"></property>
+        	<property name="scene4"></property>
+        	<property name="scene5"></property>
+        	<property name="scene6"></property>
+        	<property name="scene7"></property>
+        	<property name="scene8"></property>
+        	<property name="scene9"></property>
+        	<property name="scene10"></property>
+        	<property name="scene11"></property>
+        	<property name="scene12"></property>
+        	<property name="scene13"></property>
+        	<property name="scene14"></property>
+        	<property name="scene15"></property>
+        	<property name="scene16"></property>
+        	<property name="scene17"></property>
+        	<property name="scene18"></property>
+        	<property name="scene19"></property>
+        	<property name="scene20"></property>
+        	<property name="scene21"></property>
+        	<property name="scene22"></property>
+        	<property name="scene23"></property>
+        	<property name="scene24"></property>
+        	<property name="scene25"></property>
+        	<property name="scene26"></property>
+        	<property name="scene27"></property>
+        	<property name="scene28"></property>
+        	<property name="scene29"></property>
+        	<property name="scene30"></property>
+        	<property name="scene31"></property>
+        	<property name="scene32"></property>
+        	<property name="scene33"></property>
+        	<property name="scene34"></property>
+        	<property name="scene35"></property>
+        	<property name="scene36"></property>
+        	<property name="scene37"></property>
+        	<property name="scene38"></property>
+        	<property name="scene39"></property>
+        	<property name="scene40"></property>
+        	<property name="scene41"></property>
+        	<property name="scene42"></property>
+        	<property name="scene43"></property>
+        	<property name="scene44"></property>
+        	<property name="scene45"></property>
+        	<property name="scene46"></property>
+        	<property name="scene47"></property>
+        	<property name="scene48"></property>
+        	<property name="scene49"></property>
+        	<property name="scene50"></property>
+        	<property name="scene51"></property>
+        	<property name="scene52"></property>
+        	<property name="scene53"></property>
+        	<property name="scene54"></property>
+        	<property name="scene55"></property>
+        	<property name="scene56"></property>
+        	<property name="scene57"></property>
+        	<property name="scene58"></property>
+        	<property name="scene59"></property>
+        	<property name="scene60"></property>
+			<property name="scene61"></property>
+			<property name="scene62"></property>
+			<property name="scene63"></property>
+			<property name="scene64"></property>
+			<property name="scene65"></property>
+			<property name="scene66"></property>
+			<property name="scene67"></property>
+			<property name="scene68"></property>
+			<property name="scene69"></property>
+			<property name="scene70"></property>
+			<property name="scene71"></property>
+			<property name="scene72"></property>
+			<property name="scene73"></property>
+			<property name="scene74"></property>
+			<property name="scene75"></property>
+			<property name="scene76"></property>
+			<property name="scene77"></property>
+			<property name="scene78"></property>
+			<property name="scene79"></property>
+			<property name="scene80"></property>
+			<property name="scene81"></property>
+			<property name="scene82"></property>
+			<property name="scene83"></property>
+			<property name="scene84"></property>
+			<property name="scene85"></property>
+			<property name="scene86"></property>
+			<property name="scene87"></property>
+			<property name="scene89"></property>
+        	<property name="scene90"></property>
+        	<property name="scene91"></property>
+        	<property name="scene92"></property>
+        	<property name="scene93"></property>
+        	<property name="scene94"></property>
+        	<property name="scene95"></property>
+        	<property name="scene96"></property>
+        	<property name="scene97"></property>
+        	<property name="scene98"></property>
+        	<property name="scene99"></property>
+        	<property name="scene100"></property>
+			<property name="scene101"></property>
+			<property name="scene102"></property>
+			<property name="scene103"></property>
+			<property name="scene104"></property>
+			<property name="scene105"></property>
+			<property name="scene106"></property>
+			<property name="scene107"></property>
+			<property name="scene108"></property>
+			<property name="scene109"></property>
+			<property name="scene110"></property>
+			<property name="scene111"></property>
+			<property name="scene112"></property>
+			<property name="scene113"></property>
+			<property name="scene114"></property>
+			<property name="scene115"></property>
+			<property name="scene116"></property>
+			<property name="scene117"></property>
+			<property name="scene118"></property>
+			<property name="scene119"></property>
+			<property name="scene120"></property>
+			<property name="scene121"></property>
+			<property name="scene122"></property>
+			<property name="scene123"></property>
+			<property name="scene124"></property>
+			<property name="scene125"></property>
+			<property name="scene126"></property>
+			<property name="scene127"></property>
+        </properties>
 
-        <config-description><!--deviceID-->
-            <parameter name="dSUID" type="text">
-                <label>Device UID</label>
-                <description>The device identifier identifies one DigitalStrom device.</description>
-                <required>true</required>
-            </parameter><!--deviceName-->
+        <config-description>
+            <!--deviceName-->
             <parameter name="deviceName" type="text">
             	<label>Device Name</label>
             	<description>The Name of a DigitalStrom device.</description>
@@ -65,6 +190,42 @@
     			<default>never</default>
     			<required>false</required>
     		</parameter>
+    		<!--deviceUID-->
+            <parameter name="dSUID" type="text">
+                <label>Device UID</label>
+                <description>The device identifier identifies one DigitalSTROM device.</description>
+                <required>true</required>
+            </parameter>
+            <!--deviceID-->
+            <parameter name="dSID" type="text">
+                <label>Device ID</label>
+                <description>The device identifier identifies one DigitalSTROM device.</description>
+                <required>false</required>
+            </parameter>
+            <!--device hwInfo-->
+            <parameter name="hwInfo" type="text">
+                <label>Device hardware type</label>
+                <description>The hardware type from this DigitalSTROM device.</description>
+                <required>false</required>
+            </parameter>
+            <!--zone id-->
+            <parameter name="zoneID" type="text">
+                <label>Zone ID</label>
+                <description>The DigitalSTROM device is part of this zone.</description>
+                <required>false</required>
+            </parameter>
+            <!--groups id-->
+            <parameter name="groups" type="text">
+                <label>Group ID's</label>
+                <description>The DigitalSTROM device is part of this user-defined or functional groups.</description>
+                <required>false</required>
+            </parameter>
+            <!--outputmode-->
+            <parameter name="outputmode" type="text">
+                <label>Device Output mode</label>
+                <description>The DigitalSTROM device output mode e.g. 22 = dimmable.</description>
+                <required>false</required>
+            </parameter>
         </config-description>
     </thing-type>
 </thing:thing-descriptions>

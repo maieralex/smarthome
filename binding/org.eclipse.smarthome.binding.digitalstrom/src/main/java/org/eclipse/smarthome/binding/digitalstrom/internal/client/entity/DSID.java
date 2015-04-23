@@ -51,6 +51,11 @@ public class DSID {
 	}
 
 	@Override
+	public int hashCode(){
+		return this.getValue().hashCode();
+	}
+	
+	@Override
 	public String toString() {
 		return dsid;
 	}

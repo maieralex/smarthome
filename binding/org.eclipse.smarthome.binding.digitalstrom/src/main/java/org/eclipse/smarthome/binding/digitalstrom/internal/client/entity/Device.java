@@ -216,6 +216,15 @@ public interface Device {
 	public void addSceneConfig(short sceneId, DeviceSceneSpec sceneSpec);
 	
 	/**
+	 * Get the config for this scene. The config has the configuration
+	 * for the specific sceneID.
+	 * 
+	 * @param sceneId 		scene call id
+	 * @return sceneSpec	config for this sceneID
+	 */
+	public DeviceSceneSpec getSceneConfig(short sceneId);
+	
+	/**
 	 * Should the device react on this scene call or not 
 	 * @param sceneId	scene call id
 	 * @return			true, if this device should react on this sceneID

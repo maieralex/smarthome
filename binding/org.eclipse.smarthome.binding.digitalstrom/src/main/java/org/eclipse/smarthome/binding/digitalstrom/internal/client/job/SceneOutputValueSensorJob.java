@@ -9,11 +9,10 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.job;
 
 
+import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceParameterClassEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +28,12 @@ public class SceneOutputValueSensorJob implements SensorJob {
 	
 	private Device device = null;
 	private short sceneId = 0;
+	private DssBridgeHandler dssBridgeHandler;
 
-	public SceneOutputValueSensorJob(Device device, short sceneId) {
+	public SceneOutputValueSensorJob(Device device, short sceneId, DssBridgeHandler dssBridgeHandler) {
 		this.device = device;
 		this.sceneId = sceneId;
+		this.dssBridgeHandler = dssBridgeHandler;
 	}
 	/* (non-Javadoc)
 	 * @see org.openhab.binding.digitalSTROM2.internal.client.job.SensorJob#execute(org.openhab.binding.digitalSTROM2.internal.client.DigitalSTROMAPI, java.lang.String)
@@ -44,6 +45,7 @@ public class SceneOutputValueSensorJob implements SensorJob {
 		
 		if (sceneValue != -1) {
 			this.device.setSceneOutputValue(this.sceneId, sceneValue);
+			this.dssBridgeHandler.informListenerAboutSceneConfigAdded(sceneId, device);
 			logger.info("UPDATED sceneOutputValue for dsid: "+this.device.getDSID()+", sceneID: "+sceneId+", value: " + sceneValue);
 		}
 	}
@@ -56,6 +58,11 @@ public class SceneOutputValueSensorJob implements SensorJob {
 			return (this.device.getDSID().getValue()+"-"+this.sceneId).equals(str);
 		}
 		return false;
+	}
+	
+	@Override
+	public int hashCode(){
+		return new String(this.device.getDSID().getValue()+this.sceneId).hashCode();
 	}
 
 	@Override

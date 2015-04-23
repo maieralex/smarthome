@@ -63,6 +63,11 @@ public class JSONGroupImpl implements Group {
 	}
 	
 	@Override
+	public int hashCode(){
+		return new Integer(this.getGroupID()).hashCode();
+	}
+	
+	@Override
 	public String toString() {
 		return "name: "+this.name+", "+"groupId: "+this.groupId;
 	}

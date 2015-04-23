@@ -1,7 +1,6 @@
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 
 /**
  * The {@link DeviceStatusListener} is notified when a device status has changed, a scene configuration is added to a device 
@@ -45,6 +44,7 @@ public interface DeviceStatusListener {
      * @param sceneId 
      * @param sceneSpec
      */
-    public void onSceneConfigAdded(short sceneId, DeviceSceneSpec sceneSpec);
+    public void onSceneConfigAdded(short sceneId, Device device);
+
     
 }

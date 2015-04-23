@@ -206,8 +206,8 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	@Override
-	public String getName() {
-		return name;
+	public synchronized String getName() {
+		return this.name;
 	}
 
 	@Override
@@ -360,7 +360,7 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	@Override
-	public int getOutputValue() {
+	public synchronized int getOutputValue() {
 		return outputValue;
 	}
 
@@ -378,7 +378,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public int getSlatPosition() {
+	public synchronized int getSlatPosition() {
 		return slatPosition;
 	}
 
@@ -404,7 +404,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public int getPowerConsumption() {
+	public synchronized int getPowerConsumption() {
 		return powerConsumption;
 	}
 	
@@ -427,7 +427,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public int getEnergyMeterValue() {
+	public synchronized int getEnergyMeterValue() {
 		return energyMeterValue;
 	}
 	
@@ -475,7 +475,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public int getElectricMeterValue() {
+	public synchronized int getElectricMeterValue() {
 		return electricMeterValue;
 	}
 
@@ -549,6 +549,13 @@ public class JSONDeviceImpl implements Device {
 			}
 		}
 	}
+	
+	@Override
+	public DeviceSceneSpec getSceneConfig(short sceneId) {
+		synchronized(sceneConfigMap) {
+			return sceneConfigMap.get(sceneId);
+		}
+	}
 
 	@Override
 	public boolean doIgnoreScene(short sceneId) {
@@ -576,6 +583,11 @@ public class JSONDeviceImpl implements Device {
 		return false;
 	}
 
+	@Override
+	public int hashCode(){
+		return this.getDSID().hashCode();
+	}
+	
 	//for ESH
 	
 	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();// Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());

@@ -28,30 +28,35 @@ public class DigitalSTROMBindingConstants {
     public static final String THING_TYPE_ID_GE_KM200 = "GE-KM200";
     public static final String THING_TYPE_ID_GE_KL200 = "GE-KL200";
     
+    public static final String THING_TYPE_ID_SCENE = "scene";
+    
     // List of all Thing Type UIDs
     public final static ThingTypeUID THING_TYPE_DSS_BRIDGE = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_DSS_BRIDGE);
     public final static ThingTypeUID THING_TYPE_GE_KM200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KM200);
     public final static ThingTypeUID THING_TYPE_GE_KL200 = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_GE_KL200);
     
+    public final static ThingTypeUID THING_TYPE_SCENE = new ThingTypeUID(BINDING_ID, THING_TYPE_ID_SCENE);
+    
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = ImmutableSet.of(THING_TYPE_DSS_BRIDGE);
     
-    // List of all Channels
-    public static final String CHANNEL_BRIGHTNESS = "brightness";
-    public static final String CHANNEL_ELECTRIC_METER = "electricMeterValue";
-    public static final String CHANNEL_ENERGY_METER = "energyMeterValue";
-    public static final String CHANNEL_POWER_CONSUMPTION = "powerConsumption";
+    /**** List of all Channels ****/
     
-    //Sensor data channel properties
-    public static final String POWER_CONSUMTION_REFRESH_PRIORITY = "PowerConsumptionRefreshPriority";
-    public static final String ELECTRIC_METER_REFRESH_PRIORITY = "ElectricMeterRefreshPriority";
-    public static final String ENERGY_METER_REFRESH_PRIORITY = "EnergyMeterRefreshPriority";
-    	//options
-    	public static final String REFRESH_PRIORITY_NEVER = "never";
-    	public static final String REFRESH_PRIORITY_LOW = "low";
-    	public static final String REFRESH_PRIORITY_MEDIUM = "medium";
-    	public static final String REFRESH_PRIORITY_HIGH = "high";
+    //Light
+   	public static final String CHANNEL_BRIGHTNESS = "brightness";
+   	public static final String CHANNEL_LIGHT_SWITCH = "lightSwitch";
+   	//shade
+   	public static final String CHANNEL_SHADE = "shade";
+   	//scene
+   	public static final String CHANNEL_SCENE = "scene";
+   	//plug adapter
+   	public static final String CHANNEL_PLUG_ADAPTER = "plugAdapter";
+   	//sensor
+   	public static final String CHANNEL_ELECTRIC_METER = "electricMeterValue";
+   	public static final String CHANNEL_ENERGY_METER = "energyMeterValue";
+   	public static final String CHANNEL_POWER_CONSUMPTION = "powerConsumption";
     
-    // Bridge config properties
+    /**** Bridge config properties ****/
+   	
     public static final String HOST = "ipAddress";
 	public static final String USER_NAME = "userName";
 	public static final String PASSWORD = "password";
@@ -65,11 +70,37 @@ public class DigitalSTROMBindingConstants {
 	public static int DEFAULT_TRASH_DEVICE_DELEATE_TIME = 7;//days after the trash devices get deleted
 	public static String TRUST_CERT_PATH = null;
 	
-    // Device config properties
+    /**** Device config properties ****/
+	
 	public static final String DEVICE_UID = "dSUID";
 	public static final String DEVICE_NAME = "deviceName";
+	public static final String DEVICE_DSID = "dSID";
+	public static final String DEVICE_HW_INFO = "hwInfo";
+	public static final String DEVICE_ZONE_ID = "zoneID";
+	public static final String DEVICE_GROUPS = "groups";
+	public static final String DEVICE_OUTPUT_MODE = "outputmode";
 	
-	//Client configuration
+	// Device properties scene
+	public static final String DEVICE_SCENE = "scene"; //+ number of scene
+	
+	//Sensor data channel properties
+    public static final String POWER_CONSUMTION_REFRESH_PRIORITY = "PowerConsumptionRefreshPriority";
+    public static final String ELECTRIC_METER_REFRESH_PRIORITY = "ElectricMeterRefreshPriority";
+    public static final String ENERGY_METER_REFRESH_PRIORITY = "EnergyMeterRefreshPriority";
+    	//options
+    	public static final String REFRESH_PRIORITY_NEVER = "never";
+    	public static final String REFRESH_PRIORITY_LOW = "low";
+    	public static final String REFRESH_PRIORITY_MEDIUM = "medium";
+    	public static final String REFRESH_PRIORITY_HIGH = "high";
+	
+	/**** Scene config ****/
+    public static final String SCENE_NAME = "sceneName";
+    public static final String SCENE_ZONE_ID = "zoneID";
+    public static final String SCENE_GROUP_ID = "groupID";
+    public static final String SCENE_ID = "sceneID";
+    	
+	/**** Client configuration ****/
+    
 	//connection Configuration
 	public final static int DEFAULT_CONNECTION_TIMEOUT = 4000;
 	public final static int DEFAULT_READ_TIMEOUT = 10000;
@@ -77,7 +108,7 @@ public class DigitalSTROMBindingConstants {
 
 	//TODO: wird die noch benutzt? ja in sensorjobexecuter doch name is schlecht und solle noch änderbar sein in dssBidge config
 	//DeviceListener refresh interval
-	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 10000;
+	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 60000;
 	
 	//SensorData
 	public static int DEFAULT_SENSORDATA_REFRESH_INTERVAL = 10000; //namen ändern

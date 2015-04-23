@@ -24,12 +24,12 @@
             </parameter><!--userName-->
             <parameter name="userName" type="text">
                 <label>Username</label>
-                <description>Name of a registered DigitalSTROM user to autentificate to the DigitalSTROM-Server.</description>
+                <description>Name of a registered DigitalSTROM user to authentificate to the DigitalSTROM-Server.</description>
                 <required>false</required>
             </parameter><!--password-->
             <parameter name="password" type="text">
                 <label>Password</label>
-                <description>Password of a registered digitalStrom user to autentificate to the DigitalSTROM-Server.</description>
+                <description>Password of a registered digitalStrom user to authentificate to the DigitalSTROM-Server.</description>
                 <required>false</required>
             </parameter><!--dSID-->
             <parameter name="dSID" type="text">
@@ -41,12 +41,12 @@
             	<description>The user defined name of the DigitalStrom installation.</description>
             	<required>false</required>
             </parameter>
-            <!--sensorDataUpdateIntervall--><parameter name="sensorDataUpdateIntervall" type="text">
+            <!--sensorDataUpdateIntervall--><parameter name="sensorDataUpdateIntervall" type="integer">
             	<default>60</default>
             	<label>Sensor update interval</label>
-            	<description>Seceonds after the DigitalSTROM device sensor data is updated.</description>
+            	<description>Seconds after the DigitalSTROM device sensor data will be updated.</description>
             	<required>false</required></parameter><!--TrashBinDeleateTime-->
-        	<parameter name="defaultTrashBinDeleateTime" type="text">
+        	<parameter name="defaultTrashBinDeleateTime" type="integer">
             	<default>7</default>
             	<label>Days to be slaked Trashbin devices</label>
             	<description>Days after the temporary saved DigitalSTROM device configuration from deleted things get permanently deleted.</description>

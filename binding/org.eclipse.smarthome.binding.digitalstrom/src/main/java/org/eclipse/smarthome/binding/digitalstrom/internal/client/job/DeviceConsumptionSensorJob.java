@@ -72,6 +72,11 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 	}
 
 	@Override
+	public int hashCode(){
+		return new String(this.device.getDSID().getValue()+this.sensorIndex.getIndex()).hashCode();
+	}
+	
+	@Override
 	public DSID getDsid() {
 		return device.getDSID();
 	}

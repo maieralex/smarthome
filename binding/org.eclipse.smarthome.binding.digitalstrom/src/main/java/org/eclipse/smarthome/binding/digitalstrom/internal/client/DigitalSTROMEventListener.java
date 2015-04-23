@@ -836,7 +836,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 	private void initSceneOutputValue(Device device, short sceneId) {
 		logger.debug("event detectet, add to sensorJobExecuter");
-		sensorJobExecutor.addMediumPriorityJob(new SceneOutputValueSensorJob(device, sceneId));
+		sensorJobExecutor.addMediumPriorityJob(new SceneOutputValueSensorJob(device, sceneId, this.dssBridgeHandler));
 	}
 
 }

@@ -82,5 +82,10 @@ public class JSONDetailedGroupInfoImpl implements DetailedGroupInfo {
 		}
 		return false;
 	}
+	
+	@Override
+	public int hashCode(){
+		return new Short(this.getGroupID()).hashCode();
+	}
 
 }

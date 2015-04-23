@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="digitalstrom"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+    <thing-type id="scene">
+        <supported-bridge-type-refs>
+            <bridge-type-ref id="dssBridge" />
+        </supported-bridge-type-refs>
+
+        <label>DigitalSTROM Scene.</label>
+        <description>This is a DigitalSTROM scene.</description>
+
+        <channels>
+            <channel id="scene" typeId="scene" />
+        </channels>
+
+        <config-description>
+            <!--sceneName-->
+            <parameter name="sceneName" type="text">
+            	<label>Scene name</label>
+            	<description>The Name of a DigitalSTROM scene.</description>
+            </parameter>
+            <!--zone id-->
+            <parameter name="zoneID" type="text">
+                <label>Zone ID</label>
+                <description>The DigitalSTROM zone id of the called scene. 0 is broadcast to all.</description>
+                <required>false</required>
+            </parameter>
+            <!--groups id-->
+            <parameter name="groupID" type="text">
+                <label>Group id</label>
+                <description>The DigitalSTROM group id of the called scene. 0 is broadcast to all.</description>
+                <required>false</required>
+            </parameter>
+            <!--scene id-->
+            <parameter name="sceneID" type="integer" min="0" max="127">
+            	<label>Scene id</label>
+            	<description>The DigitalSTROM call scene id. Callable scenes are from 0 to 127.</description>
+            	<required>false</required>
+            </parameter>
+        </config-description>
+    </thing-type>
+</thing:thing-descriptions>

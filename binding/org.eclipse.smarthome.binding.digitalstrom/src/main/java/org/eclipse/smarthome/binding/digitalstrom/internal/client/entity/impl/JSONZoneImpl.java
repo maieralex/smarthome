@@ -77,7 +77,7 @@ public class JSONZoneImpl implements Zone {
 	}
 	
 	@Override
-	public int getZoneId() {
+	public synchronized int getZoneId() {
 		return zoneId;
 	}
 	
@@ -90,7 +90,7 @@ public class JSONZoneImpl implements Zone {
 	}
 
 	@Override
-	public String getName() {
+	public synchronized String getName() {
 		return name;
 	}
 
@@ -140,4 +140,8 @@ public class JSONZoneImpl implements Zone {
 		return false;
 	}
 	
+	@Override
+	public int hashCode(){
+		return new Integer(this.getZoneId()).hashCode();
+	}
 }

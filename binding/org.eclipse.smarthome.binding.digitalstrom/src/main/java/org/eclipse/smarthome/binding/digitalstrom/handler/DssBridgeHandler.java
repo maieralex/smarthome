@@ -38,7 +38,6 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.Sens
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.CachedMeteringValue;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
@@ -181,7 +180,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					 
         					}
         					
-        					if(!eshDevice.isESHThingUpToDate()){
+        					while(!eshDevice.isESHThingUpToDate()){
         						deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         						logger.debug("inform deviceStatusListener from  Device \""
         								+ currentDeviceDSUID
@@ -318,21 +317,21 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 
         	//get Configurations
     		if(configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL) != null &&
-    				!configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).toString().trim().isEmpty()){
+    				!configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).toString().trim().replace(" ", "").isEmpty()){
     			
     			DigitalSTROMBindingConstants.DEFAULT_SENSORDATA_REFRESH_INTERVAL = Integer.
     					parseInt(configuration.get(DigitalSTROMBindingConstants.SENSOR_DATA_UPDATE_INTERVALL).
     							toString() + "000");
     		}
     		if(configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY) != null &&
-    				!configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY).toString().trim().isEmpty()){
+    				!configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY).toString().trim().replace(" ", "").isEmpty()){
     			
     			DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME = Integer.
     					parseInt(configuration.get(DigitalSTROMBindingConstants.DEFAULT_TRASH_DEVICE_DELEATE_TIME_KEY).
     							toString());
     		}
     		if(configuration.get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY) != null &&
-    				!configuration.get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString().trim().isEmpty()){
+    				!configuration.get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString().trim().replace(" ", "").isEmpty()){
     			
     			DigitalSTROMBindingConstants.TRUST_CERT_PATH = configuration.
     					get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString();
@@ -557,9 +556,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				newZoneGroupMap.put(zone.getZoneId(), groupMap);
 			}
 
-			synchronized (digitalSTROMZoneGroupMap) {
-				digitalSTROMZoneGroupMap = newZoneGroupMap;
-			}
+			
+			digitalSTROMZoneGroupMap = newZoneGroupMap;
+			
 		}
 	}
 	
@@ -670,9 +669,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				logger.info("UPDATED ignoreList for dsid: " + device.getDSID()
 						+ " sceneID: " + sceneId);
 				//inform DeviceStatusListener about added scene configuration
-				
+				informListenerAboutSceneConfigAdded(sceneId, device);
 			}
 		}
+	}
+	
+	public void informListenerAboutSceneConfigAdded(short sceneID, Device device){
+		logger.debug("Inform deviceStatusListener aboud added scene config.");
+		this.deviceStatusListeners.get(device.getDSUID()).onSceneConfigAdded(sceneID, device);
 	}
 
 	/****Connection methods****/
@@ -762,7 +766,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				//generate applicationToken and test host is reachable
 				applicationToken = this.digitalSTROMClient.requestAppplicationToken(DigitalSTROMBindingConstants.APPLICATION_NAME);
 							
-				if(applicationToken != null && applicationToken != ""){
+				if(applicationToken != null && !applicationToken.trim().isEmpty()){
 					//enable applicationToken
 					sessionToken = this.digitalSTROMClient.login(
 							configuration.get(USER_NAME).toString(), 

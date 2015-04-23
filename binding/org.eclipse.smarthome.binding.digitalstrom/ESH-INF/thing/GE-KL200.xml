@@ -19,7 +19,8 @@
             	typeId="powerConsumption" id="powerConsumption" /><channel
         		typeId="electricMeterValue" id="electricMeterValue" /><channel typeId="energyMeterValue" id="energyMeterValue" />
         </channels>
-        
+       
+
 
 
 

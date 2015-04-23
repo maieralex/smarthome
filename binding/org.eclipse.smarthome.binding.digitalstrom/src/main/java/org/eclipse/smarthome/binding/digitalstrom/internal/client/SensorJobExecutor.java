@@ -75,7 +75,7 @@ public class SensorJobExecutor extends Thread {
 			} catch (InterruptedException e) {
 				this.shutdown();
 				logger.error("InterruptedException in SensorJobExecutor Thread ... "
-						+ e.getStackTrace());
+						+ e.getMessage());
 			}
 		}
 	}

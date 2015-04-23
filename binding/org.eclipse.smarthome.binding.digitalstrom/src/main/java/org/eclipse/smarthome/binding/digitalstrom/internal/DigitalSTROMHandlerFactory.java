@@ -179,7 +179,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 		}
 		*/
 		if(configuration.get(APPLICATION_TOKEN) != null && 
-				( applicationToken = configuration.get(APPLICATION_TOKEN).toString()) != ""){
+				!( applicationToken = configuration.get(APPLICATION_TOKEN).toString()).trim().isEmpty()){
 			
 			sessionToken = digitalSTROMClient.loginApplication(applicationToken);
 			
@@ -205,7 +205,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 				//generate applicationToken and test host is reachable
 				applicationToken = this.digitalSTROMClient.requestAppplicationToken(DigitalSTROMBindingConstants.APPLICATION_NAME);
 							
-				if(applicationToken != null && applicationToken != ""){
+				if(applicationToken != null && !applicationToken.isEmpty()){
 					//enable applicationToken
 					sessionToken = this.digitalSTROMClient.login(
 							configuration.get(USER_NAME).toString(), 
@@ -241,7 +241,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 	
 	private boolean checkUserPassword(Configuration configuration){
 		if((configuration.get(USER_NAME) != null && configuration.get(PASSWORD) != null) &&
-			(configuration.get(USER_NAME).toString() != "" && configuration.get(PASSWORD).toString() != ""))//notwendig? 
+			(!configuration.get(USER_NAME).toString().trim().isEmpty() && !configuration.get(PASSWORD).toString().trim().isEmpty()))//notwendig? 
 			return true;
 		return false;
 	}

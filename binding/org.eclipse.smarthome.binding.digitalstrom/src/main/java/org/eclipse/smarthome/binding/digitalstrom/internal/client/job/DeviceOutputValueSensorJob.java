@@ -68,6 +68,11 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 	}
 
 	@Override
+	public int hashCode(){
+		return new String(this.device.getDSID().getValue()+this.index).hashCode();
+	}
+	
+	@Override
 	public DSID getDsid() {
 		return device.getDSID();
 	}

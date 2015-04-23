@@ -67,6 +67,14 @@ public class JSONDeviceSceneSpecImpl implements DeviceSceneSpec {
 		}
 	}
 
+	public JSONDeviceSceneSpecImpl(Short sceneID) {
+		this.scene = SceneEnum.getScene(sceneID);
+	}
+	
+	public JSONDeviceSceneSpecImpl(String SceneName) {
+		this.scene = SceneEnum.valueOf(SceneName);
+	}
+	
 	@Override
 	public Scene getScene() {
 		return scene;

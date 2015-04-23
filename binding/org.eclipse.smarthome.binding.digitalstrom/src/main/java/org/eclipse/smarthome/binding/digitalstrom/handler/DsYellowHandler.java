@@ -14,14 +14,14 @@ import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingCons
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KL200;
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KM200;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONDeviceSceneSpecImpl;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
@@ -129,7 +129,8 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
             return;
         }
 			
-		if(channelUID.getId().equals(CHANNEL_BRIGHTNESS)) {
+		if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_BRIGHTNESS) || 
+				channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_LIGHT_SWITCH)) {
 			if (command instanceof PercentType) {
 				device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutPutValue()));
 			} else if (command instanceof OnOffType) {
@@ -185,7 +186,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	@Override
 	public void onDeviceStateChanged(Device device) {
 		if(device != null){
-			while(!device.isESHThingUpToDate()){
+			if(!device.isESHThingUpToDate()){
 				logger.debug("Update ESH State");
 				DeviceStateUpdate stateUpdate = device.getNextESHThingUpdateStates();
 				if(stateUpdate != null){
@@ -291,12 +292,63 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	}
 
 	@Override
-	public void onSceneConfigAdded(short sceneId, DeviceSceneSpec sceneSpec){
+	public void onSceneConfigAdded(short sceneId, Device device){
 		//TODO: save DeviceSceneSpec persistent to Thing
+		String saveScene = "";
+		DeviceSceneSpec sceneSpec = device.getSceneConfig(sceneId);
+		if(sceneSpec != null){
+			saveScene = sceneSpec.toString();
+		}
+		
+		int sceneValue = device.getSceneOutputValue(sceneId);
+		if(sceneValue != -1){
+			saveScene = saveScene + ", sceneValue: " +sceneValue;
+		}
+		if(!saveScene.isEmpty()){
+			logger.debug("Save scene configuration: [{}] to thing with UID {}",saveScene,this.getThing().getUID());
+			this.getThing().setProperty(DigitalSTROMBindingConstants.DEVICE_SCENE+sceneId, saveScene);
+		}
 	}
 	
 	private void saveConfigSceneSpecificationIntoDevice(Device device){
 		//TODO: get persistence saved DeviceSceneSpec from Thing and save it in the Device, must call after Bride is added to ThingHandler
+		Map<String, String> propertries = this.getThing().getProperties();
+		String sceneSave;
+		for(short i = 0; i < 128 ; i++){
+			sceneSave = propertries.get(DigitalSTROMBindingConstants.DEVICE_SCENE + i);
+			if(sceneSave != null && !sceneSave.isEmpty()){
+				logger.debug("Find saved scene configuration for scene id " + i);
+				String[] sceneParm = sceneSave.replace(" ", "").split(",");
+				JSONDeviceSceneSpecImpl sceneSpecNew = null;
+				for(int j = 0 ; j < sceneParm.length ; j++){
+					System.out.println(sceneParm[j]);
+					String[] sceneParmSplit = sceneParm[j].split(":");
+					switch(sceneParmSplit[0]){
+						case "Scene":
+							sceneSpecNew = new JSONDeviceSceneSpecImpl(sceneParmSplit[1]);
+							break;
+						case "dontcare":
+							sceneSpecNew.setDontcare(Boolean.parseBoolean(sceneParmSplit[1]));
+							break;
+						case "localPrio":
+							sceneSpecNew.setLocalPrio(Boolean.parseBoolean(sceneParmSplit[1]));
+							break;
+						case "specialMode":
+							sceneSpecNew.setSpecialMode(Boolean.parseBoolean(sceneParmSplit[1]));
+							break;
+						case "sceneValue":
+							logger.debug("Saved sceneValue {} for scene id {} into device with dsid {}",sceneParmSplit[1], i, device.getDSID().getValue());;
+							device.setSceneOutputValue(i, Integer.parseInt(sceneParmSplit[1]));
+							break;
+					}
+				}
+				if(sceneSpecNew != null){
+					logger.debug("Saved sceneConfig: [{}] for scene id {} into device with dsid {}",sceneSpecNew.toString(), i, device.getDSID().getValue());;
+					device.addSceneConfig(i, sceneSpecNew);
+				}
+			}
+			
+		}
 		
 	}
 
