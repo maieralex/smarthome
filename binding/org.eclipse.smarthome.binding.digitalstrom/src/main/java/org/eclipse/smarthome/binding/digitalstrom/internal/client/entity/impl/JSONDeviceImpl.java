@@ -79,7 +79,12 @@ public class JSONDeviceImpl implements Device {
 	
 	private	List<Short> groupList = new LinkedList<Short>();
 	
-	private List<DeviceListener> deviceListenerList = Collections.synchronizedList(new LinkedList<DeviceListener>());
+	//private List<DeviceListener> deviceListenerList = Collections.synchronizedList(new LinkedList<DeviceListener>());
+	
+	/* Cache the last MeterValues to get MeterData directly
+	 * the key is the output value and the value is an Integer array for the meter data (0 = powerConsumption, 1 = electricMeter, 2 =EnergyMeter)
+	 */
+	private Map<Integer, Integer[]> cachedSensorMeterData = Collections.synchronizedMap(new HashMap<Integer, Integer[]>());
 	
 	private Map<Short, DeviceSceneSpec> sceneConfigMap = Collections.synchronizedMap(new HashMap<Short, DeviceSceneSpec>());
 	
@@ -423,6 +428,7 @@ public class JSONDeviceImpl implements Device {
 		else {
 			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, powerConsumption));
 			this.powerConsumption = powerConsumption;
+			this.addPowerConsumptionToMeterCache(this.getOutputValue(), powerConsumption);
 		}
 	}
 
@@ -445,33 +451,34 @@ public class JSONDeviceImpl implements Device {
 		}
 		else {
 			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, energyMeterValue));
+			this.addEnergyMeterValueToMeterCache(this.getOutputValue(), energyMeterValue);
 			this.energyMeterValue = energyMeterValue;
 		}
 	}
 
 	@Override
 	public void addDeviceListener(DeviceListener listener) {
-		if (listener != null) {
+		/*if (listener != null) {
 			if (!this.deviceListenerList.contains(listener)) {
 				this.deviceListenerList.add(listener);
 			}
-		}
+		}*/
 	}
 
 	@Override
 	public void removeDeviceListener(DeviceListener listener) {
-		if (listener != null) {
+/*		if (listener != null) {
 			if (this.deviceListenerList.contains(listener)) {
 				this.deviceListenerList.remove(listener);
 			}
-		}
+		}*/
 	}
 
 	@Override
 	public void notifyDeviceListener(String dsid) {
-		for (DeviceListener listener: this.deviceListenerList) {
+		/*for (DeviceListener listener: this.deviceListenerList) {
 			listener.deviceUpdated(dsid);
-		}
+		}*/
 	}
 
 	@Override
@@ -495,12 +502,45 @@ public class JSONDeviceImpl implements Device {
 		}
 		else {
 			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, electricMeterValue));
+			this.addElectricMeterValueToMeterCache(this.getOutputValue(), electricMeterValue);
 			this.electricMeterValue = electricMeterValue;
 		}
 		
 		//notifyDeviceListener(this.dsid.getValue());
 	}
+	
+	private void addPowerConsumptionToMeterCache(int outputValue, int powerConsumption){
+		Integer[] cachedMeterData = cachedSensorMeterData.get(outputValue);
+		if(cachedMeterData == null){
+			cachedMeterData = new Integer[3];
+		} 
+		
+		cachedMeterData[0] = powerConsumption;
+		
+		this.cachedSensorMeterData.put(outputValue, cachedMeterData);
+	}
 
+	private void addElectricMeterValueToMeterCache(int outputValue, int electricMeterValue){
+		Integer[] cachedMeterData = cachedSensorMeterData.get(outputValue);
+		if(cachedMeterData == null){
+			cachedMeterData = new Integer[3];
+		} 
+		
+		cachedMeterData[1] = electricMeterValue;
+		
+		this.cachedSensorMeterData.put(outputValue, cachedMeterData);
+	}
+	
+	private void addEnergyMeterValueToMeterCache(int outputValue, int energyMeterValue){
+		Integer[] cachedMeterData = cachedSensorMeterData.get(outputValue);
+		if(cachedMeterData == null){
+			cachedMeterData = new Integer[3];
+		}  
+		
+		cachedMeterData[2] = energyMeterValue;
+		
+		this.cachedSensorMeterData.put(outputValue, cachedMeterData);
+	}
 	
 	private short getDimmStep() {
 		if (isDimmable()) {
@@ -733,6 +773,7 @@ public class JSONDeviceImpl implements Device {
 						setElectricMeterValue(0);
 					} else{
 						this.isOn = true;
+						setCachedMeterData();
 					}
 					break;
 				case DeviceStateUpdate.UPDATE_ON_OFF: 
@@ -745,6 +786,7 @@ public class JSONDeviceImpl implements Device {
 					} else{
 						this.outputValue = this.maxOutputValue;
 						this.isOn = true;
+						setCachedMeterData();
 					}
 					break;
 				case DeviceStateUpdate.UPDATE_SLAT_DECREASE:
@@ -768,6 +810,24 @@ public class JSONDeviceImpl implements Device {
 		}
 	}
 	
+	private void setCachedMeterData(){
+		Integer[] cachedSensorData = this.cachedSensorMeterData.get(this.getOutputValue());
+		if(cachedSensorData[0] != null && !this.powerConsumptionRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			this.powerConsumption = cachedSensorData[0];
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, cachedSensorData[0]));
+			
+		}
+		if(cachedSensorData[1] != null && !this.electricMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			this.electricMeterValue = cachedSensorData[1];
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, cachedSensorData[1]));
+			
+		}
+		if(cachedSensorData[2] != null && !this.energyMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+			this.energyMeterValue = cachedSensorData[2];
+			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, cachedSensorData[2]));
+			
+		}
+	}
 	/**
 	 *  if the device is added to ESH we save ever device state update to change it in ESH
 	 * 	if the device isn't added ESH we only save the current device state
