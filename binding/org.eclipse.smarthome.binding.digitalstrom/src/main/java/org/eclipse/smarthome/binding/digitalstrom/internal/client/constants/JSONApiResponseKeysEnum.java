@@ -96,6 +96,7 @@ public enum JSONApiResponseKeysEnum {
 	DEVICE_ID				("id"),
 	DEVICE_ID_QUERY			("dSID"),
 	DEVICE_DSUID			("dSUID"),
+	DEVICE_METER_ID			("meterDSID"),
 	DEVICE_FUNCTION_ID		("functionID"),
 	DEVICE_PRODUCT_REVISION	("productRevision"),
 	DEVICE_PRODUCT_ID		("productID"),

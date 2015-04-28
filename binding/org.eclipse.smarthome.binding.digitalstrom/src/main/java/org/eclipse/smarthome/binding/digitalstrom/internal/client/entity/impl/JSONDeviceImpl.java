@@ -40,6 +40,8 @@ public class JSONDeviceImpl implements Device {
 
 	private DSID dsid = null;
 	
+	private DSID meterDSID = null;
+	
 	private String dSUID = null;
 	
 	private String hwInfo;
@@ -102,6 +104,10 @@ public class JSONDeviceImpl implements Device {
 		}
 		else if (object.get(JSONApiResponseKeysEnum.DEVICE_ID_QUERY.getKey()) != null) {
 			this.dsid = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_ID_QUERY.getKey()).toString());
+		}
+		
+		if (object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID) != null){
+			this.meterDSID = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID).toString()); 
 		}
 
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_DSUID.getKey()) != null) {
@@ -205,6 +211,17 @@ public class JSONDeviceImpl implements Device {
 	public String getDSUID(){
 		return this.dSUID;
 	}
+	
+	@Override
+	public DSID getMeterDSID(){
+		return this.meterDSID;
+	}
+	
+	@Override
+	public void setMeterDSID(String meterDSID){
+		this.meterDSID = new DSID(meterDSID);
+	}
+	
 	@Override
 	public String getHWinfo() {
 		return hwInfo;
@@ -265,12 +282,12 @@ public class JSONDeviceImpl implements Device {
 	@Override
 	public synchronized void setOutputValue(int value) {
 		if (value <= 0) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
 		//	outputValue = 0;
 		//	setIsOn(false);
 		}
 		else if (value > maxOutputValue) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, this.maxOutputValue));
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
 			//outputValue = maxOutputValue;
 			//setIsOn(true);
 		}
@@ -630,8 +647,8 @@ public class JSONDeviceImpl implements Device {
 	
 	//for ESH
 	
-	private List<DeviceStateUpdate> eshThingStateUpdates = new LinkedList<DeviceStateUpdate>();// Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
-	private List<DeviceStateUpdate> deviceStateUpdates = new LinkedList<DeviceStateUpdate>();//Collections.synchronizedList(new ArrayList<DeviceStateUpdate>());
+	private List<DeviceStateUpdate> eshThingStateUpdates = Collections.synchronizedList(new LinkedList<DeviceStateUpdate>());//new LinkedList<DeviceStateUpdate>();
+	private List<DeviceStateUpdate> deviceStateUpdates = Collections.synchronizedList(new LinkedList<DeviceStateUpdate>());//new LinkedList<DeviceStateUpdate>();
 	
 	private boolean isAddToESH = false;
 	
@@ -759,7 +776,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public void updateInternalDeviceState(DeviceStateUpdate deviceStateUpdate) {
+	public synchronized void updateInternalDeviceState(DeviceStateUpdate deviceStateUpdate) {
 		if(deviceStateUpdate != null){			
 			switch(deviceStateUpdate.getType()){
 				case DeviceStateUpdate.UPDATE_BRIGHTNESS_DECREASE:

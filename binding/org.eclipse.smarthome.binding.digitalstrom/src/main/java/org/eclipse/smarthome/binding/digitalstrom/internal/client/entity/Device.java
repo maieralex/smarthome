@@ -38,6 +38,20 @@ public interface Device {
 	public String getDSUID();
 	
 	/**
+	 * Returns the id of the DS-Meter in which the device is registered.
+	 * 
+	 * @return meterDSID
+	 */
+	public DSID getMeterDSID();
+	
+	/**
+	 * Sets the id of the DS-Meter in which the device is registered.
+	 * 
+	 * @param meterDSID
+	 */
+	
+	public void setMeterDSID(String meterDSID);
+	/**
 	 * Returns the hardware info of this device. 
 	 * You can see all available hardware info here {@link http://www.digitalstrom.com/Partner/Support/Techn-Dokumentation/}
 	 *   

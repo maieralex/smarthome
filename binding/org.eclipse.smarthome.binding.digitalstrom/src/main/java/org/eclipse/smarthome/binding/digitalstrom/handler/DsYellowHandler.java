@@ -149,6 +149,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		} else {
 			logger.warn("Command send to an unknown channel id: " + channelUID);
 		}
+		//TODO: hinzufügen zum testen
 		//logger.debug("Inform DssBridgeHandler about command {}", command.toString());
 		//dssBridgeHandler.sendComandsToDSS(device);
 		
@@ -184,7 +185,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     }
 
 	@Override
-	public void onDeviceStateChanged(Device device) {
+	public synchronized void onDeviceStateChanged(Device device) {
 		if(device != null){
 			if(!device.isESHThingUpToDate()){
 				logger.debug("Update ESH State");
@@ -292,7 +293,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	}
 
 	@Override
-	public void onSceneConfigAdded(short sceneId, Device device){
+	public synchronized void onSceneConfigAdded(short sceneId, Device device){
 		//TODO: save DeviceSceneSpec persistent to Thing
 		String saveScene = "";
 		DeviceSceneSpec sceneSpec = device.getSceneConfig(sceneId);

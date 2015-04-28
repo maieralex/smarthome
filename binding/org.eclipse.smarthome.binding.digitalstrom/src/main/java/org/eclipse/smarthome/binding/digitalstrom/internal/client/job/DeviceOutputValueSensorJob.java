@@ -28,10 +28,14 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 			.getLogger(DeviceOutputValueSensorJob.class);
 	private Device device = null;
 	private short index = 0;
+	private DSID meterDSID = null;
+	private long initalisationTime = 0;
 	
 	public DeviceOutputValueSensorJob(Device device, short index) {
 		this.device = device;
 		this.index = index;
+		this.meterDSID = device.getMeterDSID();
+		this.initalisationTime = System.currentTimeMillis();
 	}
 	
 	/* (non-Javadoc)
@@ -76,4 +80,20 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 	public DSID getDsid() {
 		return device.getDSID();
 	}
+
+	@Override
+	public DSID getMeterDSID() {
+		return this.meterDSID;
+	}
+	
+	@Override
+	public long getInitalisationTime() {
+		return this.initalisationTime;
+	}
+	
+	@Override
+	public void setInitalisationTime(long time) {
+		this.initalisationTime = time;
+	}	
+
 }

@@ -151,6 +151,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         				
         				if(deviceStatusListeners.get(currentDeviceDSUID) != null && eshDevice.isPresent()){
         					logger.debug("Check device updates");
+
+        					//check device is added to esh and inform listener
         					if(!eshDevice.isAddToESH()){
         						logger.debug("Set device is add to esh");
         						eshDevice.setIsAddToESH(true);
@@ -162,6 +164,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			    		}
         						
         					}
+        					
+        					//TODO: auskommentieren zum testen
+        					//check device state updates from esh
         					while(!eshDevice.isDeviceUpToDate()){
         						DeviceStateUpdate deviceStateUpdate = eshDevice.getNextDeviceUpdateState();
         						if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
@@ -177,16 +182,17 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         								sendComandsToDSS(eshDevice, nextDeviceStateUpdate);
         							}
         						}
-        					 
         					}
         					
+        					//check device updates that isen't updated by esh 
         					while(!eshDevice.isESHThingUpToDate()){
         						deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         						logger.debug("inform deviceStatusListener from  Device \""
         								+ currentDeviceDSUID
         								+ "\" about update ESH-Update");
         					}
-        				        				
+        				     
+        					//check if device need sensor data update
         					if(!eshDevice.isSensorDataUpToDate()){
         						logger.info("Device need SensorData update");
         		        		
@@ -375,7 +381,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         	this.digitalSTROMEventListener.shutdown();
         	this.digitalSTROMEventListener = null;
         }
-        if(this.sensorJobExecuter != null && this.sensorJobExecuter.isAlive()){
+        if(this.sensorJobExecuter != null){
         	this.sensorJobExecuter.shutdown();
         	this.sensorJobExecuter = null;
         }
@@ -412,7 +418,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     public void updateSensorData(SensorJob sensorJob, String priority){
     	if(sensorJobExecuter == null){
 			sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
-			this.sensorJobExecuter.start();
+			this.sensorJobExecuter.startExecuter();
 		}
     	
 		if(sensorJob != null && priority != null){
@@ -452,7 +458,26 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	 * 
 	 * @param device
 	 */
-	public void sendComandsToDSS(Device device , DeviceStateUpdate deviceStateUpdate){
+	public synchronized void sendComandsToDSS(Device device){
+		while(!device.isDeviceUpToDate()){
+			DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
+			if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
+				sendComandsToDSS(device, deviceStateUpdate);
+			} else{
+				DeviceStateUpdate nextDeviceStateUpdate = device.getNextDeviceUpdateState();
+				while(nextDeviceStateUpdate != null && nextDeviceStateUpdate.getType() == DeviceStateUpdate.UPDATE_BRIGHTNESS){
+					deviceStateUpdate = nextDeviceStateUpdate;
+					nextDeviceStateUpdate = device.getNextDeviceUpdateState();
+				}
+				sendComandsToDSS(device, deviceStateUpdate);
+				if(nextDeviceStateUpdate != null){
+					sendComandsToDSS(device, nextDeviceStateUpdate);
+				}
+			}
+		}
+	}
+	
+	private synchronized void sendComandsToDSS(Device device , DeviceStateUpdate deviceStateUpdate){
 		/*if(device.isDeviceUpToDate()){
 			logger.debug("Get send command but Device is alraedy up to date");
 		}*/
@@ -564,7 +589,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	
 	/****methods to store DeviceStatusListener****/
 	
-	public void registerDeviceStatusListener(String id, DeviceStatusListener deviceStatusListener) {
+	public synchronized void registerDeviceStatusListener(String id, DeviceStatusListener deviceStatusListener) {
 		if (deviceStatusListener == null) {
 			throw new NullPointerException("It's not allowed to pass a null DeviceStatusListener.");
 		}
@@ -674,7 +699,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		}
 	}
 	
-	public void informListenerAboutSceneConfigAdded(short sceneID, Device device){
+	public synchronized void informListenerAboutSceneConfigAdded(short sceneID, Device device){
 		logger.debug("Inform deviceStatusListener aboud added scene config.");
 		this.deviceStatusListeners.get(device.getDSUID()).onSceneConfigAdded(sceneID, device);
 	}
@@ -687,7 +712,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	 * 
 	 * @return true if the connection is established and false if not 
 	 */
-	public boolean checkConnection(){
+	public synchronized boolean checkConnection(){
 		switch(this.digitalSTROMClient.checkConnection(sessionToken)) {
 			case HttpURLConnection.HTTP_OK:
 				if(!lastConnectionState){ 
@@ -813,7 +838,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         	this.digitalSTROMEventListener.shutdown();
         	this.sensorJobExecuter.shutdown();
         }
-        if(this.sensorJobExecuter != null && this.sensorJobExecuter.isAlive()){
+        if(this.sensorJobExecuter != null){
         	this.sensorJobExecuter.shutdown();
         }
         updateStatus(ThingStatus.OFFLINE);
@@ -837,7 +862,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     		this.digitalSTROMEventListener.start();
         }
         if(this.sensorJobExecuter != null){
-        	this.sensorJobExecuter.wackeUp();
+        	this.sensorJobExecuter.wakeUp();
         }
         // now also re-initialize all light handlers
         for(Thing thing : getThing().getThings()) {

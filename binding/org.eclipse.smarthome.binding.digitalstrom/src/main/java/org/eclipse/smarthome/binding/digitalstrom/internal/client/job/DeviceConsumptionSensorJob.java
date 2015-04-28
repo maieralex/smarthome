@@ -30,15 +30,17 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 			.getLogger(DeviceConsumptionSensorJob.class);
 	private Device device = null;
 	private SensorIndexEnum sensorIndex = null;
+	private DSID meterDSID = null;
+	private long initalisationTime = 0;
 	
 	public DeviceConsumptionSensorJob(Device device, SensorIndexEnum index) {
 		this.device = device;
 		this.sensorIndex = index;
+		this.meterDSID = device.getMeterDSID();
+		this.initalisationTime = System.currentTimeMillis();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.openhab.binding.digitalSTROM2.internal.client.job.SensorJob#execute(org.openhab.binding.digitalSTROM2.internal.client.DigitalSTROMAPI, java.lang.String)
-	 */
+	
 	@Override
 	public void execute(DigitalSTROMAPI digitalSTROM, String token) {
 		int consumption = digitalSTROM.getDeviceSensorValue(token, this.device.getDSID(), null, this.sensorIndex);
@@ -80,4 +82,20 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 	public DSID getDsid() {
 		return device.getDSID();
 	}
+
+	@Override
+	public DSID getMeterDSID() {
+		return this.meterDSID;
+	}
+	
+	@Override
+	public long getInitalisationTime() {
+		return this.initalisationTime;
+	}
+	
+	@Override
+	public void setInitalisationTime(long time) {
+		this.initalisationTime = time;
+	}	
+
 }

@@ -73,7 +73,7 @@ public class DigitalSTROMEventListener extends Thread {
 	
 	public synchronized void wakeUp() {
 		this.shutdown = false;
-		this.sensorJobExecutor.wackeUp();;
+		this.sensorJobExecutor.wakeUp();;
 		this.subscribe();
 		this.run();
 	}
@@ -113,7 +113,7 @@ public class DigitalSTROMEventListener extends Thread {
 	@Override
 	public void run() {
 		this.sensorJobExecutor = new SensorJobExecutor(digitalSTROM, this.dssBridgeHandler);
-		sensorJobExecutor.start();
+		sensorJobExecutor.startExecuter();
 		logger.debug("DigitalSTROMEventListener startet");
 		while (!this.shutdown) {
 			//logger.debug("läuuuuft");

@@ -92,7 +92,13 @@ public class DigitalSTROMBindingConstants {
     	public static final String REFRESH_PRIORITY_LOW = "low";
     	public static final String REFRESH_PRIORITY_MEDIUM = "medium";
     	public static final String REFRESH_PRIORITY_HIGH = "high";
-	
+
+    	public final static int DEFAULT_SENSOR_READING_WAIT_TIME = 60000;
+
+    	//max sensor reading cyclic to wait
+    	public final static long MEDIUM_PRIORITY_FACTOR = 5;
+    	public final static long LOW_PRIORITY_FACTOR = 10;
+    	
 	/**** Scene config ****/
     public static final String SCENE_NAME = "sceneName";
     public static final String SCENE_ZONE_ID = "zoneID";
@@ -106,9 +112,6 @@ public class DigitalSTROMBindingConstants {
 	public final static int DEFAULT_READ_TIMEOUT = 10000;
 	public final static String APPLICATION_NAME = "ESH";
 
-	//TODO: wird die noch benutzt? ja in sensorjobexecuter doch name is schlecht und solle noch änderbar sein in dssBidge config
-	//DeviceListener refresh interval
-	public final static int DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL = 60000;
 	
 	//SensorData
 	public static int DEFAULT_SENSORDATA_REFRESH_INTERVAL = 10000; //namen ändern

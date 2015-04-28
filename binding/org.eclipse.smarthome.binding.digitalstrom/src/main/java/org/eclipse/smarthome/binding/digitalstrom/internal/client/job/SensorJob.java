@@ -14,12 +14,50 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 
 
 /**
- * @author Alexander Betker
+ * Interface for a DigitalSTROM-Sensor-Job.
+ * 
+ * @author Alexander Betker - initial 
  * @author Alex Maier
  * @since 1.3.0
+ * 
+ * @author Michael Ochel
+ * @author Matthias Siegele
  */
 public interface SensorJob {
-	public DSID getDsid();
-	public void execute(DigitalSTROMAPI digitalSTROM, String token);
 	
+	/**
+	 * Returns the dSID of the ds-Device in which this job is to be executed.
+	 *  
+	 * @return dSID from the device
+	 */
+	public DSID getDsid();
+	
+	/**
+	 * Returns the dSID of the ds-Meter in which this job is to be executed.
+	 * 
+	 * @return
+	 */
+	public DSID getMeterDSID();
+	
+	/**
+	 * Executes the SensorJob.
+	 * 
+	 * @param digitalSTROM client
+	 * @param sessionToken
+	 */
+	public void execute(DigitalSTROMAPI digitalSTROM, String sessionToken);
+	
+	/**
+	 * Returns the time when the Sensor-Job was initialized.
+	 * 
+	 * @return
+	 */
+	public long getInitalisationTime();
+	
+	/**
+	 * Sets the time when the Sensor-Job was initialized e.g. to decrease the priority of this job.
+	 * 
+	 * @param time
+	 */
+	public void setInitalisationTime(long time);
 }

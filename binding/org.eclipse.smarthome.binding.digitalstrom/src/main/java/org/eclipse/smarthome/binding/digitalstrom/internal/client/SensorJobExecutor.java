@@ -1,180 +1,191 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.SensorJob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * In order to avoid many sensor readings in a time, this thread starts the
- * jobs, after the old one is finished
+ * This class performs the sensor Jobs by DigitalSTROM Rule 9 "Application processes that do automatic 
+ * cyclic reads of measured values are subject to a request limit: at maximum one request per minute
+ * and circuit is allowed.". 
+ * In addition priorities can be assigned to jobs .
  * 
- * @author Alexander Betker
- * @since 1.3.0
+ * @author Michael Ochel
+ * @author Matthias Siegele
  * 
  */
-public class SensorJobExecutor extends Thread {
-
-	/* 
-	 * NOTE:
-	 * Optimierung: 
-	 * 1. Thread schlafen legen wenn es keine Jobs gibt und wecken, wenn ein neuer Job hinzugefügt wird
-	 * 2. evtl. statt LinkedList Prioritätswarteschlange
-	 * 3. zusätzlich nach Stromkreisen ordnen wegen pro Stromkreis 1. min Wartezeit 
-	 */
-	
+public class SensorJobExecutor {
 	private boolean shutdown = false;
 
-	private final int sleepTime = DigitalSTROMBindingConstants.DEFAULT_DEVICE_LISTENER_REFRESH_INTERVAL;
+	private long lowestNextExecutionTime = 0;
+	private long sleepTime = 1000;
+	private final long mediumFactor = DigitalSTROMBindingConstants.DEFAULT_SENSOR_READING_WAIT_TIME * DigitalSTROMBindingConstants.MEDIUM_PRIORITY_FACTOR;
+	private final long lowFactor = DigitalSTROMBindingConstants.DEFAULT_SENSOR_READING_WAIT_TIME * DigitalSTROMBindingConstants.LOW_PRIORITY_FACTOR;
+	
 	private final DigitalSTROMJSONImpl digitalSTROM;
 	
 	private DssBridgeHandler dssBrideHandler = null;
 	
-	private Logger logger = LoggerFactory.getLogger(SensorJobExecutor.class);
+	//private Logger logger = LoggerFactory.getLogger(SensorJobExecutor.class);
 
-	private List<SensorJob> highPrioritySensorJobs = Collections
-			.synchronizedList(new LinkedList<SensorJob>());
-	private List<SensorJob> mediumPrioritySensorJobs = Collections
-			.synchronizedList(new LinkedList<SensorJob>());
-	private List<SensorJob> lowPrioritySensorJobs = Collections
-			.synchronizedList(new LinkedList<SensorJob>());
+	private List<CircuitScheduler> circuitSchedulerList = Collections
+			.synchronizedList(new LinkedList<CircuitScheduler>());
 	
+	Thread executer = new Thread(){
+		public void run() {
+			while (!shutdown) {
+				lowestNextExecutionTime = System.currentTimeMillis() + DigitalSTROMBindingConstants.DEFAULT_SENSOR_READING_WAIT_TIME;
+				boolean noMoreJobs = true;
+			
+				synchronized(circuitSchedulerList){
+					for(CircuitScheduler circuit: circuitSchedulerList){
+						SensorJob sensorJob = circuit.getNextSensorJob();
+						if(sensorJob != null && dssBrideHandler.checkConnection()){
+							sensorJob.execute(digitalSTROM, dssBrideHandler.getSessionToken());
+						} else{
+							if(lowestNextExecutionTime > circuit.getNextExecutionTime() && 
+									circuit.getNextExecutionTime() > System.currentTimeMillis()){
+								lowestNextExecutionTime = circuit.getNextExecutionTime();
+							}
+						}
+						if(!circuit.noMoreJobs()){
+							noMoreJobs = false;
+						}
+					}
+				}
+				try {
+					if(noMoreJobs){
+						synchronized(this){
+							this.wait();
+						}
+					}else{
+						sleepTime = lowestNextExecutionTime - System.currentTimeMillis();
+						if(sleepTime > 0){
+							sleep(sleepTime);
+						}
+					}
+				} catch (InterruptedException e) {
+					
+				}
+			}	
+		}
+	};
+
+	/**
+	 * Creates a new SensorJobExecuter.
+	 * 
+	 * @param digitalStrom
+	 * @param dssBrideHandler
+	 */
 	public SensorJobExecutor(DigitalSTROMJSONImpl digitalStrom, DssBridgeHandler dssBrideHandler){
 		this.digitalSTROM = digitalStrom;
 		this.dssBrideHandler = dssBrideHandler;
 	}
 	
-	@Override
-	public void run() {
-
-		while (!this.shutdown) {
-			if(this.dssBrideHandler.checkConnection()){
-				SensorJob job = getHighPriorityJob();
-
-				if (job == null) {
-					job = getMediumPriorityJob();
-					if (job == null)
-						job = getLowPriorityJob();
-				}
-				if (job != null) {
-					job.execute(digitalSTROM, this.dssBrideHandler.getSessionToken());
-				}else{
-					//schlafen legen
-				}
-			}
-			try {
-				sleep(this.sleepTime);
-			} catch (InterruptedException e) {
-				this.shutdown();
-				logger.error("InterruptedException in SensorJobExecutor Thread ... "
-						+ e.getMessage());
-			}
-		}
-	}
-
+	/**
+	 * Stops the SensorJobExecuter Thread.
+	 * 
+	 */
 	public synchronized void shutdown() {
 		this.shutdown = true;
 	}
 	
 	
-	public synchronized void wackeUp(){
+	/**
+	 * Restarts the SensorJobExecuter Thread.
+	 * 
+	 */
+	public synchronized void wakeUp() {
 		this.shutdown = false;
-		this.run();
+		executer.run();
 	}
 	
+	/**
+	 * Starts the SensorJobExecuter Thread.
+	 */
+	public void startExecuter(){
+		executer.start();
+	}
+	
+	/**
+	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * 
+	 * @param sensorJob
+	 */
 	public void addHighPriorityJob(SensorJob sensorJob) {
-		synchronized (highPrioritySensorJobs) {
-			if (!highPrioritySensorJobs.contains(sensorJob)) {
-				highPrioritySensorJobs.add(sensorJob);
-				//aufwecken
-			}
-		}
+		if(sensorJob == null) return;
+		addSensorJobToCircuitScheduler(sensorJob);
 	}
 
+	/**
+	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * 
+	 * @param sensorJob
+	 */
 	public void addMediumPriorityJob(SensorJob sensorJob) {
-		synchronized (mediumPrioritySensorJobs) {
-			if (!mediumPrioritySensorJobs.contains(sensorJob)) {
-				mediumPrioritySensorJobs.add(sensorJob);
-				//aufwecken
-			}
-		}
+		if(sensorJob == null) return;
+		sensorJob.setInitalisationTime(sensorJob.getInitalisationTime()+this.mediumFactor);
+		addSensorJobToCircuitScheduler(sensorJob);
 	}
 
+	/**
+	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * 
+	 * @param sensorJob
+	 */
 	public void addLowPriorityJob(SensorJob sensorJob) {
-		synchronized (lowPrioritySensorJobs) {
-			if (!lowPrioritySensorJobs.contains(sensorJob)) {
-				lowPrioritySensorJobs.add(sensorJob);
-				//aufwecken
+		if(sensorJob == null) return;
+		sensorJob.setInitalisationTime(sensorJob.getInitalisationTime()+this.lowFactor);
+		addSensorJobToCircuitScheduler(sensorJob);
+	}
+
+	private void addSensorJobToCircuitScheduler(SensorJob sensorJob){
+		synchronized (this.circuitSchedulerList) {
+			CircuitScheduler circuit = getCircuitScheduler(sensorJob.getMeterDSID());
+			if(circuit != null){
+				circuit.addSensorJob(sensorJob);
+				synchronized(executer){
+					executer.notifyAll();
+				}
+			} else{
+				circuit = new CircuitScheduler(sensorJob);
+				this.circuitSchedulerList.add(circuit);
+			}
+			if(circuit.getNextExecutionTime() <= System.currentTimeMillis()){
+				executer.interrupt();
 			}
 		}
 	}
-
-	private SensorJob getLowPriorityJob() {
-		SensorJob job = null;
-		synchronized (lowPrioritySensorJobs) {
-			if (lowPrioritySensorJobs.size() > 0) {
-				job = lowPrioritySensorJobs.remove(0);
+	
+	private CircuitScheduler getCircuitScheduler(DSID dsid){
+		for(CircuitScheduler circuit : this.circuitSchedulerList){
+			if (circuit.getMeterDSID().equals(dsid)){
+				return circuit;
 			}
 		}
-		return job;
+		return null;
 	}
-
-	private SensorJob getMediumPriorityJob() {
-		SensorJob job = null;
-		synchronized (mediumPrioritySensorJobs) {
-			if (mediumPrioritySensorJobs.size() > 0) {
-				//job = mediumPrioritySensorJobs.get(0);
-				job = mediumPrioritySensorJobs.remove(0);
-			}
-		}
-		return job;
-	}
-
-	private SensorJob getHighPriorityJob() {
-		SensorJob job = null;
-		synchronized (highPrioritySensorJobs) {
-			if (highPrioritySensorJobs.size() > 0) {
-				//job = highPrioritySensorJobs.get(0);
-				job = highPrioritySensorJobs.remove(0);
-			}
-		}
-		return job;
-	}
-
+	
+	/**
+	 * Remove all SensorJobs of a specific ds-device.
+	 * 
+	 * @param dsid of the ds-device
+	 */
 	public void removeSensorJobs(DSID dsid) {
-		synchronized (lowPrioritySensorJobs) {
-			for (Iterator<SensorJob> iter = lowPrioritySensorJobs.iterator(); iter
-					.hasNext();) {
-				SensorJob job = iter.next();
-				if (job.getDsid().equals(dsid))
-					iter.remove();
-			}
-		}
-		synchronized (mediumPrioritySensorJobs) {
-			for (Iterator<SensorJob> iter = mediumPrioritySensorJobs.iterator(); iter
-					.hasNext();) {
-				SensorJob job = iter.next();
-				if (job.getDsid().equals(dsid))
-					iter.remove();
-			}
-		}
-		synchronized (highPrioritySensorJobs) {
-			for (Iterator<SensorJob> iter = highPrioritySensorJobs.iterator(); iter
-					.hasNext();) {
-				SensorJob job = iter.next();
-				if (job.getDsid().equals(dsid))
-					iter.remove();
-			}
-		}
-		logger.debug("Remove SensorJobs from device with DSID {}.", dsid);
+		Device device = this.dssBrideHandler.getDeviceByDSID(dsid.getValue());
+		if(device != null){
+			CircuitScheduler circuit = getCircuitScheduler(device.getMeterDSID());
+			if(circuit != null){
+				circuit.removeSensorJob(dsid);
+			}	
+		}		
 	}
 
 }

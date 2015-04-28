@@ -29,11 +29,15 @@ public class SceneOutputValueSensorJob implements SensorJob {
 	private Device device = null;
 	private short sceneId = 0;
 	private DssBridgeHandler dssBridgeHandler;
+	private DSID meterDSID = null;
+	private long initalisationTime = 0;
 
 	public SceneOutputValueSensorJob(Device device, short sceneId, DssBridgeHandler dssBridgeHandler) {
 		this.device = device;
 		this.sceneId = sceneId;
 		this.dssBridgeHandler = dssBridgeHandler;
+		this.meterDSID = device.getMeterDSID();
+		this.initalisationTime = System.currentTimeMillis();
 	}
 	/* (non-Javadoc)
 	 * @see org.openhab.binding.digitalSTROM2.internal.client.job.SensorJob#execute(org.openhab.binding.digitalSTROM2.internal.client.DigitalSTROMAPI, java.lang.String)
@@ -69,5 +73,21 @@ public class SceneOutputValueSensorJob implements SensorJob {
 	public DSID getDsid() {
 		return device.getDSID();
 	}	
+
+	@Override
+	public DSID getMeterDSID() {
+		return this.meterDSID;
+	}
+	
+	@Override
+	public long getInitalisationTime() {
+		return this.initalisationTime;
+	}
+	
+	@Override
+	public void setInitalisationTime(long time) {
+		this.initalisationTime = time;
+	}	
+
 	
 }
