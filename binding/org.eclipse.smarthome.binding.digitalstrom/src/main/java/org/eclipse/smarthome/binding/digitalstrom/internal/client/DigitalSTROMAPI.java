@@ -48,6 +48,18 @@ public interface DigitalSTROMAPI {
 	public boolean callApartmentScene(String token, int groupID, String groupName, Scene sceneNumber, boolean force);
 	
 	/**
+	 * Undo the scene sceneNumber on all devices of the apartment. If groupID 
+	 * or groupName are specified, only devices contained in this group will be 
+	 * addressed
+	 * 
+	 * @param groupID		this parameter is optional (not required)
+	 * @param groupName		this parameter is optional (not required)
+	 * @param sceneNumber	required
+	 * @return				true on success
+	 */
+	public boolean undoApartmentScene(String token, int groupID, String groupName, Scene sceneNumber);
+	
+	/**
 	 * Returns all zones
 	 * 
 	 * @return	DigitalSTROMApartment which has a list of all zones
@@ -72,18 +84,31 @@ public interface DigitalSTROMAPI {
 	public List<String> getMeterList(String token);
 	
 	/**
-	 * Sets the scene sceneNumber on all devices in the zone. If groupID or groupName
+	 * Call sceneNumber on all devices in the zone. If groupID or groupName
 	 * are specified, only devices contained in this group will be addressed
 	 * 
-	 * @param id			needs either id or name
-	 * @param name			needs either id or name
+	 * @param zoneID		needs either zoneID or zoneName
+	 * @param zoneName		needs either zoneID or zoneName
 	 * @param groupID		this parameter is optional (not required)
 	 * @param groupName		this parameter is optional (not required)
 	 * @param sceneNumber	required	(only a zone/user scene is possible -> sceneNumber 0..63 )
 	 * @param force			this parameter is optional (not required)
 	 * @return				true on success
 	 */
-	public boolean callZoneScene(String token, int id, String name, int groupID, String groupName, ZoneSceneEnum sceneNumber, boolean force);
+	public boolean callZoneScene(String token, int zoneID, String zoneName, int groupID, String groupName, ZoneSceneEnum sceneNumber, boolean force);
+	
+	/**
+	 * Undo sceneNumber on all devices in the zone. If groupID or groupName
+	 * are specified, only devices contained in this group will be addressed
+	 * 
+	 * @param zoneID		needs either zoneID or zoneName
+	 * @param zoneName		needs either zoneID or zoneName
+	 * @param groupID		this parameter is optional (not required)
+	 * @param groupName		this parameter is optional (not required)
+	 * @param sceneNumber	required	(only a zone/user scene is possible -> sceneNumber 0..63 )
+	 * @return				true on success
+	 */
+	public boolean undoZoneScene(String token, int zoneID, String zoneName, int groupID, String groupName, ZoneSceneEnum sceneNumber);
 	
 	/**
 	 * Turns on the device. This will call SceneMax on the device

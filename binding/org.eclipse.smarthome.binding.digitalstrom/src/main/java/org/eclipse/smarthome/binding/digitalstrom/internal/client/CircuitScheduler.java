@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class represents a circuit in DigitalSTROM and manages the priorities and execution times for the 
+ * SensorJobs to be executed on this circuit.
  * 
  * @author Michael Ochel
  * @author Matthias Siegele

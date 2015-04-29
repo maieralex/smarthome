@@ -76,7 +76,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     protected void bridgeHandlerInitialized(ThingHandler thingHandler, Bridge bridge) {
     	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
     	
-    	if (configDSUId != null) {
+    	if (configDSUId != null) { //kann das überhaupt null werden?
             dSUID = configDSUId;
             
             if (thingHandler instanceof DssBridgeHandler) {
@@ -226,15 +226,6 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 			}
 		}		
 	}
-
-	/* müsste eigendlich schon im Device abgefangen werden
-	private void setSensorDataOnZeroAndDeviceOFF(){
-		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
-		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(0));
-		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(0));
-		updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(0));
-	}
-	*/
 	
 	private int fromValueToPercent(int value, int max) {
 		if (value < 0 || value == 0) {

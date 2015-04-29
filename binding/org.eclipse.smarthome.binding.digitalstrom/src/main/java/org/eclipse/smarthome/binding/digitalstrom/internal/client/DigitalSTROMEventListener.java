@@ -116,7 +116,6 @@ public class DigitalSTROMEventListener extends Thread {
 		sensorJobExecutor.startExecuter();
 		logger.debug("DigitalSTROMEventListener startet");
 		while (!this.shutdown) {
-			//logger.debug("läuuuuft");
 			String request = this.getEventAsRequest(this.ID, 500);
 
 			if (request != null) {

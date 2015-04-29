@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0
         http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
 
-  <config-description uri="bridge-type:digitalstrom:config1">
+  <config-description uri="bridge-type:digitalstrom:config">
 	<parameter name="dSUID" type="text">
 		<label>Device UID</label>
 		<description>The device identifier identifies one DigitalStrom device.</description>

@@ -135,8 +135,46 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 		return false;
 	}
 
+	@Override
+	public boolean undoApartmentScene(String token, int groupID, String groupName, Scene sceneNumber) {
+		if (sceneNumber != null && isValidApartmentSceneNumber(sceneNumber.getSceneNumber())) {
+			String response = null;
+			
+			if (groupName != null) {
+				if (withParameterGroupId(groupID)) {
+					response = transport.execute(JSONRequestConstants.JSON_APARTMENT_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+							JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID+
+							JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName+
+							JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+				}
+				else {
+					response = transport.execute(JSONRequestConstants.JSON_APARTMENT_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+							JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName+
+							JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+				}
+				
+			}
+			else if (withParameterGroupId(groupID)) {
+				response = transport.execute(JSONRequestConstants.JSON_APARTMENT_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+						JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID+
+						JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+			}
+			else {
+				response = transport.execute(JSONRequestConstants.JSON_APARTMENT_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+						JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+			}
+			
+			if (handler.checkResponse(handler.toJSONObject(response))) {
+				return true;
+			}
+			
+		}
+		return false;
+	}
+
+	
 	private boolean isValidApartmentSceneNumber(int sceneNumber) {
-		return (sceneNumber > -1 && sceneNumber < 256);
+		return (sceneNumber > -1 && sceneNumber < 128);
 	}
 
 	@Override
@@ -417,6 +455,118 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 		return false;
 	}
 
+	@Override
+	public boolean undoZoneScene(String token, int zoneID, String zoneName, int groupID,
+			String groupName, ZoneSceneEnum sceneNumber) {
+		if (sceneNumber != null && validZoneScene(sceneNumber.getSceneNumber(), zoneID) && (withParameterZoneId(zoneID) || zoneName != null)) {
+				String response = null;
+				
+				if (withParameterZoneId(zoneID)) {
+					if (zoneName != null) {
+						if (withParameterGroupId(groupID)) {
+							if (groupName != null) {
+								response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+										JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+										JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+										JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+							}
+							else {
+								response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+										JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+										JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+										JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID);
+							}
+						}
+						else if (groupName != null) {
+							response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+									JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+									JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+						}
+						else {
+							response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+									JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+						}
+						
+					}
+					else {
+						if (withParameterGroupId(groupID)) {
+							if (groupName != null) {
+								response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+										JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+										JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+							}
+							else {
+								response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+										JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+										JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+										JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID);
+							}
+						}
+						else if (groupName != null) {
+							response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+									JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+						}
+						else {
+								response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_ID+zoneID+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());								
+						}
+						
+					}
+						
+				}
+				else if (zoneName != null) {
+					if (withParameterGroupId(groupID)) {
+						if (groupName != null) {
+							response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+									JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID+
+									JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+						}
+						else {
+							response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+									JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+									JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+									JSONRequestConstants.INFIX_PARAMETER_GROUP_ID+groupID);
+						}
+						
+					}
+					else if (groupName != null) {
+						response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+								JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+								JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber()+
+								JSONRequestConstants.INFIX_PARAMETER_GROUP_NAME+groupName);
+					}
+					else {
+						response = transport.execute(JSONRequestConstants.JSON_ZONE_UNDOSCENE+JSONRequestConstants.PARAMETER_TOKEN+token+
+								JSONRequestConstants.INFIX_PARAMETER_NAME+zoneName+
+								JSONRequestConstants.INFIX_PARAMETER_SCENE_NUMBER+sceneNumber.getSceneNumber());
+					}
+					
+				}
+				
+				if (handler.checkResponse(handler.toJSONObject(response))) {
+					return true;
+				}
+			
+			}
+		
+		return false;
+	}
+
+	
 	private boolean validZoneScene(int sceneNumber, int zoneId) {
 		if (zoneId == 0) {
 			return (sceneNumber > -1 && sceneNumber < 256);

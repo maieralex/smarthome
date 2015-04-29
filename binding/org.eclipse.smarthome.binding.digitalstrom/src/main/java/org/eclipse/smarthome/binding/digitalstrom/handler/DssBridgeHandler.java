@@ -34,6 +34,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMEv
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.SensorJobExecutor;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringTypeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringUnitsEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
@@ -42,6 +43,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Detaile
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Zone;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
@@ -94,6 +96,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     private HashMap<String, Device> deviceMap = new HashMap<String, Device>();
     private HashMap<String, String> dSUIDtoDSID = new HashMap<String, String>();
     
+    Apartment apartment;
+    
 	// zoneID - Map < groupID, List<dsid-String>>
 	private Map<Integer, Map<Short, List<String>>> digitalSTROMZoneGroupMap = Collections
 			.synchronizedMap(new HashMap<Integer, Map<Short, List<String>>>());
@@ -129,8 +133,9 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         		}
         		
         		while (!currentDeviceList.isEmpty()){
-        			handleStructure(digitalSTROMClient
-        					.getApartmentStructure(sessionToken));
+        			apartment = digitalSTROMClient
+        					.getApartmentStructure(sessionToken);
+        			handleStructure(apartment);
         			
         			Device currentDevice = currentDeviceList.remove(0);
         			String currentDeviceDSUID = currentDevice.getDSUID();
@@ -343,31 +348,6 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     					get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString();
     		}
     		
-    		//if right connect data are set and the connection to the server
-        	/*if(checkConnection() && configuration.get(APPLICATION_TOKEN) != null && 
-        			!(this.applicationToken = configuration.get(APPLICATION_TOKEN).toString()).trim().isEmpty()){
-        	
-        		handleStructure(digitalSTROMClient
-        				.getApartmentStructure(sessionToken));
-        		configuration.remove(PASSWORD);
-    			configuration.remove(USER_NAME);
-        		        		
-        		this.digitalSTROMEventListener = new DigitalSTROMEventListener(
-        				configuration.get(HOST).toString(), 
-        				(DigitalSTROMJSONImpl) digitalSTROMClient, 
-        				this);
-        			
-        		this.digitalSTROMEventListener.start();
-        	*/
-        		//vieleiecht besser bei updateSensorData?
-        		/*this.sensorJobExecuter = new SensorJobExecutor((DigitalSTROMJSONImpl) digitalSTROMClient, this);
-        		this.sensorJobExecuter.start();
-        	*/
-        	/*	onUpdate();
-        		
-        	} else{*/
-        		onUpdate();
-        	//}
         } else{
         	logger.warn("Cannot connect to DigitalSTROMSever. Host address is not set.");
         }
@@ -478,13 +458,8 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	}
 	
 	private synchronized void sendComandsToDSS(Device device , DeviceStateUpdate deviceStateUpdate){
-		/*if(device.isDeviceUpToDate()){
-			logger.debug("Get send command but Device is alraedy up to date");
-		}*/
 		boolean requestSucsessfull;
 		if(checkConnection()){
-			
-			//DeviceStateUpdate deviceStateUpdate = device.getNextDeviceUpdateState();
 			requestSucsessfull = false;
 			
 			if(deviceStateUpdate != null){
@@ -553,7 +528,27 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			}
 		}
 	}
+	
+	public void sendSeneComandToDSS(Integer zoneID, Short groupID, Short sceneID, boolean call_undo){
+		//TODO: send comand
+		if(call_undo){
+			if(zoneID == 0){
+				this.digitalSTROMClient.callApartmentScene(sessionToken, groupID.intValue(), null, SceneEnum.getScene(sceneID), false);
+			} else{
+				this.digitalSTROMClient.callZoneScene(sessionToken, zoneID, null, groupID, null, ZoneSceneEnum.getZoneScene(sceneID), false);
+			}
+		} else {
+			if(zoneID == 0){
+				this.digitalSTROMClient.undoApartmentScene(sessionToken, groupID.intValue(), null, SceneEnum.getScene(sceneID));
+			} else{
+				this.digitalSTROMClient.undoZoneScene(sessionToken, zoneID, null, groupID, null, ZoneSceneEnum.getZoneScene(sceneID));
+			}
+		}
+	}
 
+	public Apartment getApartment(){
+		return this.apartment;
+	}
     // Here we build up a new hashmap in order to replace it with the old one.
 	// This hashmap is used to find the affected items after an event from
 	// digitalSTROM.
