@@ -43,7 +43,6 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Detaile
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Zone;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.job.DeviceConsumptionSensorJob;
@@ -154,6 +153,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					}
         				}
         				
+        				//logger.debug("{}: {}, {}",currentDeviceDSUID,deviceStatusListeners.get(currentDeviceDSUID), eshDevice.isPresent());
         				if(deviceStatusListeners.get(currentDeviceDSUID) != null && eshDevice.isPresent()){
         					logger.debug("Check device updates");
 
@@ -174,27 +174,30 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					//check device state updates from esh
         					while(!eshDevice.isDeviceUpToDate()){
         						DeviceStateUpdate deviceStateUpdate = eshDevice.getNextDeviceUpdateState();
-        						if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
-        							sendComandsToDSS(eshDevice, deviceStateUpdate);
-        						} else{
-        							DeviceStateUpdate nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
-        							while(nextDeviceStateUpdate != null && nextDeviceStateUpdate.getType() == DeviceStateUpdate.UPDATE_BRIGHTNESS){
-        								deviceStateUpdate = nextDeviceStateUpdate;
-        								nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
-        							}
-        							sendComandsToDSS(eshDevice, deviceStateUpdate);
-        							if(nextDeviceStateUpdate != null){
-        								sendComandsToDSS(eshDevice, nextDeviceStateUpdate);
-        							}
+        						if(deviceStateUpdate != null){
+	        						if(deviceStateUpdate.getType() != DeviceStateUpdate.UPDATE_BRIGHTNESS){
+	        							sendComandsToDSS(eshDevice, deviceStateUpdate);
+	        						} else{
+	        							DeviceStateUpdate nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
+	        							while(nextDeviceStateUpdate != null && nextDeviceStateUpdate.getType() == DeviceStateUpdate.UPDATE_BRIGHTNESS){
+	        								deviceStateUpdate = nextDeviceStateUpdate;
+	        								nextDeviceStateUpdate = eshDevice.getNextDeviceUpdateState();
+	        							}
+	        							sendComandsToDSS(eshDevice, deviceStateUpdate);
+	        							if(nextDeviceStateUpdate != null){
+	        								sendComandsToDSS(eshDevice, nextDeviceStateUpdate);
+	        							}
+	        						}
         						}
         					}
         					
         					//check device updates that isen't updated by esh 
         					while(!eshDevice.isESHThingUpToDate()){
-        						deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
         						logger.debug("inform deviceStatusListener from  Device \""
         								+ currentDeviceDSUID
         								+ "\" about update ESH-Update");
+        						deviceStatusListeners.get(currentDeviceDSUID).onDeviceStateChanged(eshDevice);
+        						
         					}
         				     
         					//check if device need sensor data update
@@ -239,7 +242,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					
         					if(!found){
         						 deviceMap.put(currentDeviceDSUID, currentDevice);
-        						 logger.debug("Can't find device in trashDevices, add Device to the deviceMap!");
+        						 logger.debug("Can't find device in trashDevices, add Device with dSUID: {} to the deviceMap!",currentDeviceDSUID);
         					 }
         				}
         				
@@ -348,6 +351,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     					get(DigitalSTROMBindingConstants.TRUST_CERT_PATH_KEY).toString();
     		}
     		
+    		onUpdate();
         } else{
         	logger.warn("Cannot connect to DigitalSTROMSever. Host address is not set.");
         }

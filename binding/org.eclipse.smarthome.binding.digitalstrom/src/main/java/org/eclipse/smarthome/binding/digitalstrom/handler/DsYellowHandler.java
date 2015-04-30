@@ -27,6 +27,8 @@ import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
+import org.eclipse.smarthome.core.library.types.StopMoveType;
+import org.eclipse.smarthome.core.library.types.UpDownType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -65,20 +67,29 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     @Override
     public void initialize() {
     	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
-    	/*String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
+    	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
     	
     	if (configDSUId != null) {
             dSUID = configDSUId;
-    	}*/
+    	}
+    	if(this.getDssBridgeHandler() != null){
+	    	// note: this call implicitly registers our handler as a listener on the bridge
+	        getThing().setStatus(this.getBridge().getStatus());
+	    	logger.debug("Set status on {}", getThing().getStatus());
+	    	
+	    	saveConfigSceneSpecificationIntoDevice(getDevice());
+	    	logger.debug("Load saved scene specification into device");
+        	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
+    	}
     }
 
     @Override
     protected void bridgeHandlerInitialized(ThingHandler thingHandler, Bridge bridge) {
-    	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
+    	//String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
     	
-    	if (configDSUId != null) { //kann das überhaupt null werden?
-            dSUID = configDSUId;
-            
+    	if (dSUID != null) { //kann das überhaupt null werden?
+            //dSUID = configDSUId;
+            //logger.debug(configDSUId);
             if (thingHandler instanceof DssBridgeHandler) {
 	        	this.dssBridgeHandler =  (DssBridgeHandler) thingHandler;
 	        	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
@@ -109,6 +120,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     	DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
     	if(dssBridgeHandler != null) {
     		//logger.debug("get DssBridgeHandler");
+    		//logger.debug("dSUID = " + dSUID);
     		return dssBridgeHandler.getDeviceByDSUID(dSUID);
     	}
         return null;
@@ -129,6 +141,24 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
             return;
         }
 			
+		/*if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_SHADE)) {
+			if (command instanceof PercentType) {
+				logger.debug("Shade PercentType: {}", command.toString());
+			} else if (command instanceof StopMoveType) {
+				if(StopMoveType.MOVE.equals((StopMoveType) command)){
+					logger.debug("Shade StopMoveType|Move: {}", command.toString());
+				} else{
+					logger.debug("Shade StopMoveType|stop: {}", command.toString());
+				}
+			} else if(command instanceof UpDownType) {
+				if(UpDownType.UP.equals((UpDownType) command)){
+					logger.debug("Shade UpDownType|Up: {}", command.toString());
+				} else{
+					logger.debug("Shade UpDownType|down: {}", command.toString());
+				}
+			}
+		} */
+		
 		if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_BRIGHTNESS) || 
 				channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_LIGHT_SWITCH)) {
 			if (command instanceof PercentType) {
@@ -296,15 +326,22 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 		if(sceneValue != -1){
 			saveScene = saveScene + ", sceneValue: " +sceneValue;
 		}
+		String key = DigitalSTROMBindingConstants.DEVICE_SCENE+sceneId;
 		if(!saveScene.isEmpty()){
 			logger.debug("Save scene configuration: [{}] to thing with UID {}",saveScene,this.getThing().getUID());
-			this.getThing().setProperty(DigitalSTROMBindingConstants.DEVICE_SCENE+sceneId, saveScene);
+			if(this.getThing().getProperties().get(key) != null){
+				this.getThing().setProperty(key, saveScene);
+			} else{
+				Map<String,String> properties = editProperties();
+				properties.put(key, saveScene);
+				updateProperties(properties);
+			}
 		}
 	}
 	
 	private void saveConfigSceneSpecificationIntoDevice(Device device){
 		//TODO: get persistence saved DeviceSceneSpec from Thing and save it in the Device, must call after Bride is added to ThingHandler
-		Map<String, String> propertries = this.getThing().getProperties();
+		/*Map<String, String> propertries = this.getThing().getProperties();
 		String sceneSave;
 		for(short i = 0; i < 128 ; i++){
 			sceneSave = propertries.get(DigitalSTROMBindingConstants.DEVICE_SCENE + i);
@@ -340,7 +377,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 				}
 			}
 			
-		}
+		}*/
 		
 	}
 

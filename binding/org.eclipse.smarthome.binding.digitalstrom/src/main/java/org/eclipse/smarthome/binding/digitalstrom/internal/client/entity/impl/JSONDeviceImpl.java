@@ -106,8 +106,8 @@ public class JSONDeviceImpl implements Device {
 			this.dsid = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_ID_QUERY.getKey()).toString());
 		}
 		
-		if (object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID) != null){
-			this.meterDSID = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID).toString()); 
+		if (object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID.getKey()) != null){
+			this.meterDSID = new DSID(object.get(JSONApiResponseKeysEnum.DEVICE_METER_ID.getKey()).toString()); 
 		}
 
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_DSUID.getKey()) != null) {
@@ -828,23 +828,27 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	private void setCachedMeterData(){
+		logger.debug("load cached sensor data");
 		Integer[] cachedSensorData = this.cachedSensorMeterData.get(this.getOutputValue());
-		if(cachedSensorData[0] != null && !this.powerConsumptionRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			this.powerConsumption = cachedSensorData[0];
-			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, cachedSensorData[0]));
-			
-		}
-		if(cachedSensorData[1] != null && !this.electricMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			this.electricMeterValue = cachedSensorData[1];
-			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, cachedSensorData[1]));
-			
-		}
-		if(cachedSensorData[2] != null && !this.energyMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
-			this.energyMeterValue = cachedSensorData[2];
-			addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, cachedSensorData[2]));
-			
+		if(cachedSensorData != null){
+			if(cachedSensorData[0] != null && !this.powerConsumptionRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+				this.powerConsumption = cachedSensorData[0];
+				addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_POWER_CONSUMPTION, cachedSensorData[0]));
+				
+			}
+			if(cachedSensorData[1] != null && !this.electricMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+				this.electricMeterValue = cachedSensorData[1];
+				addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE, cachedSensorData[1]));
+				
+			}
+			if(cachedSensorData[2] != null && !this.energyMeterRefreshPriority.contains(DigitalSTROMBindingConstants.REFRESH_PRIORITY_NEVER)){
+				this.energyMeterValue = cachedSensorData[2];
+				addEshThingStateUpdate(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE, cachedSensorData[2]));
+				
+			}
 		}
 	}
+	
 	/**
 	 *  if the device is added to ESH we save ever device state update to change it in ESH
 	 * 	if the device isn't added ESH we only save the current device state

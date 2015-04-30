@@ -29,7 +29,7 @@ public class DsSceneHandler extends BaseThingHandler  {
 
 	private Logger logger = LoggerFactory.getLogger(DsSceneHandler.class);
 
-    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet(THING_TYPE_GE_KM200, THING_TYPE_GE_KL200);
+    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet(DigitalSTROMBindingConstants.THING_TYPE_SCENE);
 
     DssBridgeHandler dssBridgeHandler = null;
     Short sceneId = null;
@@ -146,7 +146,7 @@ public class DsSceneHandler extends BaseThingHandler  {
 		if(this.dssBridgeHandler==null) {
 	    	Bridge bridge = getBridge();
 	        if (bridge == null) {
-	            logger.debug("cant find Bridge");
+	            logger.debug("can't find Bridge");
 	        	return null;
 	        }
 	        ThingHandler handler = bridge.getHandler();

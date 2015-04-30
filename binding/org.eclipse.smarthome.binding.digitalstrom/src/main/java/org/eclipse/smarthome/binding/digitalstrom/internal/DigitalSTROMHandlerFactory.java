@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
+import org.eclipse.smarthome.binding.digitalstrom.handler.DsSceneHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
@@ -54,9 +55,9 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 	private org.slf4j.Logger logger = LoggerFactory.getLogger(DigitalSTROMHandlerFactory.class);
 
 	//Vervollständigen auf alle SupportetThingsTypes
-	public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.union(
-			DssBridgeHandler.SUPPORTED_THING_TYPES,
-			DsYellowHandler.SUPPORTED_THING_TYPES);
+	public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.union(DsSceneHandler.SUPPORTED_THING_TYPES,
+			Sets.union(DssBridgeHandler.SUPPORTED_THING_TYPES,
+					DsYellowHandler.SUPPORTED_THING_TYPES));
 
 	private DigitalSTROMAPI digitalSTROMClient = null;
 
@@ -73,9 +74,15 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
             ThingUID digitalStromUID = getBridgeThingUID(thingTypeUID, thingUID, configuration);
             return super.createThing(thingTypeUID, configuration, digitalStromUID, null);
         } 
+        
         if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
             ThingUID dssLightUID = getLightUID(thingTypeUID, thingUID, configuration, bridgeUID);
             return super.createThing(thingTypeUID, configuration, dssLightUID, bridgeUID);
+        }  
+        
+        if (DsSceneHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
+            ThingUID dssSceneUID = getSceneUID(thingTypeUID, thingUID, configuration, bridgeUID);
+            return super.createThing(thingTypeUID, configuration, dssSceneUID, bridgeUID);
         }  
         
         throw new IllegalArgumentException("The thing type " + thingTypeUID
@@ -96,9 +103,15 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 			registerDeviceDiscoveryService(handler);
 			return handler;
         } 
+        
         if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
         	return new DsYellowHandler(thing);
         } 
+        
+        if (DsSceneHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
+        	return new DsSceneHandler(thing);
+        } 
+        
         return null;
     }
 	
@@ -115,6 +128,17 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 		String lightId = configuration.get(DEVICE_UID).toString();
 		if (thingUID == null) {
 	          thingUID = new ThingUID(thingTypeUID, lightId, bridgeUID.getId());
+	    }
+	    return thingUID;
+	}
+	
+	private ThingUID getSceneUID(ThingTypeUID thingTypeUID, ThingUID thingUID,
+			Configuration configuration, ThingUID bridgeUID) {
+		String sceneId = configuration.get(DigitalSTROMBindingConstants.SCENE_ZONE_ID).toString() + "-" +
+				 configuration.get(DigitalSTROMBindingConstants.SCENE_GROUP_ID).toString() + "-" +
+				 configuration.get(DigitalSTROMBindingConstants.SCENE_ID).toString();
+		if (thingUID == null) {
+	          thingUID = new ThingUID(thingTypeUID, sceneId, bridgeUID.getId());
 	    }
 	    return thingUID;
 	}
