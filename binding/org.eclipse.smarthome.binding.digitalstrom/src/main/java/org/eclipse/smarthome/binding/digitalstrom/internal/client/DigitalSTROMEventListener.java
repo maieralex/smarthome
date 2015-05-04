@@ -227,9 +227,9 @@ public class DigitalSTROMEventListener extends Thread {
 
 			boolean isDeviceCall = false;
 			String dsidStr = null;
-			/*for(EventPropertyEnum key : eventItem.getProperties().keySet()){
+			for(EventPropertyEnum key : eventItem.getProperties().keySet()){
 				logger.debug("Event! Key: {} value {}", key, eventItem.getProperties().get(key));
-			}*/
+			}
 			String zoneIDStr = eventItem.getProperties().get(
 					EventPropertyEnum.ZONEID);
 			if (zoneIDStr != null) {

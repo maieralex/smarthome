@@ -534,7 +534,6 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	}
 	
 	public void sendSeneComandToDSS(Integer zoneID, Short groupID, Short sceneID, boolean call_undo){
-		//TODO: send comand
 		if(call_undo){
 			if(zoneID == 0){
 				this.digitalSTROMClient.callApartmentScene(sessionToken, groupID.intValue(), null, SceneEnum.getScene(sceneID), false);

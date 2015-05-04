@@ -22,6 +22,8 @@ public interface DeviceStateUpdate {
 	public final static String UPDATE_SLATPOSITION = "slatposition";
 	public final static String UPDATE_SLAT_INCREASE = "slatIncrese";
 	public final static String UPDATE_SLAT_DECREASE = "slatDecrese";
+	public final static String UPDATE_SLAT_MOVE = "slatMove";
+	public final static String UPDATE_SLAT_STOP = "slatStop";
 	
 	//sensordata
 	public final static String UPDATE_POWER_CONSUMPTION = "powerConsumption";
