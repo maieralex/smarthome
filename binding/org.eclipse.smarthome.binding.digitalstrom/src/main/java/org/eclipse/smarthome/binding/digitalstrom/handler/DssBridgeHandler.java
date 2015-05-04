@@ -32,6 +32,7 @@ import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMEventListener;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.SensorJobExecutor;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringTypeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringUnitsEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SceneEnum;
@@ -39,6 +40,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.Sens
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.CachedMeteringValue;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
@@ -437,6 +439,22 @@ public class DssBridgeHandler extends BaseBridgeHandler {
       //nothing to do
 	}
 	
+	/**
+	 * This method stops the output value of an device at the current value e.g. a rollershutter at the current position
+	 * or a lamp at the current brightness value.
+	 *  
+	 * @param dsid from the device
+	 */
+	public void stopOutputValue(Device device){
+		if(checkConnection()){
+			if(this.digitalSTROMClient.callDeviceScene(sessionToken, device.getDSID(), null, SceneEnum.STOP, true)){
+				int outputValue = this.digitalSTROMClient.getDeviceOutputValue(sessionToken, device.getDSID(), null, DeviceConstants.DEVICE_SENSOR_OUTPUT);
+				if(outputValue != -1){
+					device.setOutputValue(outputValue);
+				}
+			}
+		}
+	}
 	/**
 	 * This method sends outstanding commands to digitalSTROM-Server assuming it is reachable.
 	 * 

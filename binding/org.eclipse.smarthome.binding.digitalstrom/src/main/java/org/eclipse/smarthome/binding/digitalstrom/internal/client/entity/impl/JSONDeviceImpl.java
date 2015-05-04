@@ -22,7 +22,6 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.DeviceListener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -54,6 +53,8 @@ public class JSONDeviceImpl implements Device {
 	private boolean isPresent = false;
 	
 	private boolean isOn = false;
+	
+	private boolean isOpen = true;
 	
 	private OutputModeEnum outputMode = null;
 	
@@ -269,34 +270,44 @@ public class JSONDeviceImpl implements Device {
 		} else {
 			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
 		}
-		
-		//if device is off set power consumption and energy meter value to 0
-	/*	if(flag == false){
-			this.powerConsumption=0;
-			this.energyMeterValue=0;
+	}
+	
+	@Override
+	public boolean isOpen(){
+		return this.isOpen;
+	}
+	
+	@Override
+	public void setIsOpen(boolean flag){
+		if(flag){
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_OPEN_CLOSE, 1));
+		} else {
+			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_OPEN_CLOSE, -1));
 		}
-		this.isOn = flag;
-	*/
 	}
 	
 	@Override
 	public synchronized void setOutputValue(int value) {
-		if (value <= 0) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
-		//	outputValue = 0;
-		//	setIsOn(false);
+		if(!isRollershutter()){
+			if (value <= 0) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
+			
+			} else if (value > maxOutputValue) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
+			}
+			else {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
+			}
+		} else{
+			if (value <= 0) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, -1));
+			} else if (value > maxOutputValue) {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
+			}
+			else {
+				this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_SLATPOSITION, value));
+			}
 		}
-		else if (value > maxOutputValue) {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
-			//outputValue = maxOutputValue;
-			//setIsOn(true);
-		}
-		else {
-			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, value));
-			//outputValue = value;
-			//setIsOn(true);
-		}
-		//notifyDeviceListener(dsid.getValue());
 	}
 
 	@Override
@@ -472,24 +483,24 @@ public class JSONDeviceImpl implements Device {
 			this.energyMeterValue = energyMeterValue;
 		}
 	}
-
+/*
 	@Override
 	public void addDeviceListener(DeviceListener listener) {
-		/*if (listener != null) {
+		if (listener != null) {
 			if (!this.deviceListenerList.contains(listener)) {
 				this.deviceListenerList.add(listener);
 			}
-		}*/
+		}
 	}
 
 	@Override
 	public void removeDeviceListener(DeviceListener listener) {
-/*		if (listener != null) {
+		if (listener != null) {
 			if (this.deviceListenerList.contains(listener)) {
 				this.deviceListenerList.remove(listener);
 			}
-		}*/
-	}
+		}
+	}*/
 
 	@Override
 	public void notifyDeviceListener(String dsid) {
@@ -804,6 +815,15 @@ public class JSONDeviceImpl implements Device {
 						this.outputValue = this.maxOutputValue;
 						this.isOn = true;
 						setCachedMeterData();
+					}
+					break;
+				case DeviceStateUpdate.UPDATE_OPEN_CLOSE: 
+					if(deviceStateUpdate.getValue() < 0){
+						this.slatPosition = 0;
+						this.isOpen = false;
+					} else{
+						this.outputValue = this.maxOutputValue;
+						this.isOpen = true;
 					}
 					break;
 				case DeviceStateUpdate.UPDATE_SLAT_DECREASE:

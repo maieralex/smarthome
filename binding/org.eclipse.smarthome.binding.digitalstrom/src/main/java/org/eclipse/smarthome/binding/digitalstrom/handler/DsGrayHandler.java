@@ -1,9 +1,6 @@
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
 import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_SHADE;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ELECTRIC_METER;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_ENERGY_METER;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.CHANNEL_POWER_CONSUMPTION;
 
 import java.util.Map;
 import java.util.Set;
@@ -13,8 +10,6 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONDeviceSceneSpecImpl;
-import org.eclipse.smarthome.config.core.Configuration;
-import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
@@ -38,7 +33,6 @@ public class DsGrayHandler extends BaseThingHandler implements
 
 	public DsGrayHandler(Thing thing) {
 		super(thing);
-		// TODO Auto-generated constructor stub
 	}
 
 	 private Logger logger = LoggerFactory.getLogger(DsGrayHandler.class);
@@ -49,23 +43,22 @@ public class DsGrayHandler extends BaseThingHandler implements
 
 		private DssBridgeHandler dssBridgeHandler;
 		
+		private Command lastComand = null; 
+		
 		
 	    @Override
 	    public void initialize() {
 	    	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
-	    	/*String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
+	    	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
 	    	
-	    	if (configDSUId != null) {
+	    	if (!configDSUId.isEmpty()) {
 	            dSUID = configDSUId;
-	    	}*/
+	    	}
 	    }
 
 	    @Override
 	    protected void bridgeHandlerInitialized(ThingHandler thingHandler, Bridge bridge) {
-	    	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
-	    	
-	    	if (!configDSUId.isEmpty()) { //kann das überhaupt null werden?
-	            dSUID = configDSUId;
+	    	if (dSUID != null) { //kann das überhaupt null werden?
 	            
 	            if (thingHandler instanceof DssBridgeHandler) {
 		        	this.dssBridgeHandler =  (DssBridgeHandler) thingHandler;
@@ -120,17 +113,20 @@ public class DsGrayHandler extends BaseThingHandler implements
 			if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_SHADE)) {
 				if (command instanceof PercentType) {
 					device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutPutValue()));
+					this.lastComand = command;
 				} else if (command instanceof StopMoveType) {
 					if(StopMoveType.MOVE.equals((OnOffType) command)){
-						//device.setIsOn(true);
+						handleCommand(channelUID, this.lastComand);
 					} else{
-						//device.setIsOn(false);
+						dssBridgeHandler.stopOutputValue(device);
 					}
 				} else if(command instanceof UpDownType) {
 					if(UpDownType.UP.equals((IncreaseDecreaseType) command)){
-						device.increase();
+						device.setIsOpen(true);
+						this.lastComand = command;
 					} else{
-						device.decrease();
+						device.setIsOpen(false);
+						this.lastComand = command;
 					}
 				}
 			} else {
@@ -180,33 +176,19 @@ public class DsGrayHandler extends BaseThingHandler implements
 					if(stateUpdate != null){
 						switch(stateUpdate.getType()){
 							case DeviceStateUpdate.UPDATE_SLATPOSITION: 
-								//logger.debug("value: {}",stateUpdate.getValue());
-								//if(stateUpdate.getValue() > 0){
 									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), 
 										new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
-								/*} else{
-									setSensorDataOnZeroAndDeviceOFF();
-								}*/
 								break;
-							/*case DeviceStateUpdate.UPDATE_ON_OFF: 
+							case DeviceStateUpdate.UPDATE_OPEN_CLOSE: 
 								if(stateUpdate.getValue() > 0) {
-									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), OnOffType.ON);
+									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), UpDownType.UP);
 									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), new PercentType(100));
 								} else {
-									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), OnOffType.OFF);
-									//setSensorDataOnZeroAndDeviceOFF();
+									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), UpDownType.DOWN);
+									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), new PercentType(0));
 								}
 								break;
-							case DeviceStateUpdate.UPDATE_ELECTRIC_METER_VALUE:
-								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType(stateUpdate.getValue()));
-								break;
-							case DeviceStateUpdate.UPDATE_ENERGY_METER_VALUE:
-								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType(stateUpdate.getValue()));
-								break;
-							case DeviceStateUpdate.UPDATE_POWER_CONSUMPTION:
-								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType(stateUpdate.getValue()));
-								break;
-							default: return;*/
+							default: return;
 						}
 					}
 					
@@ -234,15 +216,6 @@ public class DsGrayHandler extends BaseThingHandler implements
 		       if(device.isPresent()){
 		    	   getThing().setStatus(ThingStatus.ONLINE);
 		    	   onDeviceStateInitial(device);
-			      /* logger.debug("Add sensor prioritys to device");
-			       Configuration config = getThing().getConfiguration();
-			       logger.debug(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString() + ", " +
-			    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString()  + ", " +
-			    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString());
-			       
-			       device.setSensorDataRefreshPriority(config.get(DigitalSTROMBindingConstants.POWER_CONSUMTION_REFRESH_PRIORITY).toString(),
-			    		   config.get(DigitalSTROMBindingConstants.ENERGY_METER_REFRESH_PRIORITY).toString(),
-			    		   config.get(DigitalSTROMBindingConstants.ELECTRIC_METER_REFRESH_PRIORITY).toString());*/
 		       } else{
 		    	   onDeviceRemoved(device);
 		       }
@@ -256,17 +229,11 @@ public class DsGrayHandler extends BaseThingHandler implements
 						new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutPutValue())));
 
 				//nötig oder passiert das von selbst
-				/*if(device.isOn()) {
-					updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.ON); 
+				if(device.isOpen()) {
+					updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), UpDownType.UP); 
 				} else {
-					updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), OnOffType.OFF);
-				}*/
-			
-				updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ELECTRIC_METER), new DecimalType((long) device.getElectricMeterValue()));
-			
-				updateState(new ChannelUID(getThing().getUID(),  CHANNEL_ENERGY_METER), new DecimalType((long) device.getEnergyMeterValue()));
-			
-				updateState(new ChannelUID(getThing().getUID(),  CHANNEL_POWER_CONSUMPTION), new DecimalType((long) device.getPowerConsumption()));
+					updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), UpDownType.DOWN);
+				}
 			}
 		}
 

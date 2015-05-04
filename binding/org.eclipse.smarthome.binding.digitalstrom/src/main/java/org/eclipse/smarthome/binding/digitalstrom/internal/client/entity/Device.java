@@ -11,7 +11,6 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 import java.util.List;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.DeviceListener;
 
 
 
@@ -109,6 +108,20 @@ public interface Device {
 	 * @param flag (true = on | false = off)
 	 */
 	public void setIsOn(boolean flag);
+	
+	/**
+	 * Returns true if this shade device is open otherwise false.
+	 * 
+	 * @return is on (true = open | false = closed)
+	 */
+	public boolean isOpen();
+	
+	/**
+	 * Set this shade device open if the flag is true or closed if it is false.
+	 * 
+	 * @param flag (true = open | false = closed)
+	 */
+	public void setIsOpen(boolean flag);
 	
 	/**
 	 * Return true if this device is dimmable, otherwise false. 
@@ -251,14 +264,14 @@ public interface Device {
 	 * 
 	 * @param listener
 	 */
-	public void addDeviceListener(DeviceListener listener);
+	//public void addDeviceListener(DeviceListener listener);
 	
 	/**
 	 * Don't get notifications anymore
 	 * 
 	 * @param listener
 	 */
-	public void removeDeviceListener(DeviceListener listener);
+	//public void removeDeviceListener(DeviceListener listener);
 	
 	/**
 	 * To send notifications
