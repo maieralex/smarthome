@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
+import org.eclipse.smarthome.binding.digitalstrom.handler.DsGrayHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsSceneHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
@@ -54,10 +55,10 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 	
 	private org.slf4j.Logger logger = LoggerFactory.getLogger(DigitalSTROMHandlerFactory.class);
 
-	//Vervollständigen auf alle SupportetThingsTypes
+	//Vervollständigen auf alle SupportetThingsTypes ... gibts was besseres als union?
 	public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.union(DsSceneHandler.SUPPORTED_THING_TYPES,
 			Sets.union(DssBridgeHandler.SUPPORTED_THING_TYPES,
-					DsYellowHandler.SUPPORTED_THING_TYPES));
+					Sets.union(DsYellowHandler.SUPPORTED_THING_TYPES, DsGrayHandler.SUPPORTED_THING_TYPES)));
 
 	private DigitalSTROMAPI digitalSTROMClient = null;
 
@@ -75,10 +76,11 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
             return super.createThing(thingTypeUID, configuration, digitalStromUID, null);
         } 
         
-        if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
-            ThingUID dssLightUID = getLightUID(thingTypeUID, thingUID, configuration, bridgeUID);
+        if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID) ||
+        		DsGrayHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
+            ThingUID dssLightUID = getDeviceUID(thingTypeUID, thingUID, configuration, bridgeUID);
             return super.createThing(thingTypeUID, configuration, dssLightUID, bridgeUID);
-        }  
+        }
         
         if (DsSceneHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
             ThingUID dssSceneUID = getSceneUID(thingTypeUID, thingUID, configuration, bridgeUID);
@@ -123,11 +125,11 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
                         new Hashtable<String, Object>()));
 	}
 
-	private ThingUID getLightUID(ThingTypeUID thingTypeUID, ThingUID thingUID,
+	private ThingUID getDeviceUID(ThingTypeUID thingTypeUID, ThingUID thingUID,
 			Configuration configuration, ThingUID bridgeUID) {
-		String lightId = configuration.get(DEVICE_UID).toString();
+		String deviceId = configuration.get(DEVICE_UID).toString();
 		if (thingUID == null) {
-	          thingUID = new ThingUID(thingTypeUID, lightId, bridgeUID.getId());
+	          thingUID = new ThingUID(thingTypeUID, deviceId, bridgeUID.getId());
 	    }
 	    return thingUID;
 	}
