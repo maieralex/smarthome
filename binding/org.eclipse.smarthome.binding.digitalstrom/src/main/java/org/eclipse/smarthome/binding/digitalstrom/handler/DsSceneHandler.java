@@ -1,16 +1,11 @@
 package org.eclipse.smarthome.binding.digitalstrom.handler;
 
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KL200;
-import static org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants.THING_TYPE_GE_KM200;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Zone;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -25,7 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
-public class DsSceneHandler extends BaseThingHandler  {
+/**
+ * The {@link DsSceneHandler} is responsible for handling commands, 
+ * which are send to one of the channels of an DigitalSTROM-Scene. It uses the {@link DsBridgeHandler} to execute the actual
+ * command.
+ * 
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
+ *
+ */
+public class DsSceneHandler extends BaseThingHandler implements SceneStatusListener {
 
 	private Logger logger = LoggerFactory.getLogger(DsSceneHandler.class);
 
@@ -131,9 +135,9 @@ public class DsSceneHandler extends BaseThingHandler  {
 		if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_SCENE)) {
 			if (command instanceof OnOffType) {
 				if(OnOffType.ON.equals((OnOffType) command)){
-					this.dssBridgeHandler.sendSeneComandToDSS(zoneID, groupID, sceneId, true);
+					this.dssBridgeHandler.sendSceneComandToDSS(zoneID, groupID, sceneId, true);
 				} else{
-					this.dssBridgeHandler.sendSeneComandToDSS(zoneID, groupID, sceneId, false);
+					this.dssBridgeHandler.sendSceneComandToDSS(zoneID, groupID, sceneId, false);
 				}
 			}
 		} else {
@@ -161,5 +165,23 @@ public class DsSceneHandler extends BaseThingHandler  {
     	}
         return this.dssBridgeHandler;
     }
+
+	@Override
+	public void onSceneStateChanged(boolean flag) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSceneRemoved() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSceneAdded(boolean flag) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

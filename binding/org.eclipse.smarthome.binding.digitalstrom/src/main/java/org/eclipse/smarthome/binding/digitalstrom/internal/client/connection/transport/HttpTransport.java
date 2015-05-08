@@ -40,9 +40,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Alexander Betker
- * @author Alex Maier
- * @since 1.3.0
+ * The {@link HttpTransport} executes an request to the DigitalSTROM-Server. 
+ * It also add the SLL-Certification if it is set to the DigialSTROM-Server-Thing. 
+ * 
+ * @author Alexander Betker - Initial contribution
+ * @author Alex Maier - Initial contribution
+ * @author Michael Ochel -  add SSL-Certification check, add fixURI(String uri) and  checkConnection(String testRequest) method
+ * @author Matthias Siegele -  add SSL-Certification check, add fixURI(String uri) and  checkConnection(String testRequest) method
  */
 public class HttpTransport {
 	
@@ -65,11 +69,15 @@ public class HttpTransport {
 	private final int connectTimeout;
 	private final int readTimeout;
 
-		
+	/**
+	 * Creates a new {@link HttpTransport}.
+	 * 
+	 * @param uri of the DigitalSTROM-Server
+	 * @param connectTimeout
+	 * @param readTimeout
+	 */
 	public HttpTransport(String uri, int connectTimeout, int readTimeout) {
-		if(!uri.startsWith("https://")) uri = "https://" + uri;
-		if(!uri.endsWith(":8080")) uri = uri + ":8080";
-		this.uri = uri;
+		this.uri = fixURI(uri);
 		this.connectTimeout = connectTimeout;
 		this.readTimeout = readTimeout;
 		
@@ -103,10 +111,30 @@ public class HttpTransport {
 		checkSSLCert();
 	}
 	
+	private String fixURI(String uri){
+		if(!uri.startsWith("https://")) uri = "https://" + uri;
+		if(!uri.endsWith(":8080")) uri = uri + ":8080";
+		return uri;
+	}
+	
+	/**
+	 * Executes a DigitalSTROM-request.
+	 * 
+	 * @param request
+	 * @return response
+	 */
 	public String execute(String request) {
 		return execute(request, this.connectTimeout, this.readTimeout );
 	}
 	
+	/**
+	 * Executes a DigitalSTROM-request.
+	 * 
+	 * @param request
+	 * @param connectTimeout
+	 * @param readTimeout
+	 * @return response
+	 */
 	public String execute(String request, int connectTimeout, int readTimeout) {
 		if (request != null && !request.trim().equals("")) {
 			
@@ -167,6 +195,12 @@ public class HttpTransport {
 		return null;
 	}
 	
+	/**
+	 * Executes a DigitalSTROM test request and returns the HTTP-Code.
+	 * 
+	 * @param testRequest
+	 * @return HTTP-Code
+	 */
 	public int checkConnection(String testRequest) {
 		if (testRequest != null && !testRequest.trim().equals("")) {
 			

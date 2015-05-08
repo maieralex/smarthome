@@ -9,6 +9,8 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.constants;
 
 /**
+ * The {@link SensorEnum} contains all DigitalSTROM-Sensors.
+ * 
  * @author 	Alexander Betker
  * @since	1.3.0
  * @version	digitalSTROM-API 1.14.5
@@ -25,6 +27,11 @@ public enum SensorIndexEnum {
 		this.index = index;
 	}
 	
+	/**
+	 * Returns the sensor index.
+	 * 
+	 * @return sensor index
+	 */
 	public int getIndex() {
 		return index;
 	}

@@ -11,11 +11,18 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 import java.util.List;
 
 /**
+ * The {@link DetailedGroupInfo} stores all dSID of the DigitalSTROM-Devices which are included in this group.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
 public interface DetailedGroupInfo extends Group {
 	
+	/**
+	 * Returns a {@link List} of all dSID of the DigitalSTROM-Devices which are included in this group.
+	 * 
+	 * @return list with dSIDs
+	 */
 	public List<String> getDeviceList();
 
 }

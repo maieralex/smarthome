@@ -51,6 +51,12 @@ public enum ApartmentSceneEnum implements Scene {
 		this.sceneNumber = sceneNumber;
 	}
 
+	/**
+	 * Returns the apartment scene from the given scene number.
+	 * 
+	 * @param sceneNumber
+	 * @return apartment scene
+	 */
 	public static ApartmentSceneEnum getApartmentScene(int sceneNumber){
 		return apartmentScenes.get(sceneNumber);
 	} 

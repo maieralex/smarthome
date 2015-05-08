@@ -9,6 +9,8 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.constants;
 
 /**
+ * The {@link JSONRequestConstants} contains all DigitalSTROM-JSON request constants.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  * @version	digitalSTROM-API 1.14.5

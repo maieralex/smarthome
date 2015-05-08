@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DeviceStatusListener;
-import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
+import org.eclipse.smarthome.binding.digitalstrom.handler.DsDeviceHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
@@ -52,7 +52,7 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 
 	@Override
 	public Set<ThingTypeUID> getSupportedThingTypes() {
-		return DsYellowHandler.SUPPORTED_THING_TYPES;//union auf alle!
+		return DsDeviceHandler.SUPPORTED_THING_TYPES;//union auf alle!
 	}
 	
     private void onDeviceAddedInternal(Device device) {

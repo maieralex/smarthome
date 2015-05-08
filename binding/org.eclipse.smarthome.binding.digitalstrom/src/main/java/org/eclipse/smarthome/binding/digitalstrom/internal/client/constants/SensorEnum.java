@@ -11,6 +11,8 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.constants;
 import java.util.HashMap;
 
 /**
+ * The {@link SensorEnum} contains all DigitalSTROM-Sensors.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  * @version	digitalSTROM-API 1.14.5
@@ -45,14 +47,36 @@ public enum SensorEnum {
 		}
 	}
 	
+	/**
+	 * Returns true if it contains the given index.
+	 * @param index
+	 * @return true by success
+	 */
 	public static boolean containsSensor(Integer index) {
 		return sensorEnums.keySet().contains(index);
 	}
 	
+	/** 
+	 * Returns {@link SensorEnum} to the given index.
+	 * 
+	 * @param index
+	 * @return SensorEnum
+	 *
+	 */
 	public static SensorEnum getSensor(Integer index) {
 		return sensorEnums.get(index);
 	}
 	
+	/**
+	 *	Creates a new {@link SensorEnum} object.
+	 *
+	 * @param sensorType
+	 * @param description
+	 * @param min
+	 * @param max
+	 * @param resolution
+	 * @param valueRange
+	 */
 	SensorEnum(int sensorType, String description, float min, float max, float resolution, int valueRange) {
 		this.sensorType = sensorType;
 		this.unit	= description;
@@ -62,22 +86,47 @@ public enum SensorEnum {
 		this.valueRange	= valueRange;
 	}
 	
+	/**
+	 * Returns the sensor type of this Object.
+	 * 
+	 * @return sensor type
+	 */
 	public int getSensorType() {
 		return this.sensorType;
 	}
 	
+	/**
+	 * Returns the sensor unit of this Object.
+	 * 
+	 * @return sensor unit
+	 */
 	public String getUnit() {
 		return this.unit;
 	}
 	
+	/**
+	 * Returns the minimal sensor value of this Object.
+	 * 
+	 * @return minimal sensor value
+	 */
 	public float getMinValue() {
 		return this.minValue;
 	}
 	
+	/**
+	 * Returns the maximal sensor value of this Object.
+	 * 
+	 * @return maximal sensor value 
+	 */
 	public float getMaxValue() {
 		return this.maxvalue;
 	}
 	
+	/**
+	 * Returns the sensor resolution value of this Object.
+	 * 
+	 * @return sensor resolution value
+	 */
 	public float getResolution() {
 		return this.resolution;
 	}

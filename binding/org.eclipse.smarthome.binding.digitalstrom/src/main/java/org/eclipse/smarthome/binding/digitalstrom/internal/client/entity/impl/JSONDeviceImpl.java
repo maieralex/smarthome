@@ -315,7 +315,7 @@ public class JSONDeviceImpl implements Device {
 		if (outputMode == null) {
 			return false;
 		}
-		return outputMode.equals(OutputModeEnum.DIMMED);
+		return outputMode.equals(OutputModeEnum.RPC_DIMMER_CC);
 	}
 
 	@Override
@@ -407,7 +407,7 @@ public class JSONDeviceImpl implements Device {
 		if (outputMode == null) {
 			return false;
 		}
-		return outputMode.equals(OutputModeEnum.UP_DOWN) || outputMode.equals(OutputModeEnum.SLAT);
+		return outputMode.equals(OutputModeEnum.POSITION_CON) || outputMode.equals(OutputModeEnum.POSITION_CON_US);
 	}
 
 	@Override

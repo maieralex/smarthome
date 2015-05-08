@@ -26,18 +26,20 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 
 
 /**
- * digitalSTROM-API based on dSS-Version 1.14.5
+ * digitalSTROM-API
  * 
  * @author	Alexander Betker
+ * @author	Michael Ochel - added and updated some methods and java-doc
+ * @author	Matthias Siegele - added and updated some methods and java-doc
  * @see		http://developer.digitalstrom.org/download/dss/dss-1.14.5-doc/dss-1.14.5-json_api.html
- * @since	1.3.0
+ * @see		http://developer.digitalstrom.org/Architecture/dss-json.pdf
  */
 public interface DigitalSTROMAPI {
 	
 	/**
 	 * Calls the scene sceneNumber on all devices of the apartment. If groupID 
 	 * or groupName are specified, only devices contained in this group will be 
-	 * addressed
+	 * addressed.
 	 * 
 	 * @param groupID		this parameter is optional (not required)
 	 * @param groupName		this parameter is optional (not required)
@@ -50,7 +52,7 @@ public interface DigitalSTROMAPI {
 	/**
 	 * Undo the scene sceneNumber on all devices of the apartment. If groupID 
 	 * or groupName are specified, only devices contained in this group will be 
-	 * addressed
+	 * addressed.
 	 * 
 	 * @param groupID		this parameter is optional (not required)
 	 * @param groupName		this parameter is optional (not required)
@@ -60,7 +62,7 @@ public interface DigitalSTROMAPI {
 	public boolean undoApartmentScene(String token, int groupID, String groupName, Scene sceneNumber);
 	
 	/**
-	 * Returns all zones
+	 * Returns the {@link Apartment} structure of the DigitalSTROM-System.
 	 * 
 	 * @return	DigitalSTROMApartment which has a list of all zones
 	 */
@@ -68,7 +70,7 @@ public interface DigitalSTROMAPI {
 	
 	/**
 	 * Returns the list of devices in the apartment. If unassigned is true, 
-	 * only devices that are not assigned to a zone get returned
+	 * only devices that are not assigned to a zone get returned.
 	 * 
 	 * @param unassigned	this parameter is optional (not required)
 	 * @return				List of DigitalSTROMDevices
@@ -77,15 +79,15 @@ public interface DigitalSTROMAPI {
 	
 	
 	/**
-	 * Returns a list of dsids of all meters(dSMs)
+	 * Returns a list of dSID of all meters(dSMs).
 	 * 
-	 * @return String-List with dsids
+	 * @return String-List with dSID
 	 */
 	public List<String> getMeterList(String token);
 	
 	/**
-	 * Call sceneNumber on all devices in the zone. If groupID or groupName
-	 * are specified, only devices contained in this group will be addressed
+	 * Calls sceneNumber on all devices in the zone. If groupID or groupName
+	 * are specified, only devices contained in this group will be addressed.
 	 * 
 	 * @param zoneID		needs either zoneID or zoneName
 	 * @param zoneName		needs either zoneID or zoneName
@@ -99,7 +101,7 @@ public interface DigitalSTROMAPI {
 	
 	/**
 	 * Undo sceneNumber on all devices in the zone. If groupID or groupName
-	 * are specified, only devices contained in this group will be addressed
+	 * are specified, only devices contained in this group will be addressed.
 	 * 
 	 * @param zoneID		needs either zoneID or zoneName
 	 * @param zoneName		needs either zoneID or zoneName
@@ -111,108 +113,108 @@ public interface DigitalSTROMAPI {
 	public boolean undoZoneScene(String token, int zoneID, String zoneName, int groupID, String groupName, ZoneSceneEnum sceneNumber);
 	
 	/**
-	 * Turns on the device. This will call SceneMax on the device
+	 * Turns the device on. This will call SceneMax on the device.
 	 * 
-	 * @param dsid	needs either dsid id or name
-	 * @param name	needs either dsid id or name
+	 * @param dSID	needs either dSID id or name
+	 * @param name	needs either dSID id or name
 	 * @return		true on success
 	 */
-	public boolean turnDeviceOn(String token, DSID dsid, String name);
+	public boolean turnDeviceOn(String token, DSID dSID, String name);
 	
 	/**
-	 * Turns off the device. This will call SceneMin on the device
+	 * Turns the device off. This will call SceneMin on the device.
 	 * 
-	 * @param dsid	needs either dsid id or name
-	 * @param name	needs either dsid id or name
+	 * @param dSID	needs either dSID id or name
+	 * @param name	needs either dSID id or name
 	 * @return		true on success
 	 */
-	public boolean turnDeviceOff(String token, DSID dsid, String name);
+	public boolean turnDeviceOff(String token, DSID dSID, String name);
 	
 	/**
-	 * Set the output value of device
+	 * Set the output value of the given device.
 	 * 
-	 * @param dsid	needs either dsid id or name
-	 * @param name	needs either dsid id or name
+	 * @param dSID	needs either dSID id or name
+	 * @param name	needs either dSID id or name
 	 * @param value	required (0 - 255)
 	 * @return		true on success
 	 */
-	public boolean setDeviceValue(String token, DSID dsid, String name, int value);
+	public boolean setDeviceValue(String token, DSID dSID, String name, int value);
 	
 	/**
-	 * Gets the value of config class at offset index
+	 * Gets the value of config class at offset index.
 	 * 
-	 * @param dsid		needs either dsid id or name
-	 * @param name		needs either dsid id or name
+	 * @param dSID		needs either dSID id or name
+	 * @param name		needs either dSID id or name
 	 * @param class_	required
 	 * @param index		required
 	 * @return			config with values
 	 */
-	public DeviceConfig getDeviceConfig(String token, DSID dsid, String name, DeviceParameterClassEnum class_, int index);
+	public DeviceConfig getDeviceConfig(String token, DSID dSID, String name, DeviceParameterClassEnum class_, int index);
 	
 	/**
 	 * Gets the device output value from parameter at the given offset.
 	 * The available parameters and offsets depend on the features of the
-	 * hardware components
+	 * hardware components.
 	 * 
-	 * @param dsid		needs either dsid id or name
-	 * @param name		needs either dsid id or name
+	 * @param dSID		needs either dSID id or name
+	 * @param name		needs either dSID id or name
 	 * @param offset	required (known offset f.e. 0)
-	 * @return
+	 * @return device output value
 	 */
-	public int getDeviceOutputValue(String token, DSID dsid, String name, int offset); 
+	public int getDeviceOutputValue(String token, DSID dSID, String name, int offset); 
 	 
 	/**
 	 * Sets the device output value at the given offset. The available
-	 * parameters and offsets depend on the features of the hardware components
+	 * parameters and offsets depend on the features of the hardware components.
 	 * 
-	 * @param dsid		needs either dsid id or name
-	 * @param name		needs either dsid id or name
+	 * @param dSID		needs either dSID id or name
+	 * @param name		needs either dSID id or name
 	 * @param offset	required
 	 * @param value		required	(0 - 65535)
 	 * @return			true on success
 	 */
-	public boolean setDeviceOutputValue(String token, DSID dsid, String name, int offset, int value);
+	public boolean setDeviceOutputValue(String token, DSID dSID, String name, int offset, int value);
 	
 	/**
-	 * Gets the device configuration for a specific scene command
+	 * Gets the device configuration for a specific scene command.
 	 * 
-	 * @param dsid		needs either dsid id or name
-	 * @param name		needs either dsid id or name
+	 * @param dSID		needs either dSID id or name
+	 * @param name		needs either dSID id or name
 	 * @param sceneID	required	(0 .. 255)
-	 * @return
+	 * @return device scene specification
 	 */
-	public DeviceSceneSpec getDeviceSceneMode(String token, DSID dsid, String name, short sceneID);
+	public DeviceSceneSpec getDeviceSceneMode(String token, DSID dSID, String name, short sceneID);
 	
 	/**
 	 * Gets the scene value from a specific scene from a device.
 	 * 
 	 * @param token
-	 * @param dsid
+	 * @param dSID
 	 * @param sceneID
 	 * @return Scene value
 	 */
-	public int getSceneValue(String token, DSID dsid, short sceneID);
+	public int getSceneValue(String token, DSID dSID, short sceneID);
 	
 	/**
-	 * Request the sensor value of a given index
+	 * Request the sensor value of a given index.
 	 * 
-	 * @param dsid			needs either dsid id or name
-	 * @param name			needs either dsid id or name
+	 * @param dSID			needs either dSID id or name
+	 * @param name			needs either dSID id or name
 	 * @param sensorIndex	required
-	 * @return				
+	 * @return sensorValue			
 	 */
-	public short getDeviceSensorValue(String token, DSID dsid, String name, SensorIndexEnum sensorIndex);
+	public short getDeviceSensorValue(String token, DSID dSID, String name, SensorIndexEnum sensorIndex);
 	
 	/**
-	 * Calls scene sceneNumber on the device
+	 * Calls scene sceneNumber on the device.
 	 * 
-	 * @param dsid			needs either dsid id or name
-	 * @param name			needs either dsid id or name
+	 * @param dSID			needs either dSID id or name
+	 * @param name			needs either dSID id or name
 	 * @param sceneNumber	required
 	 * @param force			this parameter is optional (not required)
 	 * @return				true on success
 	 */
-	public boolean callDeviceScene(String token, DSID dsid, String name, Scene sceneNumber, boolean force);
+	public boolean callDeviceScene(String token, DSID dSID, String name, Scene sceneNumber, boolean force);
 	
 	/**
 	 * Subscribes to an event given by the name. The subscriptionID is a unique id 
@@ -239,7 +241,7 @@ public interface DigitalSTROMAPI {
 	/**
 	 * Get event information and output. The subscriptionID is a unique id 
 	 * that was used in the subscribe call. All events, subscribed with the 
-	 * given id will be handled by this call. A timout, in case no events 
+	 * given id will be handled by this call. A timeout, in case no events 
 	 * are taken place, can be specified (in MS). By default the timeout 
 	 * is disabled: 0 (zero), if no events occur the call will block.
 	 * 
@@ -250,21 +252,21 @@ public interface DigitalSTROMAPI {
 	public String getEvent(String token, int subscriptionID, int timeout);
 	
 	/**
-	 * Returns the dSS time in UTC seconds since epoch
+	 * Returns the dSS time in UTC seconds since epoch.
 	 * 
-	 * @return
+	 * @return time
 	 */
 	public int getTime(String token);
 	
 	/**
-	 * Creates a new session using the registered application token
+	 * Creates a new session using the registered application token.
 	 * 
 	 * @param loginToken required
 	 */
 	public String loginApplication(String loginToken);
 	
 	/**
-	 * Creates a new session
+	 * Creates a new session.
 	 * 
 	 * @param user 		required
 	 * @param password 	required
@@ -272,7 +274,9 @@ public interface DigitalSTROMAPI {
 	public String login(String user, String password);
 	
 	/**
-	 * Destroys the session and signs out the user
+	 * Destroys the session and signs out the user.
+	 * 
+	 * @return	true on success
 	 */
 	public boolean logout();
 
@@ -285,7 +289,7 @@ public interface DigitalSTROMAPI {
 	public String getDSID(String token);
 	
 	/**
-	 * Returns a token for paswordless login. The token will need to be approved
+	 * Returns a token for passwordless login. The token will need to be approved
 	 * by a user first, the caller must not be logged in.
 	 * 
 	 * @param applicationName required
@@ -304,12 +308,14 @@ public interface DigitalSTROMAPI {
 	 * Enables an application token, caller must be logged in.
 	 * 
 	 * @param applicationToken required
+	 * @return true on success
 	 */
 	public boolean enableApplicationToken(String applicationToken, String sessionToken);
 	
 	/**
-	 * Returns all resolutions stored on this dSS
+	 * Returns all resolutions stored on this dSS.
 	 * 
+	 * @param 	sessionToken
 	 * @return	List of resolutions
 	 */
 	public List<Integer> getResolutions(String token);
@@ -320,21 +326,40 @@ public interface DigitalSTROMAPI {
 	 * be returned, valid types, 'energyDelta' are 'energy' and 
 	 * 'consumption'. 'energy' and 'energyDelta' are available in two units: 
 	 * 'Wh' (default) and 'Ws'. The from parameter follows the set-syntax, 
-	 * currently it supports: .meters(dsid1,dsid2,...) and .meters(all)
+	 * currently it supports: .meters(dSID1,dSID2,...) and .meters(all)
 	 *  
 	 * @param type		required
 	 * @param from		required
 	 * @param unit		optional
-	 * @return
+	 * @return cached metering values
 	 */
 	public List<CachedMeteringValue> getLatest(String token, MeteringTypeEnum type, String from, MeteringUnitsEnum unit);
 	
-	//TODO: Doc
-	public int checkConnection(String token);
+	/**
+	 * Sends a tests JSON-request to the DigitalSTROM-Server and returns the HTTP-Code. 
+	 * 
+	 * @param sessionToken
+	 * @return HTTP-Code
+	 */
+	public int checkConnection(String sessionToken);
 	
-	public boolean increaseValue(String sessionToken, DSID dsid);
+	/**
+	 * Increases the value of the device with the given dSID.
+	 * 
+	 * @param sessionToken
+	 * @param dSID
+	 * @return true on success
+	 */
+	public boolean increaseValue(String sessionToken, DSID dSID);
 	
-	public boolean decreaseValue(String sessionToken, DSID dsid);
+	/**
+	 * Decreases the value of the device with the given dSID.
+	 * 
+	 * @param sessionToken
+	 * @param dSID
+	 * @return true on success
+	 */
+	public boolean decreaseValue(String sessionToken, DSID dSID);
 
 
 }

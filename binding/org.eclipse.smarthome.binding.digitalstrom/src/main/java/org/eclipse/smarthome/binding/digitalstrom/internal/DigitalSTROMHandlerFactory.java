@@ -25,7 +25,7 @@ import java.util.Set;
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsGrayHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DsSceneHandler;
-import org.eclipse.smarthome.binding.digitalstrom.handler.DsYellowHandler;
+import org.eclipse.smarthome.binding.digitalstrom.handler.DsDeviceHandler;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
@@ -48,6 +48,9 @@ import com.google.common.collect.Sets;
  * handlers.
  * 
  * @author Alex Maier - Initial contribution
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
+ * 
  */
 public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
     
@@ -58,7 +61,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 	//Vervollständigen auf alle SupportetThingsTypes ... gibts was besseres als union?
 	public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.union(DsSceneHandler.SUPPORTED_THING_TYPES,
 			Sets.union(DssBridgeHandler.SUPPORTED_THING_TYPES,
-					Sets.union(DsYellowHandler.SUPPORTED_THING_TYPES, DsGrayHandler.SUPPORTED_THING_TYPES)));
+					Sets.union(DsDeviceHandler.SUPPORTED_THING_TYPES, DsGrayHandler.SUPPORTED_THING_TYPES)));
 
 	private DigitalSTROMAPI digitalSTROMClient = null;
 
@@ -76,7 +79,7 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
             return super.createThing(thingTypeUID, configuration, digitalStromUID, null);
         } 
         
-        if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID) ||
+        if (DsDeviceHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID) ||
         		DsGrayHandler.SUPPORTED_THING_TYPES.contains(thingTypeUID)) {
             ThingUID dssLightUID = getDeviceUID(thingTypeUID, thingUID, configuration, bridgeUID);
             return super.createThing(thingTypeUID, configuration, dssLightUID, bridgeUID);
@@ -106,8 +109,8 @@ public class DigitalSTROMHandlerFactory extends BaseThingHandlerFactory {
 			return handler;
         } 
         
-        if (DsYellowHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
-        	return new DsYellowHandler(thing);
+        if (DsDeviceHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
+        	return new DsDeviceHandler(thing);
         } 
         
         if (DsSceneHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {

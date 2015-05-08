@@ -1,6 +1,7 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.handler.DssBridgeHandler;
+import org.eclipse.smarthome.binding.digitalstrom.handler.SceneStatusListener;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.connection.JSONResponseHandler;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.connection.transport.HttpTransport;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceConstants;
@@ -31,11 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * If someone turns a device or a zone etc. on, we will get a notification
- * to update the state of the item
+ * The {@link DigitalSTROMEventListener} receive notifications form the DigitalSTROM-Server if someone
+ * called or undo a Scene and updates the status of the {@link Device}. 
+ * In addition, the storage is caused by non known scenes is made and inform 
+ * the affected {@link SceneStatusListener}s about changes. 
  * 
  * @author Alexander Betker - Initial contribution
- * @since 1.3.0
  * @author Michael Ochel - Changed to ESH concept
  * @author Mathias Siegele - Changed to ESH concept
  * 
@@ -46,6 +49,9 @@ public class DigitalSTROMEventListener extends Thread {
 
 	private List<String> echoBox = Collections
 			.synchronizedList(new LinkedList<String>());
+	
+	private Map<String, SceneStatusListener> sceneListeners = Collections.
+			synchronizedMap(new HashMap<String, SceneStatusListener>());
 	
 	private boolean shutdown = false;
 	private final String EVENT_NAME = "openhabEvent"; //namen ändern
@@ -63,14 +69,20 @@ public class DigitalSTROMEventListener extends Thread {
 	
 	private HttpTransport transport = null;
 	private JSONResponseHandler handler = null;
-	private DigitalSTROMJSONImpl digitalSTROM;
+	private DigitalSTROMAPI digitalSTROM;
 
+	/**
+	 * Shutdown the {@link DigitalSTROMEventListener}.
+	 */
 	public synchronized void shutdown() {
 		this.shutdown = true;
 		this.sensorJobExecutor.shutdown();
 		unsubscribe();
 	}
 	
+	/**
+	 * Wake up the {@link DigitalSTROMEventListener}.
+	 */
 	public synchronized void wakeUp() {
 		this.shutdown = false;
 		this.sensorJobExecutor.wakeUp();;
@@ -78,7 +90,14 @@ public class DigitalSTROMEventListener extends Thread {
 		this.run();
 	}
 
-	public DigitalSTROMEventListener(String uri, DigitalSTROMJSONImpl digitalSTROM, DssBridgeHandler dssBridgeHandler) {
+	/**
+	 * Creates a new {@link DigitalSTROMEventListener}.
+	 * 
+	 * @param uri of the DigitalSTROM-Server
+	 * @param digitalSTROMAPI
+	 * @param dssBridgeHandler
+	 */
+	public DigitalSTROMEventListener(String uri, DigitalSTROMAPI digitalSTROM, DssBridgeHandler dssBridgeHandler) {
 		this.handler = new JSONResponseHandler();
 		this.transport = new HttpTransport(uri,
 				DigitalSTROMBindingConstants.DEFAULT_CONNECTION_TIMEOUT,
@@ -669,7 +688,12 @@ public class DigitalSTROMEventListener extends Thread {
 		return false;
 	}
 	
-	// ... we want to ignore own 'command-echos'
+	/**
+	 * Add an Device-Scene to an echo list to ignore this call.
+	 *  
+	 * @param dsid of the device
+	 * @param sceneId is called
+	 */
 	public void addEcho(String dsid, short sceneId) {
 		synchronized (echoBox) {
 			echoBox.add(dsid + "-" + sceneId);

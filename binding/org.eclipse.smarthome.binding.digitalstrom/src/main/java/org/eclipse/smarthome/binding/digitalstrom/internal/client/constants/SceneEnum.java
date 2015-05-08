@@ -14,6 +14,8 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 
 
 /**
+ * The {@link SceneEnum} contains all DigitalSTROM-Scenes.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  * @version	digitalSTROM-API 1.14.5
@@ -117,6 +119,12 @@ public enum SceneEnum implements Scene {
 		this.sceneNumber = sceneNumber;
 	}
 	
+	/**
+	 * Returns the {@link SceneEnum} of the given scene number.
+	 * 
+	 * @param sceneNumber
+	 * @return sceneEnum
+	 */
 	public static SceneEnum getScene(int sceneNumber){
 		return digitalstromScenes.get(sceneNumber);
 	}

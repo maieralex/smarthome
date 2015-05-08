@@ -28,6 +28,15 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
+/**
+ * The {@link DsGrayHandler} is responsible for handling commands, 
+ * which are send to one of the channels of an gray (shade) DigitalSTROM device. It uses the {@link DsBridgeHandler} to execute the actual
+ * command.
+ * 
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
+ *
+ */
 public class DsGrayHandler extends BaseThingHandler implements
 		DeviceStatusListener {
 
@@ -37,6 +46,7 @@ public class DsGrayHandler extends BaseThingHandler implements
 
 	 private Logger logger = LoggerFactory.getLogger(DsGrayHandler.class);
 
+	 	//TODO: things adden
 	    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet();
 	    
 	    private String dSUID = null;

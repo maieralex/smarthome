@@ -9,6 +9,8 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.constants;
 
 /**
+ * The {@link DeviceParameterClassEnum} contains all DigitalSTROM-Device class parameters.
+ *   
  * @author	Alexander Betker
  * @since	1.3.0
  * @version	digitalSTROM-API 1.14.5
@@ -51,10 +53,20 @@ public enum DeviceParameterClassEnum {
 	
 	private final int		classIndex;
 	
+	/**
+	 * Creates a new {@link DeviceParameterClassEnum} with the given index.
+	 * 
+	 * @param index
+	 */
 	DeviceParameterClassEnum(int index) {
 		this.classIndex = index;
 	}
 	
+	/**
+	 * Return the class index from this {@link DeviceParameterClassEnum}.
+	 * 
+	 * @return class index
+	 */
 	public int getClassIndex() {
 		return this.classIndex;
 	}

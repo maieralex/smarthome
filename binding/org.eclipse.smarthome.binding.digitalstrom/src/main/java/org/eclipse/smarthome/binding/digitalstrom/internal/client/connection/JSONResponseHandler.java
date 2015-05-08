@@ -20,18 +20,22 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * @author Alexander Betker
- * @author Alex Maier
- * @since 1.3.0
+ * The {@link JSONResponseHandler} checks an DigitalSTROM-JSON response and can parse it to an {@link JSONObject}.
+ * 
+ * @author Alexander Betker  - Initial contribution
+ * @author Alex Maier  - Initial contribution
+ * @author Michael Ochel - add Java-Doc
+ * @author Michael Ochel - add Java-Doc
  */
 public class JSONResponseHandler {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JSONResponseHandler.class);
-	
-	public JSONResponseHandler() {
-		
-	}
-	
+
+	/**
+	 * Checks the DigitalSTROM-JSON response and return true if it wars successful, otherwise false
+	 * @param jsonResponse
+	 * @return true on success
+	 */
 	public boolean checkResponse(JSONObject jsonResponse) {
 		if(jsonResponse == null)
 			return false;
@@ -44,6 +48,12 @@ public class JSONResponseHandler {
 		return false;	
 	}
 	
+	/**
+	 * Returns the {@link JSONObject} from the given DigitalSTROM-JSON response {@link String} or null if the json response wars empty.
+	 * 
+	 * @param jsonResponse
+	 * @return jsonObject
+	 */
 	public JSONObject toJSONObject(String jsonResponse) {
 		if (jsonResponse != null && !jsonResponse.trim().equals("")) {
 			try {
@@ -56,6 +66,11 @@ public class JSONResponseHandler {
 		return null;
 	}
 	
+	/**
+	 * Returns the result {@link JSONObject} from the given DigitalSTROM-JSON response {@link JSONObject}.
+	 * @param jsonObject
+	 * @return json result object
+	 */
 	public JSONObject getResultJSONObject(JSONObject jsonObject) {
 		if (jsonObject != null) {
 			return (JSONObject) jsonObject.get(JSONApiResponseKeysEnum.RESULT.getKey()); 

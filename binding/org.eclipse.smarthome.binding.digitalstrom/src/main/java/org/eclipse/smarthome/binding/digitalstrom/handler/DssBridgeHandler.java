@@ -40,7 +40,6 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.Sens
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Apartment;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.CachedMeteringValue;
-import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
@@ -63,11 +62,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link DigitalSTROMHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link DigitalSTROMHandler} is the handler for a DigitalSTROM-Server and connects it to
+ * the framework. All {@link DsGrayHandler}s, {@link DsDeviceHandler}s and {@link DsSceneHandler} use the {@link DigitalSTROMHandler} to execute the actual commands.
+ * The digitalSTROM handler also informs all other digitalSTROM handler about status changes from the outside.
  * 
  * @author Alex Maier - Initial contribution
- * 
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
  */
 public class DssBridgeHandler extends BaseBridgeHandler {
 
@@ -396,10 +397,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	}
     
     /**
-     * This method adds a {@link SensorJobs} with the appropriate priority in the {@link SensorJobExecuter}.
+     * This method adds a {@link SensorJobs} with the appropriate priority to the {@link SensorJobExecuter}.
      * 
      * @param sensorJob
-     * @param priority
+     * @param priority 
      */
     public void updateSensorData(SensorJob sensorJob, String priority){
     	if(sensorJobExecuter == null){
@@ -551,9 +552,28 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		}
 	}
 	
-	public void sendSeneComandToDSS(Integer zoneID, Short groupID, Short sceneID, boolean call_undo){
+	/**
+	 * This method calls or undoes a scene on the DigitalSTROM-System.
+	 * If the zone ID is null or zero an apartment scene is called otherwise a zone scene. 
+	 * A groupID can be added to call a scene on a specific group of an apartment or zone if 
+	 * the value is zero or null all devices of the apartment or zone are called.
+	 * The sceneID has to be between 0 and 127. 
+	 * If the value of call_undo scene is true a scene will be called otherwise it is a undo scene call. 
+	 * 
+	 * @param zoneID 	(0 or null = broadcast 		| optional)
+	 * @param groupID 	(0 or null = broadcast 		| optional)
+	 * @param sceneID 	(0-127						| required)
+	 * @param call_undo	(true = call, false = undo 	| required)
+	 */
+	public void sendSceneComandToDSS(Integer zoneID, Short groupID, Short sceneID, boolean call_undo){
+		if(sceneID == null || (sceneID < 0 || sceneID > 127)){
+			throw new IllegalArgumentException("The sceneID has to be between 0 and 127");
+		}
+		if(groupID == null){
+			groupID = 0;
+		}
 		if(call_undo){
-			if(zoneID == 0){
+			if(zoneID == null || zoneID == 0){
 				this.digitalSTROMClient.callApartmentScene(sessionToken, groupID.intValue(), null, SceneEnum.getScene(sceneID), false);
 			} else{
 				this.digitalSTROMClient.callZoneScene(sessionToken, zoneID, null, groupID, null, ZoneSceneEnum.getZoneScene(sceneID), false);
@@ -567,6 +587,11 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		}
 	}
 
+	/**
+	 * Returns the DigitalSTROM {@link Apartment} structure object.
+	 * 
+	 * @return digitalSTROM apartment structure
+	 */
 	public Apartment getApartment(){
 		return this.apartment;
 	}
@@ -605,6 +630,12 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	
 	/****methods to store DeviceStatusListener****/
 	
+	/**
+	 * Registers a new {@link DeviceStatusListener} on the {@link DsBridgeHandler}.
+	 * 
+	 * @param id of the devicetatusListener
+	 * @param deviceStatusListener
+	 */
 	public synchronized void registerDeviceStatusListener(String id, DeviceStatusListener deviceStatusListener) {
 		if (deviceStatusListener == null) {
 			throw new NullPointerException("It's not allowed to pass a null DeviceStatusListener.");
@@ -630,7 +661,12 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 					throw new NullPointerException("It's not allowed to pass a null ID.");
 		}
 	}
-		 
+		
+	/**
+	 * Unregisters a new {@link DeviceStatusListener} on the {@link DsBridgeHandler}.
+	 * 
+	 * @param id of the devicetatusListener
+	 */
 	public void unregisterDeviceStatusListener(String id) {
 		if(id != null){
 			//save in device that it is not added to ESH
@@ -655,22 +691,51 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		 
 	/****Get methods****/
 		 
+	/**
+	 * Returns a {@linkCollection} of all {@link Device}s of the DigitalSTROM-System.
+	 * 
+	 * @return Collection<Device> devices
+	 */
 	public Collection<Device> getDevices(){
 		return deviceMap.values();
 	}
 	
+	/**
+	 * Returns a {@link Map} with all {link Device}s of the DigitalSTROM-System. 
+	 * The key is the dSUID of the DigitalSTROM-device.
+	 * 
+	 * @return Map<String, Device> (key = dSUID, value = Device) 
+	 */
 	public Map<String, Device> getDsuidToDeviceMap() {
 		return new HashMap<String, Device>(deviceMap);
 	}
 	
-	public Device getDeviceByDSID(String dsID){
-		return deviceMap.get(dSUIDtoDSID.get(dsID));
+	/**
+	 * Returns the {@link Device} with the given dSID, if it isn't present it returns null.
+	 *  
+	 * @param dSID of the DigitalSTROM-Device
+	 * @return the device or null
+	 */
+	public Device getDeviceByDSID(String dSID){
+		return deviceMap.get(dSUIDtoDSID.get(dSID));
 	}
 	
+	/**
+	 * Returns the {@link Device} with the given dSUID, if it isn't present it returns null.
+	 *  
+	 * @param dSUID of the DigitalSTROM-Device
+	 * @return the device or null
+	 */
 	public Device getDeviceByDSUID(String dSUID){
 		return deviceMap.get(dSUID);
 	}
 	
+	/**
+	 * Returns a {@link Map} which has as key the zone id and as value a {@link Map} which have as keys all group ids and as value a
+	 * {@link List} of all dSUID of the devices which are includes in the group.
+	 * 
+	 * @return Map (key = zoneID, value = Map (key = groupID, value = List(value = dSUID))
+	 */
 	public Map<Integer, Map<Short, List<String>>> getDigitalSTROMZoneGroupMap() {
 		return new HashMap<Integer, Map<Short, List<String>>>(
 				digitalSTROMZoneGroupMap);
@@ -687,23 +752,28 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     	return tempDeviceMap;
     }*/
 	
+	/**
+	 * Returns the current SessionToken.
+	 * 
+	 * @return SessionToken
+	 */
 	public String getSessionToken(){
 		return sessionToken;
 	}
 
-	// Here we read the configured and stored (in the chip) output value for a
-	// specific scene
-	// and we store this value in order to know next time what to do.
-	// The first time a scene command is called, it takes some time for the
-	// sensor reading,
-	// but the next time we react very fast because we learned what to do on
-	// this command.
+	/**
+	 * This method reads the configured and stored (in the chip) output value for a
+	 * specific scene and stores the value in order to know what to do next time.
+	 * The first time a scene command is called, it takes some time for the
+	 * sensor reading, but the next time we react very fast because we learned what to do on this command.
+	 * 
+	 * @param device
+	 * @param sceneId
+	 */
 	public void getSceneSpec(Device device, short sceneId) {
 		if(checkConnection()){
-			// setSensorReading(true); // no metering in this time
 			DeviceSceneSpec spec = digitalSTROMClient.getDeviceSceneMode(
 					sessionToken, device.getDSID(), null, sceneId);
-			// setSensorReading(false);
 
 			if (spec != null) {
 				device.addSceneConfig(sceneId, spec);
@@ -715,16 +785,26 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 		}
 	}
 	
+	/**
+	 * This method informs the {@link DeviceStatusLister} of a {@link Device} about an new added Scene configuration
+	 * to save it persistent in the Thing properties to load it directly into the {@link Device} e.g. if the ESH-Server was restarted. 
+	 * 
+	 * @param sceneID
+	 * @param device
+	 */
 	public synchronized void informListenerAboutSceneConfigAdded(short sceneID, Device device){
 		logger.debug("Inform deviceStatusListener aboud added scene config.");
-		this.deviceStatusListeners.get(device.getDSUID()).onSceneConfigAdded(sceneID, device);
+		if(this.deviceStatusListeners.get(device.getDSUID()) != null){
+			this.deviceStatusListeners.get(device.getDSUID()).onSceneConfigAdded(sceneID, device);
+		}
 	}
 
 	/****Connection methods****/
 	
 	/**
-	 * This method must be called to the digitalSTROM-Server before each command.
-	 * It examines the connection to the server and sets a new session token if it is expired.
+	 * This method has to be called before each command to check the connection to the digitalSTROM-Server.
+	 * It examines the connection to the server, sets a new session token if it is expired and sets a new ApplicationToken, 
+	 * if none it set at the DigitalSTROM-Server. It also outputs the specific connection failure. 
 	 * 
 	 * @return true if the connection is established and false if not 
 	 */
@@ -847,7 +927,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     /**
      * This method is called whenever the connection to the DigitalSTROM-Server is lost.
      */
-	public void onConnectionLost() {
+	private void onConnectionLost() {
         logger.debug("DigitalSTROM-Server connection lost. Updating thing status to OFFLINE.");
         //stop listener and 
         if(this.digitalSTROMEventListener != null && this.digitalSTROMEventListener.isAlive()){
@@ -864,7 +944,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     /**
      * This method is called whenever the connection to the DigitalSTROM-Server is resumed.
      */
-	public void onConnectionResumed() {
+	private void onConnectionResumed() {
         logger.debug("DigitalSTROM-Server connection resumed. Updating thing status to ONLINE.");
         updateStatus(ThingStatus.ONLINE);
         if(this.digitalSTROMEventListener != null){

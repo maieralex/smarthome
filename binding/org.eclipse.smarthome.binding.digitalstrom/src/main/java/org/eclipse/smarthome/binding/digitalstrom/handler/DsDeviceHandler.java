@@ -43,16 +43,17 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 /**
- * The {@link DsYellowHandler} is responsible for handling commands, which are
- * sent to one of the channels of an yellow (light) DigitalSTROM device.
+ * The {@link DsDeviceHandler} is responsible for handling commands, 
+ * which are send to one of the channels of an DigitalSTROM device, which can be switched on or off or/and is dimmable.
+ * It uses the {@link DsBridgeHandler} to execute the actual command.
  * 
  * @author Michael Ochel - Initial contribution
  * @author Mathias Siegele - Initial contribution
  *
  */
-public class DsYellowHandler extends BaseThingHandler implements DeviceStatusListener{
+public class DsDeviceHandler extends BaseThingHandler implements DeviceStatusListener{
 
-    private Logger logger = LoggerFactory.getLogger(DsYellowHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DsDeviceHandler.class);
 
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES = Sets.newHashSet(THING_TYPE_GE_KM200, THING_TYPE_GE_KL200);
     
@@ -60,7 +61,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 
 	private DssBridgeHandler dssBridgeHandler;
 	
-	public DsYellowHandler(Thing thing) {
+	public DsDeviceHandler(Thing thing) {
 		super(thing);
 	}
 	
@@ -69,10 +70,10 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     	logger.debug("Initializing DigitalSTROM Yellow (light) handler.");
     	String configDSUId = getConfig().get(DigitalSTROMBindingConstants.DEVICE_UID).toString();
     	
-    	if (configDSUId != null) {
+    	if (!configDSUId.isEmpty()) {
             dSUID = configDSUId;
     	}
-    	if(this.getDssBridgeHandler() != null){
+    	/*if(this.getDssBridgeHandler() != null){
 	    	// note: this call implicitly registers our handler as a listener on the bridge
 	        getThing().setStatus(this.getBridge().getStatus());
 	    	logger.debug("Set status on {}", getThing().getStatus());
@@ -80,7 +81,7 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
 	    	saveConfigSceneSpecificationIntoDevice(getDevice());
 	    	logger.debug("Load saved scene specification into device");
         	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
-    	}
+    	}*/
     }
 
     @Override
@@ -119,8 +120,6 @@ public class DsYellowHandler extends BaseThingHandler implements DeviceStatusLis
     private Device getDevice() {
     	DssBridgeHandler dssBridgeHandler = getDssBridgeHandler();
     	if(dssBridgeHandler != null) {
-    		//logger.debug("get DssBridgeHandler");
-    		//logger.debug("dSUID = " + dSUID);
     		return dssBridgeHandler.getDeviceByDSUID(dSUID);
     	}
         return null;

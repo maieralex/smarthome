@@ -11,21 +11,48 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.constants;
 import java.util.HashMap;
 
 /**
+ * The {@link OutputModeEnum} contains all DigitalSTROM-Device output modes.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
- * @version	digitalSTROM-API 1.14.5
+ * @see http://developer.digitalstrom.org/Architecture/ds-basics.pdf page 50
+ * @author Michael Ochel - add missing output modes
+ * @author Matthias Siegele - add missing output modes
  */
 public enum OutputModeEnum {
-	
-	DISABLED	(0),
-	SWITCHED	(16),
-	DIMMED		(22),
-	UP_DOWN		(33),
-	SWITCHED_2	(35),
-	SWITCH		(39),
-	WIPE 		(40),
-	POWERSAVE	(41),
-	SLAT		(42);	
+	/*
+	 * Output Mode	| Description
+	 * 0 			| No output or output disabled
+	 * 16 			| Switched
+	 * 17 			| RMS (root mean square) dimmer
+	 * 18 			| RMS dimmer with characteristic curve
+	 * 19			| Phase control dimmer
+	 * 20 			| Phase control dimmer with characteristic curve
+	 * 21			| Reverse phase control dimmer
+	 * 22			| Reverse phase control dimmer with characteristic curve
+	 * 23			| PWM (pulse width modulation)
+	 * 24			| PWM with characteristic curve
+	 * 33			| Positioning control
+	 * 39			| Relay with switched mode scene table configuration
+	 * 40			| Relay with wiped mode scene table configuration
+	 * 41			| Relay with saving mode scene table configuration
+	 * 42			| Positioning control for uncalibrated shutter
+	 */
+	DISABLED		(0),
+	SWITCHED		(16),
+	RMS_DIMMER		(17),
+	RMS_DIMMER_CC	(18),
+	PC_DIMMER		(19),
+	PC_DIMMER_CC	(20),
+	RPC_DIMMER		(21),
+	RPC_DIMMER_CC	(22),
+	PWM				(23),
+	PWM_CC			(24),
+	POSITION_CON	(33),
+	SWITCH			(39),
+	WIPE 			(40),
+	POWERSAVE		(41),
+	POSITION_CON_US (42);	
 	
 	private final int	mode;
 	
@@ -37,18 +64,35 @@ public enum OutputModeEnum {
 		}
 	}
 	
-	public static boolean containsMode(Integer mode) {
-		return outputModes.keySet().contains(mode);
+	/**
+	 * Returns true if contains the given output mode id in DigitalSTROM, otherwise false.
+	 * 
+	 * @param mode
+	 * @return true if contains
+	 */
+	public static boolean containsMode(Integer outputModeID) {
+		return outputModes.keySet().contains(outputModeID);
 	}
 	
-	public static OutputModeEnum getMode(Integer mode) {
-		return outputModes.get(mode);
+	/**
+	 * Returns the {@link OutputModeEnum} of the given mode id.
+	 * 
+	 * @param modeID
+	 * @return mode
+	 */
+	public static OutputModeEnum getMode(Integer outputModeID) {
+		return outputModes.get(outputModeID);
 	}
 	
-	private OutputModeEnum(int outputMode) {
-		this.mode = outputMode;
+	private OutputModeEnum(int outputModeID) {
+		this.mode = outputModeID;
 	}
 	
+	/**
+	 * Returns the output mode form this Object.
+	 * 
+	 * @return outputModeID
+	 */
 	public int getMode() {
 		return mode;
 	}

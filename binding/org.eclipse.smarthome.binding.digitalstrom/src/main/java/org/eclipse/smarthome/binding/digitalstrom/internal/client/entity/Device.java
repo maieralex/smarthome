@@ -259,21 +259,6 @@ public interface Device {
 	public boolean doIgnoreScene(short sceneId);
 	
 	/**
-	 * To get notifications if something happens
-	 * (for example a new metering value)
-	 * 
-	 * @param listener
-	 */
-	//public void addDeviceListener(DeviceListener listener);
-	
-	/**
-	 * Don't get notifications anymore
-	 * 
-	 * @param listener
-	 */
-	//public void removeDeviceListener(DeviceListener listener);
-	
-	/**
 	 * To send notifications
 	 * 
 	 * @param dsid	the device unique id

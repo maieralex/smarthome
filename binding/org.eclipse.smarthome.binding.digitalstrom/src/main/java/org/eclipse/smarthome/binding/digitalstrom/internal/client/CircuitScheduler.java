@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class represents a circuit in DigitalSTROM and manages the priorities and execution times for the 
- * SensorJobs to be executed on this circuit.
+ * This {@link CircuitScheduler} represents a circuit in DigitalSTROM and manages the priorities and execution times for the 
+ * {@link SensorJob}s to be executed on this circuit.
  * 
- * @author Michael Ochel
- * @author Matthias Siegele
+ * @author Michael Ochel - Initial contribution
+ * @author Mathias Siegele - Initial contribution
  *
  */
 public class CircuitScheduler {
@@ -36,16 +36,18 @@ public class CircuitScheduler {
 	private Logger logger = LoggerFactory.getLogger(CircuitScheduler.class);
 	
 	/**
-	 * Creates a new CircuitScheduler.
+	 * Creates a new {@link CircuitScheduler}.
 	 * 
 	 * @param meterDSID
 	 */
 	public CircuitScheduler(DSID meterDSID){
+		if(meterDSID == null) throw new IllegalArgumentException("The meterDSID must not be null!");
 		this.meterDSID = meterDSID;
 	}
 	
 	/**
-	 * Creates a new CircuitScheduler and add the first SensorJob to the CircuitScheduler.
+	 * Creates a new {@link CircuitScheduler} and add the first {@link SensorJob} to this {@link CircuitScheduler}.
+	 * 
 	 * @param sensorJob
 	 */
 	public CircuitScheduler(SensorJob sensorJob){
@@ -64,7 +66,7 @@ public class CircuitScheduler {
 	}
 	
 	/**
-	 * Adds a new SensorJob to this CircuitScheduler.
+	 * Adds a new SensorJob to this {@link CircuitScheduler}.
 	 * 
 	 * @param sensorJob
 	 */
@@ -78,10 +80,10 @@ public class CircuitScheduler {
 	}
 	
 	/**
-	 * Returns the next SensorJob which can be executed or null if there is no more SensorJob to execute 
-	 * or the wait time between SensorJob executions has not yet expired. 
+	 * Returns the next {@link SensorJob} which can be executed or null if there are no more SensorJob to execute 
+	 * or the wait time between {@link SensorJob}s executions has not yet expired. 
 	 * 
-	 * @return next SensorJob
+	 * @return next SensorJob or null
 	 */
 	public SensorJob getNextSensorJob(){
 		synchronized(sensorJobQueue){
@@ -93,7 +95,7 @@ public class CircuitScheduler {
 	}
 	
 	/**
-	 * Returns the time when the next SensorJob can be executed.
+	 * Returns the time when the next {@link SensorJob} can be executed.
 	 * 
 	 * @return next SesnorJob execution time 
 	 */
@@ -102,7 +104,7 @@ public class CircuitScheduler {
 	}
 	
 	/**
-	 * Remove all SensorJobs of a specific ds-device.
+	 * Remove all {@link SensorJob} of a specific ds-device.
 	 * 
 	 * @param dsid of the ds-device
 	 */
@@ -120,8 +122,9 @@ public class CircuitScheduler {
 	}
 	
 	/**
+	 * Returns true if there are no more {@link SensorJob}s to execute, otherwise false.
 	 * 
-	 * @return
+	 * @return no more SensorJobs (true | false)
 	 */
 	public boolean noMoreJobs(){
 		synchronized(sensorJobQueue){

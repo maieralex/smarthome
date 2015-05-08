@@ -14,6 +14,9 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 
 
 /**
+ * The {@link ZoneSceneEnum} contains all DigitalSTROM zone scenes.
+ * 
+ * Note:
  * The zone/user scenes are usually called with a group > 0. (0 = Broadcast)
  * They have a id between 0 and 63
  * 
@@ -108,10 +111,21 @@ public enum ZoneSceneEnum implements Scene {
 		this.sceneNumber = sceneNumber;
 	}
 	
+	/**
+	 * Returns the {@link ZoneSceneEnum} of the given scene number.
+	 * 
+	 * @param sceneNumber
+	 * @return ZoneSceneEnum
+	 */
 	public static ZoneSceneEnum getZoneScene(int sceneNumber){
 		return zoneScenes.get(sceneNumber);
 	}
 	
+	/**
+	 * Returns the scene number of the {@link ZoneSceneEnum}.
+	 * 
+	 * @return scene number
+	 */
 	public int getSceneNumber() {
 		return this.sceneNumber;
 	}

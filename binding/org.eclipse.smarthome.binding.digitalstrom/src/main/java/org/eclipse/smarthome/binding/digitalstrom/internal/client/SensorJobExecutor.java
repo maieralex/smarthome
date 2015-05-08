@@ -29,7 +29,7 @@ public class SensorJobExecutor {
 	private final long mediumFactor = DigitalSTROMBindingConstants.DEFAULT_SENSOR_READING_WAIT_TIME * DigitalSTROMBindingConstants.MEDIUM_PRIORITY_FACTOR;
 	private final long lowFactor = DigitalSTROMBindingConstants.DEFAULT_SENSOR_READING_WAIT_TIME * DigitalSTROMBindingConstants.LOW_PRIORITY_FACTOR;
 	
-	private final DigitalSTROMJSONImpl digitalSTROM;
+	private final DigitalSTROMAPI digitalSTROM;
 	
 	private DssBridgeHandler dssBrideHandler = null;
 	
@@ -81,11 +81,11 @@ public class SensorJobExecutor {
 	/**
 	 * Creates a new SensorJobExecuter.
 	 * 
-	 * @param digitalStrom
+	 * @param digitalSTROMAPI
 	 * @param dssBrideHandler
 	 */
-	public SensorJobExecutor(DigitalSTROMJSONImpl digitalStrom, DssBridgeHandler dssBrideHandler){
-		this.digitalSTROM = digitalStrom;
+	public SensorJobExecutor(DigitalSTROMAPI digitalSTROMAPI, DssBridgeHandler dssBrideHandler){
+		this.digitalSTROM = digitalSTROMAPI;
 		this.dssBrideHandler = dssBrideHandler;
 	}
 	
@@ -115,7 +115,7 @@ public class SensorJobExecutor {
 	}
 	
 	/**
-	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * Adds a high priority SensorJob to the SensorJobExecuter.
 	 * 
 	 * @param sensorJob
 	 */
@@ -125,7 +125,7 @@ public class SensorJobExecutor {
 	}
 
 	/**
-	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * Adds a medium priority SensorJob to the SensorJobExecuter.
 	 * 
 	 * @param sensorJob
 	 */
@@ -136,7 +136,7 @@ public class SensorJobExecutor {
 	}
 
 	/**
-	 * Add a high priority SensorJob to the SensorJobExecuter.
+	 * Adds a low priority SensorJob to the SensorJobExecuter.
 	 * 
 	 * @param sensorJob
 	 */
@@ -174,7 +174,7 @@ public class SensorJobExecutor {
 	}
 	
 	/**
-	 * Remove all SensorJobs of a specific ds-device.
+	 * Removes all SensorJobs of a specific ds-device.
 	 * 
 	 * @param dsid of the ds-device
 	 */

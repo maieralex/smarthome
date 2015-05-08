@@ -16,6 +16,9 @@ import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -23,10 +26,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
+import org.eclipse.smarthome.core.thing.binding.builder.ChannelBuilder;
+import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.eclipse.smarthome.core.types.State;
@@ -50,6 +56,22 @@ public class YahooWeatherHandler extends BaseThingHandler {
     private String weatherData = null;
 
     ScheduledFuture<?> refreshJob;
+    
+    Thread test = new Thread(){
+    	
+    	@Override
+    	public void run(){
+    		try {
+				sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		thingStructureChanged();
+    		devicePropertiesChanged();
+    		printProperties();
+    	}
+    };
 
     public YahooWeatherHandler(Thing thing) {
         super(thing);
@@ -71,8 +93,40 @@ public class YahooWeatherHandler extends BaseThingHandler {
         }
 
         startAutomaticRefresh();
+        test.start();
+        
     }
 
+    protected void thingStructureChanged() {
+    	logger.debug(this.getThing().getUID().toString());
+        ThingBuilder thingBuilder = ThingBuilder.create(this.getThing().getUID());//editThing();//
+        Channel channelT = ChannelBuilder.create(new ChannelUID(getThing().getUID(), "1"), "String").build();
+        List<Channel> channelList = new LinkedList<Channel>();
+        for(Channel channel: this.getThing().getChannels()){
+        	logger.debug(channel.toString());
+        	channelList.add(channel);
+        }
+        channelList.add(channelT);
+        //logger.debug("{}",(channel == null));
+         thingBuilder.withChannels(channelList);
+        //thingBuilder.withChannel(channel);
+        thingBuilder.withConfiguration(this.getThing().getConfiguration()).withProperties(this.getThing().getProperties());
+        updateThing(thingBuilder.build());
+    }
+    
+    protected void devicePropertiesChanged() {
+        Map<String, String> properties = editProperties();
+        properties.put(Thing.PROPERTY_SERIAL_NUMBER, "teste1");
+        properties.put(Thing.PROPERTY_FIRMWARE_VERSION, "test2");
+        updateProperties(properties);
+    }
+    
+    protected void printProperties() {
+    	for(String property: this.getThing().getProperties().values()){
+    		logger.debug(property);
+    	}
+    }
+    
     @Override
     public void dispose() {
         refreshJob.cancel(true);
