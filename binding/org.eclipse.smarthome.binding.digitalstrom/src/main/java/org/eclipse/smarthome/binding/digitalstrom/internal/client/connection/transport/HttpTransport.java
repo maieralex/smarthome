@@ -113,7 +113,7 @@ public class HttpTransport {
 	
 	private String fixURI(String uri){
 		if(!uri.startsWith("https://")) uri = "https://" + uri;
-		if(!uri.endsWith(":8080")) uri = uri + ":8080";
+		if(uri.split(":").length != 3) uri = uri + ":8080";
 		return uri;
 	}
 	

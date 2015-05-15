@@ -144,7 +144,10 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         			Device eshDevice = tempDeviceMap.remove(currentDeviceDSUID);
         			
         			if(eshDevice != null){
-        				//check device availability has changed and inform the deviceStatusListener about the change
+        				//check device availability has changed and inform the deviceStatusListener about the change.
+        				//NOTE:
+        				//The device is not availability for the DigitalSTROM-Server, it has not been deleted and are therefore set to OFFLINE. 
+        				//To delete an alternate algorithm is responsible .
         				if(currentDevice.isPresent() != eshDevice.isPresent()){
         					eshDevice.setIsPresent(currentDevice.isPresent());
         					if(deviceStatusListeners.get(currentDeviceDSUID) != null){

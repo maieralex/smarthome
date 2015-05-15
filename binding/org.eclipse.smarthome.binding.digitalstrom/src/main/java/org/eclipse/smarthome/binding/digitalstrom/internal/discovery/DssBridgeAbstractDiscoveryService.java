@@ -21,24 +21,25 @@ import org.eclipse.smarthome.core.thing.ThingUID;
 
 /**
  * The {@link DssBridgeAbstractDiscoveryParticipant} is responsible for discovering new and
- * removed DigitalSTROM bridges. It uses the central {@link MDNSDiscoveryService}.
+ * removed DigitalSTROM bridges. It uses the central {@link AbstractDiscoveryService}.
  *
- * @author Michael Ochel, Matthias Siegele 
+ * @author Michael Ochel
+ * @author Matthias Siegele 
  *
  */
 public class DssBridgeAbstractDiscoveryService extends AbstractDiscoveryService {
 
+	/**
+	 * Creates a new {@link DssBridgeAbstractDiscoveryParticipant}.
+	 */
 	public DssBridgeAbstractDiscoveryService(){
 		super(DigitalSTROMBindingConstants.SUPPORTED_THING_TYPES_UIDS, 10);
 	}
-
-
-	//private org.slf4j.Logger logger = LoggerFactory.getLogger(DssBridgeAbstractDiscoveryService.class);
 	
 	private String hostAdress = "dss.local."; 
 	private String dsid = null;
 	
-	public void createResult() {
+	private void createResult() {
 		ThingUID uid = getThingUID();
         if (uid != null) {
             Map<String, Object> properties = new HashMap<>(2);
@@ -52,7 +53,7 @@ public class DssBridgeAbstractDiscoveryService extends AbstractDiscoveryService 
 	}
 
 	
-	public ThingUID getThingUID() {
+	private ThingUID getThingUID() {
 		//logger.debug("URL: " + service.getName() + "."+service.getDomain() + ".");
 		//if(service.getApplication().contains("dssweb")){
 			//hostAdress = service.getName() + "."+service.getDomain() + ".";

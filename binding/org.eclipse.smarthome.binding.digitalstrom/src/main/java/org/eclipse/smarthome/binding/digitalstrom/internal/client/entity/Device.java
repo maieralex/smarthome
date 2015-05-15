@@ -10,17 +10,18 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 
 import java.util.List;
 
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.FunctionalColorGroupEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
 
 
 
 /**
- * The {@link Device} represents a DigitalSTROM device in ESH.
+ * The {@link Device} represents a DigitalSTROM internal stored device.
  * 
  * @author 	Alexander Betker - Initial contribution
  * @since 1.3.0
- * @author Michael Ochel - add methods for ESH and JavaDoc
- * @author Mathias Siegele - add methods for ESH and JavaDoc
+ * @author Michael Ochel - add methods for ESH, new functionalities and JavaDoc
+ * @author Mathias Siegele - add methods for ESH, new functionalities and JavaDoc
  */
 public interface Device {
 	
@@ -73,11 +74,18 @@ public interface Device {
 	public void setName(String name);
 	
 	/**
-	 * Returns the zone id in which the device is.
+	 * Returns the zone id in which this device is.
 	 *  
 	 * @return zone id
 	 */
 	public int getZoneId();
+
+	/**
+	 * Sets the zone id to the given zone id of this device is.
+	 *  
+	 * @parm zone id
+	 */
+	public void setZoneId(int zoneID);
 	
 	/**
 	 * This device is available in his zone or not.
@@ -138,87 +146,163 @@ public interface Device {
 	public boolean isRollershutter();
 	
 	/**
-	 * There are different modes for devices (for example: 
-	 * a device can be in dim mode or not). Please have
-	 * a look at the name of this enum (a little bit self-explaining)
+	 * Returns true if the device output mode isn't disabled.
 	 * 
-	 * @return	the current mode of this device
+	 * @return have output mode (true = yes | false = no)
+	 */
+	public boolean isDeviceWithOutput();
+	
+	/**
+	 * Returns the current functional color group of this device. 
+	 * For more informations please have a look at {@link FunctionalColorGroup}. 
+	 * 
+	 * @return current functional color group
+	 */
+	public FunctionalColorGroupEnum getFunctionalColorGroup();
+	
+	/**
+	 * Sets the functional color group of this device.
+	 * 
+	 * @param fuctionalColorGroup
+	 */
+	public void setFunctionalColerGroup(FunctionalColorGroupEnum fuctionalColorGroup);
+	
+	/**
+	 * !!!!!!ÜBERARBEITEN!!!!!!
+	 * 
+	 * Returns the current output mode of this device. 
+	 * Some devices are able to have different output modes e.g. the device GE-KM200 is able to 
+	 * be in dimm mode, switch mode or disabled.
+	 * For more informations please have a look at {@link OutputModeEnum}.  
+	 * 
+	 * @return	the current output mode of this device
 	 */
 	public OutputModeEnum getOutputMode();
 	
-	
+	/**
+	 * Increase the output value of this device.
+	 */
 	public void increase();
 	
+	/**
+	 * Decrease the output value of this device.
+	 */
 	public void decrease();
 	
-	
+	/**
+	 * Returns the current slat position of this device.
+	 * 
+	 * @return current slat position
+	 */
 	public int getSlatPosition();
 	
 	/**
+	 * Sets the slat position of this device to the given slat position.
 	 * 
-	 * @param position
+	 * @return slat position
 	 */
-	public void setSlatPosition(int position);
+	public void setSlatPosition(int slatPosition);
 	
+	/**
+	 * Returns the maximal slat position value of this device.
+	 * 
+	 * @return maximal slat position value
+	 */
 	public int getMaxSlatPosition();
 	
+	/**
+	 * Returns the minimal slat position value of this device.
+	 * 
+	 * @return minimal slat position value
+	 */
 	public int getMinSlatPosition();
 	
-		
+	/**
+	 * Returns the current output value of this device. 
+	 * This can be the slat position or the brightness of this device.
+	 * 
+	 * @return current output value
+	 */	
 	public int getOutputValue();
 	
-	public void setOutputValue(int value);
+	/**
+	 * Set the output value of this device to a given value.
+	 * 
+	 * @param outputValue
+	 */
+	public void setOutputValue(int outputValue);
 	
-	public int getMaxOutPutValue();
+	/**
+	 * Returns the maximal output value of this device.
+	 * 
+	 * @return maximal output value
+	 */
+	public int getMaxOutputValue();
 	
-	
+	/**
+	 * Returns the last recorded power consumption in watt of this device.
+	 * 
+	 * @return current power consumption in watt
+	 */
 	public int getPowerConsumption();
 	
 	/**
-	 * current power consumption in watt
-	 * @param powerConsumption in w
+	 * Set the current power consumption in watt to the given power consumption.
+	 * 
+	 * @param powerConsumption in watt
 	 */
 	public void setPowerConsumption(int powerConsumption);
 	
 	/**
-	 * to get the energy meter value of this device
-	 * @return	energy meter value in wh
+	 * Returns the energy meter value in watt per hour of this device.
+	 * 
+	 * @return	energy meter value in watt per hour
 	 */
 	public int getEnergyMeterValue();
 	
 	/**
-	 * set the energy meter value of this device
+	 * Set the last recorded energy meter value in watt per hour of this device.
 	 * 
-	 * @param energy meter value in wh
+	 * @param energy meter value in watt per hour
 	 */
 	public void setEnergyMeterValue(int value);
 	
 	/**
-	 * amperage of this device
+	 * Returns the last recorded electric meter value in ampere of this device.
 	 * 
-	 * @return	electric meter value in mA 
+	 * @return	electric meter value in amoere 
 	 */
 	public int getElectricMeterValue();
 	
 	/**
-	 * set the amperage of this device
+	 * Sets the last recorded electric meter value in ampere of this device.
 	 * 
 	 * @param electric meter value in mA
 	 */
 	public void setElectricMeterValue(int electricMeterValue);
 	
 	/**
-	 * Return a list with group id's in which the device is
+	 * Returns a list with group id's in which the device is part of.
 	 * 
 	 * @return List of group id's
 	 */
 	public List<Short> getGroups();
 	
-	
+	/**
+	 * Returns the scene output value of this device of the given scene id 
+	 * or -1 if this scene id isn't read yet.
+	 * 
+	 * @return	scene output value or -1 
+	 */
 	public int getSceneOutputValue(short sceneId);
 	
-	
-	public void setSceneOutputValue(short sceneId, int sceneValue);
+	/**
+	 * Sets the scene output value of this device for the given scene id and scene output value.
+	 * 
+	 * @param sceneId
+	 * @param sceneOutputValue
+	 */
+	public void setSceneOutputValue(short sceneId, int sceneOutputValue);
 	
 	/**
 	 * This configuration is very important. The devices can
@@ -252,69 +336,117 @@ public interface Device {
 	public DeviceSceneSpec getSceneConfig(short sceneId);
 	
 	/**
-	 * Should the device react on this scene call or not 
+	 * Should the device react on this scene call or not .
+	 * 
 	 * @param sceneId	scene call id
 	 * @return			true, if this device should react on this sceneID
 	 */
 	public boolean doIgnoreScene(short sceneId);
-	
-	/**
-	 * To send notifications
-	 * 
-	 * @param dsid	the device unique id
-	 * @param event	what happend
-	 */
-	public void notifyDeviceListener(String dsid);
-	
+		
 	//for ESH
 	
+	/**
+	 * Returns true if the power consumption is up to date or false if it has to be updated.
+	 * 
+	 * @return is up to date (true = yes | false = no)
+	 */
 	public boolean isPowerConsumptionUpToDate();
 	
+	/**
+	 * Returns true if the electric meter is up to date or false if it has to be updated.
+	 * 
+	 * @return is up to date (true = yes | false = no)
+	 */
 	public boolean isElectricMeterUpToDate();
 	
+	/**
+	 * Returns true if the energy meter is up to date or false if it has to be updated.
+	 * 
+	 * @return is up to date (true = yes | false = no)
+	 */
 	public boolean isEnergyMeterUpToDate();
 	
+	/**
+	 * Returns true if all sensor data are up to date or false if some have to be updated.
+	 * 
+	 * @return is up to date (true = yes | false = no)
+	 */	
 	public boolean isSensorDataUpToDate();
 	
-	public void setSensorDataRefreshPriority(String powerConsumptionRefreshPriority, 
+	/**
+	 * Sets the priority to refresh the data of the sensors to the given priorities.
+	 * They can be never, low, medium or high.
+	 * 
+	 * @param powerConsumptionRefreshPriority
+	 * @param electricMeterRefreshPriority
+	 * @param energyMeterRefreshPriority
+	 */
+		public void setSensorDataRefreshPriority(String powerConsumptionRefreshPriority, 
 			String electricMeterRefreshPriority, 
 			String energyMeterRefreshPriority);
+		
+	/**
+	 * Returns the priority of the power consumption refresh.
+	 * 
+	 * @return power consumption refresh priority 
+	 */
 	
 	public String getPowerConsumptionRefreshPriority();
 	
+	/**
+	 * Returns the priority of the electric meter refresh.
+	 * 
+	 * @return electric meter refresh priority 
+	 */
 	public String getElectricMeterRefreshPriority();
 	
+	/**
+	 * Returns the priority of the energy meter refresh.
+	 * 
+	 * @return energy meter refresh priority 
+	 */
 	public String getEnergyMeterRefreshPriority();
+	
+	/**
+	 * Returns true if the device is already added to the ESH and false if not.
+	 * 
+	 * @return is added already (true = yes | false = no)
+	 */
 	
 	public boolean isAddToESH();
 	
+	/**
+	 * With this method you can set the boolean to true if a device is added or false if it is deleted.
+	 * 
+	 * @param isAdd (true = yes | false = no)
+	 */
 	public void setIsAddToESH(boolean isAdd);
 	
 	/**
-	 * Returns the next ESH-Thing-State-Update.
+	 * Returns the next {@linkDeviceStateUpdate} to update the ESH-Thing to the current state.
 	 * 
-	 * @return DeviceStateUpdate
+	 * @return DeviceStateUpdate for ESH-Thing
 	 */
 	public DeviceStateUpdate getNextESHThingUpdateStates();
 	
 	/**
 	 * Returns true if the ESH-Thing is up to date.
 	 *  
-	 * @return
+	 * @return ESH-Thing is up to date (true = yes | false = no)
 	 */
 	public boolean isESHThingUpToDate();
 	
 	/**
 	 * Returns true if the device is up to date.
 	 * 
-	 * @return
+	 * @return DigitalSTROM-Device is up to date (true = yes | false = no)
 	 */
 	public boolean isDeviceUpToDate();
 	
 	/**
-	 * Returns the next DigitalSTROM-Device-Update to send it to the DigitalSTROM-Server.
+	 * Returns the next {@linkDeviceStateUpdate} to update the DigitalSTROM-Device on the DigitalSTROM-Server.
 	 * 
-	 * @return
+	 * @return DeviceStateUpdate for DigitalSTROM-Device
 	 */
 	public DeviceStateUpdate getNextDeviceUpdateState();
 	

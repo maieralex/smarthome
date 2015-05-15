@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONZoneImpl} is the implementation of the {@link Zone}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -34,6 +36,11 @@ public class JSONZoneImpl implements Zone {
 	private List<DetailedGroupInfo> groupList = null;
 	private List<Device> deviceList	= null;
 	
+	/**
+	 * Creates a new {@link JSONZoneImpl} from the given DigitalSTROM-Zone {@link JSONObject}.
+	 * 
+	 * @param object zone json object
+	 */
 	public JSONZoneImpl(JSONObject object) {
 		this.groupList = new LinkedList<DetailedGroupInfo>();
 		this.deviceList = new LinkedList<Device>();

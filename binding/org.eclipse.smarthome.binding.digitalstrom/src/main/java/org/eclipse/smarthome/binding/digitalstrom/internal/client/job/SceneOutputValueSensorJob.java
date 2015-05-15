@@ -17,9 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link SceneOutputValueSensorJob} is the implementation of a {@link SensorJob} 
+ * for reading out a device scene output value of a digitalSTROM-Device.
+ * It also store the scene output value of the scene into the {@link Device} and and persistent to ESH. 
+ * 
  * @author Alexander Betker
  * @author Alex Maier
- * @since 1.3.0
+ * @author Michael Ochel - updated and added some methods
+ * @author Matthias Siegele - updated and added some methods
  */
 public class SceneOutputValueSensorJob implements SensorJob {
 
@@ -32,6 +37,13 @@ public class SceneOutputValueSensorJob implements SensorJob {
 	private DSID meterDSID = null;
 	private long initalisationTime = 0;
 
+	/**
+	 * Creates a new {@link SceneOutputValueSensorJob} with the given scene id.
+	 * 
+	 * @param device
+	 * @param sceneId
+	 * @param dssBridgeHandler
+	 */
 	public SceneOutputValueSensorJob(Device device, short sceneId, DssBridgeHandler dssBridgeHandler) {
 		this.device = device;
 		this.sceneId = sceneId;
@@ -39,12 +51,9 @@ public class SceneOutputValueSensorJob implements SensorJob {
 		this.meterDSID = device.getMeterDSID();
 		this.initalisationTime = System.currentTimeMillis();
 	}
-	/* (non-Javadoc)
-	 * @see org.openhab.binding.digitalSTROM2.internal.client.job.SensorJob#execute(org.openhab.binding.digitalSTROM2.internal.client.DigitalSTROMAPI, java.lang.String)
-	 */
+	
 	@Override
 	public void execute(DigitalSTROMAPI digitalSTROM, String token) {
-		//DeviceConfig config = digitalSTROM.getDeviceConfig(token, this.device.getDSID(), null, DeviceParameterClassEnum.CLASS_128, this.sceneId);
 		int sceneValue = digitalSTROM.getSceneValue(token, this.device.getDSID(), this.sceneId);
 		
 		if (sceneValue != -1) {

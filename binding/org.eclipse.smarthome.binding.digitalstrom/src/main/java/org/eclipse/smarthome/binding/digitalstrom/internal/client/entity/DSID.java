@@ -8,7 +8,10 @@
  */
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 
+
 /**
+ * The {@link DSID} represent a DigitalSTROM-Device dSID.
+ * 
  * @author Alexander Betker
  * @since 1.3.0
  */
@@ -18,6 +21,11 @@ public class DSID {
 	private final String 	DEFAULT_DSID 	= "3504175fe000000000000001";
 	private final String	PRE				= "3504175fe0000000";
 	
+	/**
+	 * Creates a new {@link DSID} of the given dSID.
+	 * 
+	 * @param dsid
+	 */
 	public DSID(String dsid) {
 		if (dsid != null && !dsid.trim().equals("")) {
 			if (dsid.trim().length() == 24) {
@@ -38,6 +46,11 @@ public class DSID {
 		}
 	}
 	
+	/**
+	 * Returns the value of this dSID.
+	 * 
+	 * @return dSID value
+	 */
 	public String getValue() {
 		return dsid;
 	}

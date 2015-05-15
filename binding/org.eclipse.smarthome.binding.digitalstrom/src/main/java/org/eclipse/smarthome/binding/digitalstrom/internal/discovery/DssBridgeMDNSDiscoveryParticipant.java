@@ -29,7 +29,8 @@ import org.slf4j.LoggerFactory;
  * The {@link DssBridgeMDNSDiscoveryParticipant} is responsible for discovering new and
  * removed DigitalSTROM bridges. It uses the central {@link MDNSDiscoveryService}.
  *
- * @author Michael Ochel, Matthias Siegele 
+ * @author Michael Ochel
+ * @author Matthias Siegele 
  *
  */
 public class DssBridgeMDNSDiscoveryParticipant implements MDNSDiscoveryParticipant {

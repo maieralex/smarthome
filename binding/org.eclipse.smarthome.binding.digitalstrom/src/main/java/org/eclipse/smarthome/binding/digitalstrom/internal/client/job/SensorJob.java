@@ -14,7 +14,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 
 
 /**
- * Interface for a DigitalSTROM-Sensor-Job.
+ * Interface for a DigitalSTROM-Sensor-Jobs.
  * 
  * @author Alexander Betker - initial 
  * @author Alex Maier

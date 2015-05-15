@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.eclipse.smarthome.binding.digitalstrom.DigitalSTROMBindingConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceConstants;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.FunctionalColorGroupEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
@@ -28,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONDeviceImpl} is the implementation of the {@link Device}.
+ * 
  * @author 	Alexander Betker
  * @author Alex Maier
  * @since 1.3.0
@@ -65,6 +68,8 @@ public class JSONDeviceImpl implements Device {
 	
 	private int minOutputValue = 0;
 	
+	FunctionalColorGroupEnum functionalGroup = null;
+	
 	
 	private int slatPosition = 0;
 	
@@ -93,7 +98,11 @@ public class JSONDeviceImpl implements Device {
 	
 	private Map<Short, Integer> sceneOutputMap = Collections.synchronizedMap(new HashMap<Short, Integer>());
 	
-	
+	/**
+	 * Creates a new {@link JSONDeviceImpl} from the given DigitalSTROM-Device {@link JSONObject}.
+	 * 
+	 * @param group json object
+	 */
 	public JSONDeviceImpl(JSONObject object) {
 		
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_NAME.getKey()) != null) {
@@ -162,10 +171,14 @@ public class JSONDeviceImpl implements Device {
 					
 					if (tmp != -1) {
 						this.groupList.add(tmp);
+						if(FunctionalColorGroupEnum.containsColorGroup((int) tmp)){
+							this.functionalGroup = FunctionalColorGroupEnum.getMode((int) tmp);
+						}
 					}
 				}
 			}
 		}
+		
 			
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_OUTPUT_MODE.getKey()) != null) {
 			int tmp = -1;
@@ -214,12 +227,12 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	@Override
-	public DSID getMeterDSID(){
+	public synchronized DSID getMeterDSID(){
 		return this.meterDSID;
 	}
 	
 	@Override
-	public void setMeterDSID(String meterDSID){
+	public synchronized void setMeterDSID(String meterDSID){
 		this.meterDSID = new DSID(meterDSID);
 	}
 	
@@ -240,31 +253,36 @@ public class JSONDeviceImpl implements Device {
 
 	@Override
 	public List<Short> getGroups() {
-		return groupList;
+		return new LinkedList<Short>(groupList);
 	}
 
 	@Override
-	public int getZoneId() {
+	public synchronized int getZoneId() {
 		return zoneId;
 	}
+	
+	@Override
+	public synchronized void setZoneId(int zoneID) {
+		this.zoneId = zoneID;
+	}
 
 	@Override
-	public boolean isPresent() {
+	public synchronized boolean isPresent() {
 		return isPresent;
 	}
 	
 	@Override
-	public void setIsPresent(boolean isPresent){
+	public synchronized void setIsPresent(boolean isPresent){
 		this.isPresent = isPresent;
 	}
 
 	@Override
-	public boolean isOn() {
+	public synchronized boolean isOn() {
 		return isOn;
 	}
 	
 	@Override
-	public void setIsOn(boolean flag) {
+	public synchronized void setIsOn(boolean flag) {
 		if(flag){
 			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_ON_OFF, 1));
 		} else {
@@ -273,12 +291,12 @@ public class JSONDeviceImpl implements Device {
 	}
 	
 	@Override
-	public boolean isOpen(){
+	public synchronized boolean isOpen(){
 		return this.isOpen;
 	}
 	
 	@Override
-	public void setIsOpen(boolean flag){
+	public synchronized void setIsOpen(boolean flag){
 		if(flag){
 			this.deviceStateUpdates.add(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_OPEN_CLOSE, 1));
 		} else {
@@ -311,13 +329,38 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public boolean isDimmable() {
+	public synchronized boolean isDimmable() {
 		if (outputMode == null) {
 			return false;
 		}
-		return outputMode.equals(OutputModeEnum.RPC_DIMMER_CC);
+		switch(this.outputMode){
+		case RMS_DIMMER:
+		case RMS_DIMMER_CC:
+		case PC_DIMMER:
+		case PC_DIMMER_CC:
+		case RPC_DIMMER:
+		case RPC_DIMMER_CC: return true;
+		default:
+			return false;
+		}
+		//return outputMode.equals(OutputModeEnum.RPC_DIMMER_CC);
 	}
-
+	
+	@Override
+	public synchronized boolean isDeviceWithOutput(){
+		return this.outputMode != null && !this.outputMode.equals(OutputModeEnum.DISABLED);
+	}
+	
+	@Override
+	public synchronized FunctionalColorGroupEnum getFunctionalColorGroup(){
+		return this.functionalGroup;
+	}
+	
+	@Override
+	public synchronized void setFunctionalColerGroup(FunctionalColorGroupEnum fuctionalColorGroup){
+		this.functionalGroup = fuctionalColorGroup;
+	}
+	
 	@Override
 	public OutputModeEnum getOutputMode() {
 		return outputMode;
@@ -398,7 +441,7 @@ public class JSONDeviceImpl implements Device {
 	}
 
 	@Override
-	public int getMaxOutPutValue() {
+	public int getMaxOutputValue() {
 		return maxOutputValue;
 	}
 
@@ -483,31 +526,6 @@ public class JSONDeviceImpl implements Device {
 			this.energyMeterValue = energyMeterValue;
 		}
 	}
-/*
-	@Override
-	public void addDeviceListener(DeviceListener listener) {
-		if (listener != null) {
-			if (!this.deviceListenerList.contains(listener)) {
-				this.deviceListenerList.add(listener);
-			}
-		}
-	}
-
-	@Override
-	public void removeDeviceListener(DeviceListener listener) {
-		if (listener != null) {
-			if (this.deviceListenerList.contains(listener)) {
-				this.deviceListenerList.remove(listener);
-			}
-		}
-	}*/
-
-	@Override
-	public void notifyDeviceListener(String dsid) {
-		/*for (DeviceListener listener: this.deviceListenerList) {
-			listener.deviceUpdated(dsid);
-		}*/
-	}
 
 	@Override
 	public synchronized int getElectricMeterValue() {
@@ -533,8 +551,6 @@ public class JSONDeviceImpl implements Device {
 			this.addElectricMeterValueToMeterCache(this.getOutputValue(), electricMeterValue);
 			this.electricMeterValue = electricMeterValue;
 		}
-		
-		//notifyDeviceListener(this.dsid.getValue());
 	}
 	
 	private void addPowerConsumptionToMeterCache(int outputValue, int powerConsumption){

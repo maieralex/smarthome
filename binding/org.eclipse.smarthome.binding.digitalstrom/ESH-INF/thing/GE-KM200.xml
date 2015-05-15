@@ -74,6 +74,12 @@
                 <description>The device identifier identifies one DigitalSTROM device.</description>
                 <required>false</required>
             </parameter>
+            <!--meterID-->
+            <parameter name="meterDSID" type="text">
+                <label>Meter dSID</label>
+                <description>Identifier of the meter in which the device is connected.</description>
+                <required>false</required>
+            </parameter>
             <!--device hwInfo-->
             <parameter name="hwInfo" type="text">
                 <label>Device hardware type</label>
@@ -95,7 +101,13 @@
             <!--outputmode-->
             <parameter name="outputmode" type="text">
                 <label>Device Output mode</label>
-                <description>The DigitalSTROM device output mode e.g. 22 = dimmable.</description>
+                <description>The current DigitalSTROM device output mode e.g. 22 = dimmable.</description>
+                <required>false</required>
+            </parameter>
+            <!--funcColorGroup-->
+            <parameter name="funcColorGroup" type="text">
+                <label>Device functional color group</label>
+                <description>The current DigitalSTROM device functional color group e.g. yellow = light.</description>
                 <required>false</required>
             </parameter>
         </config-description>

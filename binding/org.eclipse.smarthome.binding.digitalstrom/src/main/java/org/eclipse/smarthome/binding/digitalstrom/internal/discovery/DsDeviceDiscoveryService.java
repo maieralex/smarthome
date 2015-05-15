@@ -21,28 +21,46 @@ import org.eclipse.smarthome.core.thing.ThingUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The {@link DsDeviceDiscoveryService} discovered all DigitalSTROM-Devices 
+ * which are be able to add them to the ESH-Inbox. 
+ * 
+ * @author Michael Ochel
+ * @author Matthias Siegele
+ */
 public class DsDeviceDiscoveryService extends AbstractDiscoveryService implements DeviceStatusListener{
 
 	private final static Logger logger = LoggerFactory.getLogger(DsDeviceDiscoveryService.class);
 			
 	private DssBridgeHandler digitalSTROMBridgeHandler;
 	
+	/**
+	 * Creates a new {@link DsDeviceDiscoveryService}.
+	 * 
+	 * @param digitalSTROMBridgeHandler
+	 * @throws IllegalArgumentException
+	 */
 	public DsDeviceDiscoveryService(DssBridgeHandler digitalSTROMBridgeHandler)
 			throws IllegalArgumentException {
 		super(5);
 		this.digitalSTROMBridgeHandler = digitalSTROMBridgeHandler;
 	}
 
+	/**
+	 * Activate the {@link DsDeviceDiscoveryService}.
+	 */
 	public void activate() {
 		digitalSTROMBridgeHandler.registerDeviceStatusListener(DeviceStatusListener.DEVICE_DESCOVERY, this);
 		//this.startScan();
     }
 
+	/**
+	 * Deactivate the {@link DsDeviceDiscoveryService}.
+	 */
     public void deactivate() {
     	digitalSTROMBridgeHandler.unregisterDeviceStatusListener(DeviceStatusListener.DEVICE_DESCOVERY);
     }
 
-	//später ändern auf Struktur mit group-things
 	@Override
 	protected void startScan() {
 		for(Device device : digitalSTROMBridgeHandler.getDevices()){
@@ -56,31 +74,39 @@ public class DsDeviceDiscoveryService extends AbstractDiscoveryService implement
 	}
 	
     private void onDeviceAddedInternal(Device device) {
-        ThingUID thingUID = getThingUID(device);
-		if(thingUID!=null) {
-			ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
-	        Map<String, Object> properties = new HashMap<>(7);
-	        properties.put(DEVICE_UID, device.getDSUID());
-	        properties.put(DigitalSTROMBindingConstants.DEVICE_DSID, device.getDSID().getValue());
-	        properties.put(DigitalSTROMBindingConstants.DEVICE_HW_INFO, device.getHWinfo());
-	        properties.put(DigitalSTROMBindingConstants.DEVICE_GROUPS, device.getGroups().toString());
-	        properties.put(DigitalSTROMBindingConstants.DEVICE_OUTPUT_MODE, device.getOutputMode());
-	        properties.put(DigitalSTROMBindingConstants.DEVICE_ZONE_ID, device.getZoneId());
-	        if(device.getName() != null){
-	        	properties.put(DEVICE_NAME, device.getName());
-	        } else{
-	        	properties.put(DEVICE_NAME, device.getDSID().getValue());
-	        }
-	        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID)
-	        		.withProperties(properties)
-	        		.withBridge(bridgeUID)
-	        		.withLabel(device.getName())
-	        		.build();
-	        
-	        thingDiscovered(discoveryResult);
-		} else {
-			logger.debug("discovered unsupported device hardware type '{}' with uid {}", device.getHWinfo(), device.getDSUID());
-		}
+    	if(device.isDeviceWithOutput()){
+	        ThingUID thingUID = getThingUID(device);
+			if(thingUID!=null) {
+				ThingUID bridgeUID = digitalSTROMBridgeHandler.getThing().getUID();
+		        Map<String, Object> properties = new HashMap<>(9);
+		        properties.put(DEVICE_UID, device.getDSUID());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_DSID, device.getDSID().getValue());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_HW_INFO, device.getHWinfo());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_GROUPS, device.getGroups().toString());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_OUTPUT_MODE, device.getOutputMode());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_ZONE_ID, device.getZoneId());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_FUNCTIONAL_COLOR_GROUP, device.getFunctionalColorGroup());
+		        properties.put(DigitalSTROMBindingConstants.DEVICE_METER_ID, device.getMeterDSID());
+		        if(device.getName() != null){
+		        	properties.put(DEVICE_NAME, device.getName());
+		        } else{
+		        	properties.put(DEVICE_NAME, device.getDSID().getValue());
+		        }
+		        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID)
+		        		.withProperties(properties)
+		        		.withBridge(bridgeUID)
+		        		.withLabel(device.getName())
+		        		.build();
+		        
+		        thingDiscovered(discoveryResult);
+			} else {
+				logger.debug("discovered unsupported device hardware type '{}' with uid {}", device.getHWinfo(), device.getDSUID());
+			}
+    	} else{
+    		//ggf. mögliche outputvalues hinzufügen
+    		logger.debug("discovered device without output value, don't add to inbox. "
+    				+ "Device information: hardware info: {}, dSUID: {}, output value: {}", device.getHWinfo(), device.getDSUID(), device.getOutputMode());
+    	}
     }
     
 	private ThingUID getThingUID(Device device) {

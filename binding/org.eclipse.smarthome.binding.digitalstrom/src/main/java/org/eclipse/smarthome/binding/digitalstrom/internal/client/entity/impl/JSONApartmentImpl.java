@@ -20,6 +20,8 @@ import org.json.simple.JSONObject;
 
 
 /**
+ * The {@link JSONApartmentImpl} is the implementation of the {@link Apartment}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -27,6 +29,11 @@ public class JSONApartmentImpl implements Apartment{
 	
 	private Map<Integer, Zone> zoneMap = new HashMap<Integer, Zone>();
 	
+	/**
+	 * Creates a new {@link JSONApartmentImpl} from the given DigitalSTROM-Apartment structure {@link JSONObject}.
+	 * 
+	 * @param apartment jObject
+	 */
 	public JSONApartmentImpl(JSONObject jObject) {
 		if (jObject.get(JSONApiResponseKeysEnum.APARTMENT_GET_STRUCTURE_ZONES.getKey()) instanceof JSONArray) {
 			JSONArray zones = (JSONArray) jObject.get(JSONApiResponseKeysEnum.APARTMENT_GET_STRUCTURE_ZONES.getKey());

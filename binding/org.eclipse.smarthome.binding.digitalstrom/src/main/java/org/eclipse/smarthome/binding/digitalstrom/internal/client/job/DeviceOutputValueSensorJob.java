@@ -10,6 +10,7 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.job;
 
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.DigitalSTROMAPI;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
@@ -18,9 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link DeviceOutputValueSensorJob} is the implementation of a {@link SensorJob} 
+ * for reading out a device output value of a digitalSTROM-Device.
+ * 
  * @author Alexander Betker
  * @author Alex Maier
- * @since 1.3.0
+ * @author Michael Ochel - updated and added some methods
+ * @author Matthias Siegele - updated and added some methods
  */
 public class DeviceOutputValueSensorJob implements SensorJob {
 
@@ -31,6 +36,12 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 	private DSID meterDSID = null;
 	private long initalisationTime = 0;
 	
+	/**
+	 * Creates a new {@link DeviceOutputValueSensorJob} with the given sensor index.
+	 * 
+	 * @param device
+	 * @param index	sensor index
+	 */
 	public DeviceOutputValueSensorJob(Device device, short index) {
 		this.device = device;
 		this.index = index;
@@ -38,9 +49,6 @@ public class DeviceOutputValueSensorJob implements SensorJob {
 		this.initalisationTime = System.currentTimeMillis();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.openhab.binding.digitalSTROM2.internal.client.job.SensorJob#execute(org.openhab.binding.digitalSTROM2.internal.client.DigitalSTROMAPI)
-	 */
 	@Override
 	public void execute(DigitalSTROMAPI digitalSTROM, String token) {
 		int value = digitalSTROM.getDeviceOutputValue(token, this.device.getDSID(), null, this.index);

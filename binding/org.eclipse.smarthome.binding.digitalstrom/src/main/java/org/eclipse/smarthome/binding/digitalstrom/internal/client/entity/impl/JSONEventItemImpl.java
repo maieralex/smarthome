@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.EventItem;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.events.EventPropertyEnum;
 import org.json.simple.JSONObject;
@@ -20,6 +21,8 @@ import org.json.simple.JSONObject;
 
 
 /**
+ * The {@link JSONEventItemImpl} is the implementation of the {@link EventItem}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -29,6 +32,11 @@ public class JSONEventItemImpl implements EventItem {
 	
 	private Map<EventPropertyEnum, String> properties = new HashMap<EventPropertyEnum, String>();
 	
+	/**
+	 * Creates a new {@link JSONEventItemImpl} from the given DigitalSTROM-Event-Item {@link JSONObject}.
+	 * 
+	 * @param event item json object
+	 */
 	public JSONEventItemImpl(JSONObject object) {
 		
 		name = object.get(JSONApiResponseKeysEnum.EVENT_NAME.getKey()).toString();

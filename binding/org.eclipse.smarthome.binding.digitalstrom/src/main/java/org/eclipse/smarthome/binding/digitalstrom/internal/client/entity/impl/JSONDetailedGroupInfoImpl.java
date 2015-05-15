@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.CachedMeteringValue;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONDetailedGroupInfoImpl} is the implementation of the {@link DetailedGroupInfo}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -31,6 +34,11 @@ public class JSONDetailedGroupInfoImpl implements DetailedGroupInfo {
 	
 	private List<String> deviceList = null;
 
+	/**
+	 * Creates a new {@link JSONDetailedGroupInfoImpl} from the given DigitalSTROM-Group {@link JSONObject}.
+	 * 
+	 * @param group json object
+	 */
 	public JSONDetailedGroupInfoImpl(JSONObject jObject) {
 		this.deviceList = new LinkedList<String>();
 		

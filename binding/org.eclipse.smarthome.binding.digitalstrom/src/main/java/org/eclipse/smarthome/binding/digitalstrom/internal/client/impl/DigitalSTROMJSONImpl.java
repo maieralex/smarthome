@@ -28,22 +28,26 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceConfig;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceSceneSpec;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.EventItem;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Scene;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONApartmentImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONCachedMeteringValueImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONDeviceConfigImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONDeviceImpl;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONDeviceSceneSpecImpl;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.JSONEventItemImpl;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link DigitalSTROMJSONImpl} is the implementation of the {@link DigitalSTROMAPI}.
+ * 
  * @author 	Alexander Betker
  * @author Alex Maier
- * @since 1.3.0
- * @version	digitalSTROM-API 1.14.5
+ * @author Michael Ochel - updated and added some methods
+ * @author Matthias Siegele - updated and added some methods
  */
 public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	
@@ -52,6 +56,14 @@ public class DigitalSTROMJSONImpl implements DigitalSTROMAPI{
 	private HttpTransport transport = null;
 	
 	private JSONResponseHandler	handler = null;
+	
+	/**
+	 * Creates a new {@link DigitalSTROMJSONImpl}.
+	 * 
+	 * @param uri to the DigitalSTROM-Server
+	 * @param connectTimeout
+	 * @param readTimeout
+	 */
 	
 	public DigitalSTROMJSONImpl(String uri, int connectTimeout, int readTimeout) {
 		//if(!uri.startsWith("https://")) uri = "https://" + uri;

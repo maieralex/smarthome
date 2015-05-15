@@ -15,28 +15,29 @@ import java.util.HashMap;
  * 
  * @author 	Alexander Betker
  * @since 1.3.0
- * @see http://developer.digitalstrom.org/Architecture/ds-basics.pdf page 50
+ * @see http://developer.digitalstrom.org/Architecture/ds-basics.pdf, "Table 35: Output Mode Register", page 50
  * @author Michael Ochel - add missing output modes
  * @author Matthias Siegele - add missing output modes
  */
 public enum OutputModeEnum {
 	/*
-	 * Output Mode	| Description
-	 * 0 			| No output or output disabled
-	 * 16 			| Switched
-	 * 17 			| RMS (root mean square) dimmer
-	 * 18 			| RMS dimmer with characteristic curve
-	 * 19			| Phase control dimmer
-	 * 20 			| Phase control dimmer with characteristic curve
-	 * 21			| Reverse phase control dimmer
-	 * 22			| Reverse phase control dimmer with characteristic curve
-	 * 23			| PWM (pulse width modulation)
-	 * 24			| PWM with characteristic curve
-	 * 33			| Positioning control
-	 * 39			| Relay with switched mode scene table configuration
-	 * 40			| Relay with wiped mode scene table configuration
-	 * 41			| Relay with saving mode scene table configuration
-	 * 42			| Positioning control for uncalibrated shutter
+	 * | Output Mode	| Description												|
+	 * ------------------------------------------------------------------------------
+	 * | 0	 			| No output or output disabled								|
+	 * | 16 			| Switched													|
+	 * | 17 			| RMS (root mean square) dimmer								|
+	 * | 18 			| RMS dimmer with characteristic curve						|
+	 * | 19				| Phase control dimmer										|
+	 * | 20 			| Phase control dimmer with characteristic curve			|
+	 * | 21				| Reverse phase control dimmer								|
+	 * | 22				| Reverse phase control dimmer with characteristic curve	|
+	 * | 23				| PWM (pulse width modulation)								|
+	 * | 24				| PWM with characteristic curve								|
+	 * | 33				| Positioning control										|
+	 * | 39				| Relay with switched mode scene table configuration		|
+	 * | 40				| Relay with wiped mode scene table configuration			|
+	 * | 41				| Relay with saving mode scene table configuration			|
+	 * | 42				| Positioning control for uncalibrated shutter				|
 	 */
 	DISABLED		(0),
 	SWITCHED		(16),

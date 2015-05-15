@@ -11,11 +11,18 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 import java.util.List;
 
 /**
+ * The {@link Event} represent a DigitalSTROM-Event.
+ * 
  * @author 	Alexander Betker
  * @since	1.3.0
  */
 public interface Event {
 	
+	/**
+	 * Returns a list of the {@link EventItem}s of this Event.
+	 * 
+	 * @return List of {@link EventItem}s
+	 */
 	public List<EventItem>	getEventItems();
 
 }

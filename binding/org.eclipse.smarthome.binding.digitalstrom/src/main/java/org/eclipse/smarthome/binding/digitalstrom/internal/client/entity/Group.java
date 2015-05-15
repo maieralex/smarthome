@@ -9,13 +9,25 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 
 /**
+ * The {@link Group} represent DigitalSTROM-Group.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
 public interface Group {
 	
+	/**
+	 * Returns the group id of this {@link Group}.
+	 * 
+	 * @return group id
+	 */
 	public short getGroupID();
 	
+	/**
+	 * Returns the group name of this {@link Group}.
+	 * 
+	 * @return group name
+	 */
 	public String getGroupName();
 
 }

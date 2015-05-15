@@ -2,6 +2,12 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 
+/**
+ * The {@link DeviceStateUpdateImpl} is the implementation of the {@link DeviceStateUpdate}.
+ *  
+ * @author Michael Ochel
+ * @author Matthias Siegele
+ */
 public class DeviceStateUpdateImpl implements DeviceStateUpdate {
 
 	private final String UPDATE_TYPE;

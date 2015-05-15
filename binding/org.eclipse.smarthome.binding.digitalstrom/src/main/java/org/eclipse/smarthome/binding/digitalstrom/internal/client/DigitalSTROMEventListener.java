@@ -315,7 +315,7 @@ public class DigitalSTROMEventListener extends Thread {
 									if (!device.doIgnoreScene(sceneId)) {
 										if (shouldBeOn) {
 											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
-													.getMaxOutPutValue()));
+													.getMaxOutputValue()));
 										} else {
 											device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 										}
@@ -441,7 +441,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 														if (shouldBeOn) {
 															device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
-																	.getMaxOutPutValue()));
+																	.getMaxOutputValue()));
 														} else {
 															device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 														}
@@ -476,7 +476,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 															if (shouldBeOn) {
 																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
-																		.getMaxOutPutValue()));
+																		.getMaxOutputValue()));
 															} else {
 																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 															}
@@ -610,7 +610,7 @@ public class DigitalSTROMEventListener extends Thread {
 															//logger.debug("5");
 															if (shouldBeOn) {
 																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, device
-																		.getMaxOutPutValue()));
+																		.getMaxOutputValue()));
 															} else {
 																device.updateInternalDeviceState(new DeviceStateUpdateImpl(DeviceStateUpdate.UPDATE_BRIGHTNESS, 0));
 															}
@@ -755,7 +755,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 				initDeviceOutputValue(device,
 						DeviceConstants.DEVICE_SENSOR_OUTPUT);
-				if (device.getOutputMode().equals(OutputModeEnum.SLAT)) {
+				if (device.getOutputMode().equals(OutputModeEnum.POSITION_CON_US)) {
 					initDeviceOutputValue(device,
 							DeviceConstants.DEVICE_SENSOR_SLAT_OUTPUT);
 				}
@@ -767,7 +767,7 @@ public class DigitalSTROMEventListener extends Thread {
 
 				initDeviceOutputValue(device,
 						DeviceConstants.DEVICE_SENSOR_OUTPUT);
-				if (device.getOutputMode().equals(OutputModeEnum.SLAT)) {
+				if (device.getOutputMode().equals(OutputModeEnum.POSITION_CON_US)) {
 					initDeviceOutputValue(device,
 							DeviceConstants.DEVICE_SENSOR_SLAT_OUTPUT);
 				}

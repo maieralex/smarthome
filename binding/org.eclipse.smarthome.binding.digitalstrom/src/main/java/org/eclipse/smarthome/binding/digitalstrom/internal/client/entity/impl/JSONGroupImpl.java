@@ -10,12 +10,15 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Group;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONGroupImpl} is the implementation of the {@link Group}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -26,7 +29,11 @@ public class JSONGroupImpl implements Group {
 	private String name	= "";	// it is possible, that a group has no name!
 	private short groupId = 0;
 	
-	
+	/**
+	 * Creates a new {@link JSONGroupImpl} from the given DigitalSTROM-Group {@link JSONObject}.
+	 * 
+	 * @param group json object
+	 */
 	public JSONGroupImpl(JSONObject object) {
 		if (object.get(JSONApiResponseKeysEnum.GROUP_NAME.getKey()) != null) {
 			name = object.get(JSONApiResponseKeysEnum.GROUP_NAME.getKey()).toString();

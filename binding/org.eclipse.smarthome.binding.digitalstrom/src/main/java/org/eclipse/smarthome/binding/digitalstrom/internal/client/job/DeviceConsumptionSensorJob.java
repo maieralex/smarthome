@@ -15,13 +15,18 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DSID;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.Device;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceStateUpdate;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl.DeviceStateUpdateImpl;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.impl.DigitalSTROMJSONImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link DeviceConsumptionSensorJob} is the implementation of a {@link SensorJob} 
+ * for reading out a power consumption of a digitalSTROM-Device.
+ * 
  * @author Alexander Betker
  * @author Alex Maier
- * @since 1.3.0
+ * @author Michael Ochel - updated and added some methods
+ * @author Matthias Siegele - updated and added some methods
  * 
  */
 public class DeviceConsumptionSensorJob implements SensorJob {
@@ -33,6 +38,12 @@ public class DeviceConsumptionSensorJob implements SensorJob {
 	private DSID meterDSID = null;
 	private long initalisationTime = 0;
 	
+	/**
+	 * Creates a new {@link DeviceConsumptionSensorJob} with the given {@link SensorIndexEnum}.
+	 * 
+	 * @param device
+	 * @param index	sensor index
+	 */
 	public DeviceConsumptionSensorJob(Device device, SensorIndexEnum index) {
 		this.device = device;
 		this.sensorIndex = index;

@@ -161,7 +161,7 @@ public class DsDeviceHandler extends BaseThingHandler implements DeviceStatusLis
 		if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_BRIGHTNESS) || 
 				channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_LIGHT_SWITCH)) {
 			if (command instanceof PercentType) {
-				device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutPutValue()));
+				device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutputValue()));
 			} else if (command instanceof OnOffType) {
 				if(OnOffType.ON.equals((OnOffType) command)){
 					device.setIsOn(true);
@@ -225,7 +225,7 @@ public class DsDeviceHandler extends BaseThingHandler implements DeviceStatusLis
 							//logger.debug("value: {}",stateUpdate.getValue());
 							//if(stateUpdate.getValue() > 0){
 								updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
-									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
+									new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutputValue())));
 							/*} else{
 								setSensorDataOnZeroAndDeviceOFF();
 							}*/
@@ -295,7 +295,7 @@ public class DsDeviceHandler extends BaseThingHandler implements DeviceStatusLis
 		if(device != null){
 			logger.debug("initial channel update");
 			updateState(new ChannelUID(getThing().getUID(),  CHANNEL_BRIGHTNESS), 
-					new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutPutValue())));
+					new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutputValue())));
 
 			//nötig oder passiert das von selbst
 			if(device.isOn()) {

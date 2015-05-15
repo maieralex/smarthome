@@ -9,14 +9,31 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 
 /**
+ * The {@link DeviceConfig} represents an DigitalSTROM-Device configuration.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
 public interface DeviceConfig {
 	
+	/**
+	 * Returns the configuration class.
+	 * 
+	 * @return configuration class
+	 */
 	public int getClass_();
 	
+	/**
+	 * Returns the configuration index.
+	 * 
+	 * @return configuration index
+	 */
 	public int getIndex();
 	
+	/**
+	 * Returns the configuration value.
+	 * 
+	 * @return configuration value
+	 */
 	public int getValue();
 }

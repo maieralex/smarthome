@@ -10,12 +10,15 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.impl;
 
 
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.JSONApiResponseKeysEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DetailedGroupInfo;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.entity.DeviceConfig;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONDeviceConfigImpl} is the implementation of the {@link DeviceConfig}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -27,6 +30,11 @@ public class JSONDeviceConfigImpl implements DeviceConfig {
 	private int	index	= -1;
 	private int	value	= -1;
 	
+	/**
+	 * Creates a new {@link JSONDeviceConfigImpl} from the given DigitalSTROM device configuration {@link JSONObject}.
+	 * 
+	 * @param group json object
+	 */
 	public JSONDeviceConfigImpl(JSONObject object) {
 		if (object.get(JSONApiResponseKeysEnum.DEVICE_GET_CONFIG_CLASS.getKey()) != null) {
 			try {

@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link JSONCachedMeteringValueImpl} is the implementation of the {@link CachedMeteringValue}.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
@@ -28,6 +30,11 @@ public class JSONCachedMeteringValueImpl implements CachedMeteringValue {
 	private double	value = 0;
 	private String date = null;
 	
+	/**
+	 * Creates a new {@link JSONCachedMeteringValueImpl} from the given DigitalSTROM cached metering value {@link JSONObject}.
+	 * 
+	 * @param cached metering value json object
+	 */
 	public JSONCachedMeteringValueImpl(JSONObject jObject) {
 		if (jObject.get(JSONApiResponseKeysEnum.METERING_GET_LATEST_DSID.getKey()) != null) {
 			this.dsid = new DSID(jObject.get(JSONApiResponseKeysEnum.METERING_GET_LATEST_DSID.getKey()).toString());

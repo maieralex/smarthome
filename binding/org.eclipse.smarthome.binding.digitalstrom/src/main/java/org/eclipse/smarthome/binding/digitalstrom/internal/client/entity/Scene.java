@@ -9,11 +9,18 @@
 package org.eclipse.smarthome.binding.digitalstrom.internal.client.entity;
 
 /**
+ * The {@link Scene} represent DigitalSTROM-Scene.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
 public interface Scene {
 
+	/**
+	 * Returns the scene number of this {@link Scene}.
+	 * 
+	 * @return scene number
+	 */
 	public int getSceneNumber();
 
 }

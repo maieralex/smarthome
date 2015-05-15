@@ -11,11 +11,14 @@ package org.eclipse.smarthome.binding.digitalstrom.internal.client.events;
 import java.util.HashMap;
 
 /**
+ * The {@link EventPropertyEnum} contains all DigitalSTROM-Event properties of an ESH-Event.
+ * 
  * @author 	Alexander Betker
  * @since 1.3.0
  */
 public enum EventPropertyEnum {
 	
+	EVENT_NAME		("eventName"),
 	ZONEID			("zoneID"),
 	SCENEID			("sceneID"),
 	ORIGIN_DEVICEID	("originDeviceID"),
@@ -34,10 +37,22 @@ public enum EventPropertyEnum {
 		}
 	}
 	
+	/**
+	 * Returns true if the given property exists at the ESH event properties otherwise false.
+	 * 
+	 * @param property
+	 * @return contains property (true = yes | false = no)
+	 */
 	public static boolean containsId(String property) {
 		return eventProperties.keySet().contains(property);
 	}
 	
+	/**
+	 * Returns the {@link EventPropertyEnum} to the given property.
+	 * 
+	 * @param property
+	 * @return EventPropertyEnum
+	 */
 	public static EventPropertyEnum getProperty(String property) {
 		return eventProperties.get(property);
 	}
@@ -45,6 +60,12 @@ public enum EventPropertyEnum {
 	private EventPropertyEnum(String id) {
 		this.id = id;
 	}
+	
+	/**
+	 * Returns the id of this {@link EventPropertyEnum}.
+	 * 
+	 * @return id of this {@link EventPropertyEnum}
+	 */
 	
 	public String getId() {
 		return id;

@@ -122,7 +122,7 @@ public class DsGrayHandler extends BaseThingHandler implements
 				
 			if(channelUID.getId().equals(DigitalSTROMBindingConstants.CHANNEL_SHADE)) {
 				if (command instanceof PercentType) {
-					device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutPutValue()));
+					device.setOutputValue(fromPercentToValue(((PercentType) command).intValue(), device.getMaxOutputValue()));
 					this.lastComand = command;
 				} else if (command instanceof StopMoveType) {
 					if(StopMoveType.MOVE.equals((OnOffType) command)){
@@ -187,7 +187,7 @@ public class DsGrayHandler extends BaseThingHandler implements
 						switch(stateUpdate.getType()){
 							case DeviceStateUpdate.UPDATE_SLATPOSITION: 
 									updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), 
-										new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutPutValue())));
+										new PercentType(fromValueToPercent(stateUpdate.getValue(), device.getMaxOutputValue())));
 								break;
 							case DeviceStateUpdate.UPDATE_OPEN_CLOSE: 
 								if(stateUpdate.getValue() > 0) {
@@ -236,7 +236,7 @@ public class DsGrayHandler extends BaseThingHandler implements
 			if(device != null){
 				logger.debug("initial channel update");
 				updateState(new ChannelUID(getThing().getUID(),  CHANNEL_SHADE), 
-						new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutPutValue())));
+						new PercentType(fromValueToPercent(device.getOutputValue(), device.getMaxOutputValue())));
 
 				//nötig oder passiert das von selbst
 				if(device.isOpen()) {

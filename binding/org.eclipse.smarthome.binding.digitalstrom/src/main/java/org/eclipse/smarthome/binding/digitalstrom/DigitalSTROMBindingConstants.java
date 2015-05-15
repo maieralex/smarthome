@@ -79,6 +79,8 @@ public class DigitalSTROMBindingConstants {
 	public static final String DEVICE_ZONE_ID = "zoneID";
 	public static final String DEVICE_GROUPS = "groups";
 	public static final String DEVICE_OUTPUT_MODE = "outputmode";
+	public static final String DEVICE_FUNCTIONAL_COLOR_GROUP = "funcColorGroup";
+	public static final String DEVICE_METER_ID = "meterDSID";
 	
 	// Device properties scene
 	public static final String DEVICE_SCENE = "scene"; //+ number of scene
