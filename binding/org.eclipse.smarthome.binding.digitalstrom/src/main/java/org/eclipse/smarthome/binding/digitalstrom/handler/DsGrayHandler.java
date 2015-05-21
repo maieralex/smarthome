@@ -19,6 +19,8 @@ import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.eclipse.smarthome.core.thing.ThingStatusInfo;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -63,7 +65,13 @@ public class DsGrayHandler extends BaseThingHandler implements
 	    	
 	    	if (!configDSUId.isEmpty()) {
 	            dSUID = configDSUId;
+	            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_MISSING_ERROR, "Bridge is missig");
+	            
+	    	} else{
+	    		updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "dSUID is missig");
 	    	}
+	    	
+	    	
 	    }
 
 	    @Override
@@ -74,8 +82,8 @@ public class DsGrayHandler extends BaseThingHandler implements
 		        	this.dssBridgeHandler =  (DssBridgeHandler) thingHandler;
 		        	this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
 		        	
-		        	// note: this call implicitly registers our handler as a listener on the bridge
-		            getThing().setStatus(bridge.getStatus());
+		        	ThingStatusInfo statusInfo = bridge.getStatusInfo();
+	                updateStatus(statusInfo.getStatus(), statusInfo.getStatusDetail(), statusInfo.getDescription());
 		        	logger.debug("Set status on {}", getThing().getStatus());
 		        	
 		        	saveConfigSceneSpecificationIntoDevice(getDevice());
@@ -217,14 +225,14 @@ public class DsGrayHandler extends BaseThingHandler implements
 		}
 
 		@Override
-		public void onDeviceRemoved(Device device) {
-	        	getThing().setStatus(ThingStatus.OFFLINE);
+		public synchronized void onDeviceRemoved(Device device) {
+			updateStatus(ThingStatus.REMOVED);
 		}
 
 		@Override
-		public void onDeviceAdded(Device device) {
+		public synchronized void onDeviceAdded(Device device) {
 		       if(device.isPresent()){
-		    	   getThing().setStatus(ThingStatus.ONLINE);
+		    	   updateStatus(ThingStatus.ONLINE);
 		    	   onDeviceStateInitial(device);
 		       } else{
 		    	   onDeviceRemoved(device);

@@ -11,6 +11,7 @@ import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingStatusInfo;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -60,7 +61,8 @@ public class DsSceneHandler extends BaseThingHandler implements SceneStatusListe
 	        	//this.dssBridgeHandler.registerDeviceStatusListener(dSUID, this);
 	        	
 	        	// note: this call implicitly registers our handler as a listener on the bridge
-	            getThing().setStatus(bridge.getStatus());
+	        	ThingStatusInfo statusInfo = bridge.getStatusInfo();
+                updateStatus(statusInfo.getStatus(), statusInfo.getStatusDetail(), statusInfo.getDescription());
 	        	logger.debug("Set status on {}", getThing().getStatus());
 	        	
 	        }

@@ -20,8 +20,11 @@ import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.eclipse.smarthome.core.thing.ThingStatusInfo;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
+import org.eclipse.smarthome.core.thing.binding.builder.ThingStatusInfoBuilder;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.osgi.framework.BundleContext;
@@ -38,6 +41,7 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author Dennis Nobel - Initial contribution
  * @author Michael Grammling - Added dynamic configuration update
  * @author Thomas Höfer - Added thing properties
+ * @author Stefan Bußweiler - Added new thing status handling
  */
 public abstract class BaseThingHandler implements ThingHandler {
 
@@ -46,7 +50,7 @@ public abstract class BaseThingHandler implements ThingHandler {
     protected ThingRegistry thingRegistry;
     protected BundleContext bundleContext;
 
-    private Thing thing;
+    protected Thing thing;
 
     @SuppressWarnings("rawtypes")
     private ServiceTracker thingRegistryServiceTracker;
@@ -83,7 +87,15 @@ public abstract class BaseThingHandler implements ThingHandler {
             }
         };
         thingRegistryServiceTracker.open();
+    }
 
+    /**
+     * This method is called after {@link BaseThingHandler#initialize()} is called. If this method will be overridden,
+     * the super method must be
+     * called.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public void postInitialize() {
         thingHandlerServiceTracker = new ServiceTracker(this.bundleContext, ThingHandler.class.getName(), null) {
             @Override
             public Object addingService(final ServiceReference reference) {
@@ -113,8 +125,21 @@ public abstract class BaseThingHandler implements ThingHandler {
 
     public void unsetBundleContext(final BundleContext bundleContext) {
         thingRegistryServiceTracker.close();
-        thingHandlerServiceTracker.close();
         this.bundleContext = null;
+    }
+
+    /**
+     * This method is called before {@link BaseThingHandler#dispose()} is called. If this method will be overridden, the
+     * super method must be called.
+     */
+    public void preDispose() {
+        thingHandlerServiceTracker.close();
+    }
+
+    @Override
+    public void handleRemoval() {
+        // can be overridden by subclasses
+        updateStatus(ThingStatus.REMOVED);
     }
 
     @Override
@@ -260,16 +285,20 @@ public abstract class BaseThingHandler implements ThingHandler {
 
     /**
      * Updates the status of the thing.
+     * 
+     * @param status the status
+     * @param statusDetail the detail of the status
+     * @param description the description of the status
      *
-     * @param status
-     *            new status
      * @throws IllegalStateException
      *             if handler is not initialized correctly, because no callback is present
      */
-    protected void updateStatus(ThingStatus status) {
+    protected void updateStatus(ThingStatus status, ThingStatusDetail statusDetail, String description) {
         synchronized (this) {
             if (this.callback != null) {
-                this.callback.statusUpdated(this.thing, status);
+                ThingStatusInfoBuilder statusBuilder = ThingStatusInfoBuilder.create(status, statusDetail);
+                ThingStatusInfo statusInfo = statusBuilder.withDescription(description).build();
+                this.callback.statusUpdated(this.thing, statusInfo);
             } else {
                 throw new IllegalStateException("Could not update status, because callback is missing");
             }
@@ -277,8 +306,33 @@ public abstract class BaseThingHandler implements ThingHandler {
     }
 
     /**
+     * Updates the status of the thing.
+     *
+     * @param status the status
+     * @param statusDetail the detail of the status
+     * 
+     * @throws IllegalStateException
+     *             if handler is not initialized correctly, because no callback is present
+     */
+    protected void updateStatus(ThingStatus status, ThingStatusDetail statusDetail) {
+        updateStatus(status, statusDetail, null);
+    }
+
+    /**
+     * Updates the status of the thing. The detail of the status will be 'NONE'.
+     * 
+     * @param status the status
+     * 
+     * @throws IllegalStateException
+     *             if handler is not initialized correctly, because no callback is present
+     */
+    protected void updateStatus(ThingStatus status) {
+        updateStatus(status, ThingStatusDetail.NONE, null);
+    }
+
+    /**
      * Creates a thing builder, which allows to modify the thing. The method
-     * {@link BaseThingHandler#updateThing(ThingBuilder)} must be called to persist the changes.
+     * {@link BaseThingHandler#updateThing(Thing)} must be called to persist the changes.
      * 
      * @return {@link ThingBuilder} which builds an exact copy of the thing (not null)
      */

@@ -13,15 +13,13 @@ public interface SceneStatusListener {
 	/**
      * This method is called whenever the state of the given scene has changed.
      * 
-     * @param device
+     * @param call_undo
      * 
      */
-    public void onSceneStateChanged(boolean flag);
+    public void onSceneStateChanged(boolean call_undo);
     
     /**
      * This method is called whenever a scene is removed.
-     * 
-     * @param device
      * 
      */
     public void onSceneRemoved();
@@ -32,7 +30,7 @@ public interface SceneStatusListener {
      * @param device
      * 
      */
-    public void onSceneAdded(boolean flag);
+    public void onSceneAdded(boolean flag );
 
     
 }

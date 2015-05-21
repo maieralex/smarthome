@@ -42,6 +42,9 @@ These chapters explain different technical aspects of the Eclipse SmartHome fram
 * [XML Configuration](architecture/configuration.md) - A configuration and meta-data facility that is available throughout the system using XML.
 * [Extensions](architecture/extensions.md) - Introduction to existing extension mechanisms for solutions being based on Eclipse SmartHome 
 * [Internationalization](architecture/internationalization.md) - Internationalization support in Eclipse SmartHome 
+* [Thing Definition](architecture/thing-definition.md) - Binding Thing definition guide
+* [Thing Handler](architecture/thing-handler.md) - Binding Thing Hander implementation guide
+* [Thing Status](architecture/thing-status.md) - Overview of the Thing Status concept
  
 ## Development
 
@@ -49,7 +52,7 @@ These chapters are relevant for people who want to develop the Eclipse SmartHome
 
 * [Development Environment](development/ide.md) - Learn how to set up a development environment that gets you started with coding.
 * [Coding Guidelines](development/guidelines.md) - This explains how project code should look like and what you need to pay attention for while coding.
-* [Contributing](http://www.eclipse.org/smarthome/community.html#HowToContribute) - Want to contribute your developments to the project? Wonderful!
+* [Contributing](development/contributing.md) - Want to contribute your developments to the project? Wonderful!
 * [Unit Testing](development/unittesting.md) - We provide a powerful framework for easily writing unit tests for your code. Developers are encouraged to make use of it.
 
 For frequently asked questions around development topics, please refer to the [FAQ section](development/faq.md).

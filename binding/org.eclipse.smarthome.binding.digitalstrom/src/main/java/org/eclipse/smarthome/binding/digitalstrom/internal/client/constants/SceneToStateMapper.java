@@ -26,32 +26,35 @@ public class SceneToStateMapper {
 	}
 	
 	private void init() {
-		map.put((short) 0, false);
-		map.put((short) 1, false);
-		map.put((short) 2, false);
-		map.put((short) 3, false);
-		map.put((short) 4, false);
+		map.put((short) 0, false); //Preset 0 Default OFF
+		map.put((short) 1, false); //Area 1 Default OFF
+		map.put((short) 2, false); //Area 2 Default OFF
+		map.put((short) 3, false); //Area 3 Default OFF
+		map.put((short) 4, false); //Area 4 Default OFF
 		
-		map.put((short) 5, true);
-		map.put((short) 6, true);
-		map.put((short) 7, true);
-		map.put((short) 8, true);
-		map.put((short) 9, true);
+		map.put((short) 5, true); //Preset 1 Default ON
+		map.put((short) 6, true); //Area 1 Default ON
+		map.put((short) 7, true); //Area 2 Default ON
+		map.put((short) 8, true); //Area 3 Default ON
+		map.put((short) 9, true); //Area 4 Default ON
 		
-		map.put((short) 13, false);
-		map.put((short) 14, true);
+		map.put((short) 13, false); //Minimum
+		map.put((short) 14, true); //Maximum
 		
-		map.put((short) 32, false);
-		map.put((short) 33, true);
-		map.put((short) 34, false);
-		map.put((short) 35, true);
-		map.put((short) 36, false);
-		map.put((short) 37, true);
-		map.put((short) 38, false);
-		map.put((short) 39, true);
+		map.put((short) 32, false); //Preset 10 Default OFF
+		map.put((short) 33, true); //Preset 11 Default ON
 		
-		map.put((short) 50, false);
-		map.put((short) 51, true);
+		map.put((short) 34, false); //Preset 20 Default OFF
+		map.put((short) 35, true); //Preset 21 Default ON
+		
+		map.put((short) 36, false); //Preset 30 Default OFF
+		map.put((short) 37, true); //Preset 31 Default ON
+		
+		map.put((short) 38, false); //Preset 40 Default OFF
+		map.put((short) 39, true); //Preset 41 Default ON
+		
+		map.put((short) 50, false); //DeviceOn ON
+		map.put((short) 51, true); //DviceOff OFF
 		
 	}
 	

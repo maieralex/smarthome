@@ -94,8 +94,7 @@ public class ThingTypeXmlProvider implements XmlDocumentProvider<List<?>> {
 
     @Override
     public synchronized void addingObject(List<?> types) {
-
-    	if (types != null) {
+        if (types != null) {
             for (Object type : types) {
                 if (type instanceof ThingTypeXmlResult) {
                     ThingTypeXmlResult typeResult = (ThingTypeXmlResult) type;

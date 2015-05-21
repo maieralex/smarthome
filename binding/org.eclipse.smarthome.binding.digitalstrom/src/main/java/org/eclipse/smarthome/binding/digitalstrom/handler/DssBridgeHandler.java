@@ -35,6 +35,7 @@ import org.eclipse.smarthome.binding.digitalstrom.internal.client.SensorJobExecu
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.DeviceConstants;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringTypeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.MeteringUnitsEnum;
+import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.OutputModeEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SceneEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.SensorIndexEnum;
 import org.eclipse.smarthome.binding.digitalstrom.internal.client.constants.ZoneSceneEnum;
@@ -54,6 +55,7 @@ import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -252,12 +254,16 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         					 }
         				}
         				
-        				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
-        				logger.debug("inform DeviceStatusListener: \"" 
-        						+ DeviceStatusListener.DEVICE_DESCOVERY 
-        						+ "\" about Device with DSID: \"" 
-        						+ currentDevice.getDSUID() 
-        						+ "\" added.");
+        				if(deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY) != null){
+	        				deviceStatusListeners.get(DeviceStatusListener.DEVICE_DESCOVERY).onDeviceAdded(currentDevice);
+	        				logger.debug("inform DeviceStatusListener: \"" 
+	        						+ DeviceStatusListener.DEVICE_DESCOVERY 
+	        						+ "\" about Device with DSID: \"" 
+	        						+ currentDevice.getDSUID() 
+	        						+ "\" added.");
+        				} else{
+        					logger.debug("The digitalSTROM-Device-Discovery is disabled, can't inform device descovery about found device.");
+        				}
         			}
         		}
         		        		
@@ -390,14 +396,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
     }
 
     /****update methods****/
-    
+    /*
     @Override
 	protected void updateStatus(ThingStatus status) {
 		super.updateStatus(status);
         for(Thing child : getThing().getThings()) {
-        	child.setStatus(status);
+        	child.updateStatus(status);
         }
-	}
+	}*/
     
     /**
      * This method adds a {@link SensorJobs} with the appropriate priority to the {@link SensorJobExecuter}.
@@ -452,7 +458,14 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 	public void stopOutputValue(Device device){
 		if(checkConnection()){
 			if(this.digitalSTROMClient.callDeviceScene(sessionToken, device.getDSID(), null, SceneEnum.STOP, true)){
-				int outputValue = this.digitalSTROMClient.getDeviceOutputValue(sessionToken, device.getDSID(), null, DeviceConstants.DEVICE_SENSOR_OUTPUT);
+				short outputIndex = DeviceConstants.DEVICE_SENSOR_OUTPUT;
+				
+				if (device.getOutputMode().equals(OutputModeEnum.POSITION_CON_US)){
+					outputIndex = DeviceConstants.DEVICE_SENSOR_SLAT_OUTPUT;
+				}
+				
+				int outputValue = this.digitalSTROMClient.getDeviceOutputValue(sessionToken, device.getDSID(), null, outputIndex);
+				
 				if(outputValue != -1){
 					device.setOutputValue(outputValue);
 				}
@@ -877,6 +890,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 				logger.info("User defined Applicationtoken can be used.");
 				isAutentificated = true;
 			} else{
+				updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "User defined Applicationtoken is wrong.");
 				logger.info("User defined Applicationtoken can't be used.");
 			}
 		} else{
@@ -903,6 +917,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 						
 						logger.debug("Applicationtoken generated and added successfull to DigitalSTROM Server.");
 					} else {
+						updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "The set username or password is wrong.");
 						logger.debug("Incorrect Username or password. Can't enable Applicationtoken.");
 					}
 				}
@@ -915,6 +930,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
 			}
 		} else 
 			if(!isAutentificated){
+				updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "no username or password is set to genarate Appicationtoken.");
 				logger.info("Can't find Username or password to genarate Appicationtoken.");
 			}
 	}
@@ -940,7 +956,7 @@ public class DssBridgeHandler extends BaseBridgeHandler {
         if(this.sensorJobExecuter != null){
         	this.sensorJobExecuter.shutdown();
         }
-        updateStatus(ThingStatus.OFFLINE);
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "The connection to the digitalSTROM-Server can't established");
     }
 
   
