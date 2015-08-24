@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -53,10 +54,12 @@ public class WebAppServlet extends BaseServlet {
     private static final long TIMEOUT_IN_MS = 30000L;
 
     /** the name of the servlet to be used in the URL */
-    public static final String SERVLET_NAME = "classicui";
+    public static final String SERVLET_NAME = "app";
 
     private PageRenderer renderer;
     protected Set<SitemapProvider> sitemapProviders = new CopyOnWriteArraySet<>();
+
+    private String defaultSitemap = "default";
 
     public void addSitemapProvider(SitemapProvider sitemapProvider) {
         this.sitemapProviders.add(sitemapProvider);
@@ -70,12 +73,16 @@ public class WebAppServlet extends BaseServlet {
         this.renderer = renderer;
     }
 
-    protected void activate() {
+    protected void activate(Map<String, Object> configProps) {
+        String value = (String) configProps.get("defaultSitemap");
+        if (value != null) {
+            this.defaultSitemap = value;
+        }
         try {
             Hashtable<String, String> props = new Hashtable<String, String>();
-            httpService.registerServlet(WEBAPP_ALIAS + SERVLET_NAME, this, props, createHttpContext());
+            httpService.registerServlet(WEBAPP_ALIAS + "/" + SERVLET_NAME, this, props, createHttpContext());
             httpService.registerResources(WEBAPP_ALIAS, "web", null);
-            logger.info("Started Classic UI at " + WEBAPP_ALIAS + SERVLET_NAME);
+            logger.info("Started Classic UI at " + WEBAPP_ALIAS + "/" + SERVLET_NAME);
         } catch (NamespaceException e) {
             logger.error("Error during servlet startup", e);
         } catch (ServletException e) {
@@ -83,8 +90,15 @@ public class WebAppServlet extends BaseServlet {
         }
     }
 
+    protected void modified(Map<String, Object> configProps) {
+        String value = (String) configProps.get("defaultSitemap");
+        if (value != null) {
+            this.defaultSitemap = value;
+        }
+    }
+
     protected void deactivate() {
-        httpService.unregister(WEBAPP_ALIAS + SERVLET_NAME);
+        httpService.unregister(WEBAPP_ALIAS + "/" + SERVLET_NAME);
         httpService.unregister(WEBAPP_ALIAS);
         logger.info("Stopped Classic UI");
     }
@@ -103,9 +117,9 @@ public class WebAppServlet extends BaseServlet {
         boolean poll = "true".equalsIgnoreCase(req.getParameter("poll"));
 
         // if there are no parameters, display the "default" sitemap
-        if (sitemapName == null)
-            sitemapName = "default";
-
+        if (sitemapName == null) {
+            sitemapName = defaultSitemap;
+        }
         StringBuilder result = new StringBuilder();
 
         Sitemap sitemap = null;
@@ -163,7 +177,7 @@ public class WebAppServlet extends BaseServlet {
 
     /**
      * Defines the response to return on a polling timeout.
-     * 
+     *
      * @return the response of the servlet on a polling timeout
      */
     private String getTimeoutResponse() {
@@ -172,7 +186,7 @@ public class WebAppServlet extends BaseServlet {
 
     /**
      * This method only returns when a change has occurred to any item on the page to display
-     * 
+     *
      * @param widgets the widgets of the page to observe
      */
     private boolean waitForChanges(EList<Widget> widgets) {
@@ -201,7 +215,7 @@ public class WebAppServlet extends BaseServlet {
 
     /**
      * Collects all items that are represented by a given list of widgets
-     * 
+     *
      * @param widgets the widget list to get the items for
      * @return all items that are represented by the list of widgets
      */
@@ -233,7 +247,7 @@ public class WebAppServlet extends BaseServlet {
     /**
      * This is a state change listener, which is merely used to determine, if a state
      * change has occurred on one of a list of items.
-     * 
+     *
      * @author Kai Kreuzer - Initial contribution and API
      *
      */
@@ -251,7 +265,7 @@ public class WebAppServlet extends BaseServlet {
 
         /**
          * determines, whether a state change has occurred since its creation
-         * 
+         *
          * @return true, if a state has changed
          */
         public boolean hasChangeOccurred() {

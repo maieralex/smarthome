@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0
+        http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
+	<config-description uri="binding:digitalstrom:dssBridge">
+	<parameter-group name="connection">
+	<label>Connection configuration</label>
+	<description>Sets the configuration to establish the connection to the digitalSTROM-Server.</description></parameter-group>
+	<parameter-group name="general">
+	<label>General configuration</label>
+	<description>Here you can configure some general parameters</description></parameter-group>
+		<parameter-group name="info">
+			<label>digitalSTROM-Server informations</label>
+			<description>Shows informations of the digitalSTROM-Server.</description></parameter-group>
+		<!--Application token--><parameter name="applicationToken"
+		type="text" groupName="connection">
+		<label>Application-Token</label>
+		<description>
+			The application token to authenticate to the
+			DigitalSTROM-Server.
+		</description>
+		<required>false</required>
+</parameter><!--ipAddress-->
+            <parameter name="ipAddress" type="text" groupName="connection">
+            	<context>network_address</context>
+            	<label>Network Address</label>
+            	<description>
+            		Network address of the DigitalSTROM-Server.
+            	</description>
+            	<required>true</required>
+            </parameter><!--userName-->
+            <parameter name="userName" type="text" groupName="connection">
+            	<label>Username</label>
+            	<description>
+            		Name of a registered DigitalSTROM user to
+            		authentificate to the DigitalSTROM-Server.
+            	</description>
+            	<required>false</required>
+            </parameter><!--password-->
+            <parameter name="password" type="text">
+                <label>Password</label>
+                <description>Password of a registered digitalStrom user to authentificate to the DigitalSTROM-Server.</description>
+                <required>false</required>
+                <context>password</context>
+            </parameter><!--dSID-->
+            <parameter name="dSID" type="text" groupName="info"
+            	readOnly="true">
+            	<label>DigitalSTROM-Sever ID</label>
+            	<description>
+            		The unique identifier of a DigitalSTOM-Severs.
+            	</description>
+            	<required>false</required>
+            </parameter><!--dsName-->
+            <parameter name="dsName" type="text" groupName="info"
+            	readOnly="true">
+            	<label>Name of the DigitalSTROM installation</label>
+            	<description>
+            		The user defined name of the DigitalStrom
+            		installation.
+            	</description>
+            	<required>false</required>
+            </parameter>
+            <!--sensorDataUpdateIntervall--><parameter
+            	name="sensorDataUpdateIntervall" type="integer"
+            	groupName="general">
+            	<default>60</default>
+            	<label>Sensor update interval</label>
+            	<description>
+            		Seconds after the DigitalSTROM device sensor data
+            		will be updated.
+            	</description>
+            	<required>false</required>
+</parameter><!--TrashBinDeleateTime-->
+            <parameter name="defaultTrashBinDeleateTime" type="integer"
+            	groupName="general">
+            	<default>7</default>
+            	<label>Days to be slaked Trashbin devices</label>
+            	<description>
+            		Days after the temporary saved DigitalSTROM device
+            		configuration from deleted things get permanently
+            		deleted.
+            	</description>
+            	<required>false</required>
+            </parameter>
+            <!--TrustCertParth--><parameter name="trustCertPath"
+            	type="text" groupName="connection">
+            	<label>Path to the SLL Certificate</label>
+            	<description>
+            		Here you can specify the path to the SLL certificate
+            		for the DigitalSTROM-Server. You can download it
+            		from DigitalSTROM server.
+            	</description>
+            	<required>false</required>
+</parameter>
+
+	</config-description>
+</config-description:config-descriptions>

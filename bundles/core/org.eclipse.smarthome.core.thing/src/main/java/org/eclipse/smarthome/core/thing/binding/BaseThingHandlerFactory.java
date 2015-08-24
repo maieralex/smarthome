@@ -41,12 +41,12 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
 
     private Map<String, ServiceRegistration<ThingHandler>> thingHandlers = new HashMap<>();
     private ServiceTracker<ThingTypeRegistry, ThingTypeRegistry> thingTypeRegistryServiceTracker;
-    private ServiceTracker<ConfigDescriptionRegistry, ConfigDescriptionRegistry> configDescritpionRegistryServiceTracker;
+    private ServiceTracker<ConfigDescriptionRegistry, ConfigDescriptionRegistry> configDescriptionRegistryServiceTracker;
 
     /**
      * Initializes the {@link BaseThingHandlerFactory}. If this method is
      * overridden by a sub class, the implementing method must call <code>super.activate(componentContext)</code> first.
-     * 
+     *
      * @param componentContext
      *            component context (must not be null)
      */
@@ -54,16 +54,16 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
         this.bundleContext = componentContext.getBundleContext();
         thingTypeRegistryServiceTracker = new ServiceTracker<>(bundleContext, ThingTypeRegistry.class.getName(), null);
         thingTypeRegistryServiceTracker.open();
-        configDescritpionRegistryServiceTracker = new ServiceTracker<>(bundleContext,
+        configDescriptionRegistryServiceTracker = new ServiceTracker<>(bundleContext,
                 ConfigDescriptionRegistry.class.getName(), null);
-        configDescritpionRegistryServiceTracker.open();
+        configDescriptionRegistryServiceTracker.open();
     }
 
     /**
      * Disposes the {@link BaseThingHandlerFactory}. If this method is
      * overridden by a sub class, the implementing method must call <code>super.deactivate(componentContext)</code>
      * first.
-     * 
+     *
      * @param componentContext
      *            component context (must not be null)
      */
@@ -72,7 +72,7 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
             unregisterHandler(serviceRegistration);
         }
         thingTypeRegistryServiceTracker.close();
-        configDescritpionRegistryServiceTracker.close();
+        configDescriptionRegistryServiceTracker.close();
         this.thingHandlers.clear();
         this.bundleContext = null;
     }
@@ -117,7 +117,7 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
         if (thingHandler instanceof BaseThingHandler) {
             ((BaseThingHandler) thingHandler).postInitialize();
         }
-        
+
         ServiceRegistration<ThingHandler> serviceRegistration = registerAsService(thing, thingHandler);
         thingHandlers.put(thing.getUID().toString(), serviceRegistration);
     }
@@ -188,7 +188,7 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
 
     /**
      * Returns the {@link ThingType} which is represented by the given {@link ThingTypeUID}.
-     * 
+     *
      * @param thingTypeUID the unique id of the thing type
      * @return the thing type represented by the given unique id
      */
@@ -235,10 +235,10 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     @Override
     public Thing createThing(ThingTypeUID thingTypeUID, Configuration configuration, ThingUID thingUID,
             ThingUID bridgeUID) {
-        if(thingTypeUID == null) {
+        if (thingTypeUID == null) {
             throw new IllegalArgumentException("Thing Type UID must not be null");
         }
-        if(thingUID == null) {
+        if (thingUID == null) {
             thingUID = ThingFactory.generateRandomThingUID(thingTypeUID);
         }
         ThingType thingType = getThingTypeByUID(thingTypeUID);
@@ -252,11 +252,11 @@ public abstract class BaseThingHandlerFactory implements ThingHandlerFactory {
     }
 
     protected ConfigDescriptionRegistry getConfigDescriptionRegistry() {
-        if (configDescritpionRegistryServiceTracker == null) {
+        if (configDescriptionRegistryServiceTracker == null) {
             throw new IllegalStateException(
                     "Config Description Registry has not been properly initialized. Did you forget to call super.activate()?");
         }
-        return configDescritpionRegistryServiceTracker.getService();
+        return configDescriptionRegistryServiceTracker.getService();
     }
 
 }

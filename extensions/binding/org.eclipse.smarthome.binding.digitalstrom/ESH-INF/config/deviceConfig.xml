@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0
+        http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
+
+ <config-description uri="binding:digitalstrom:device">
+            <!--deviceName-->
+            <parameter name="deviceName" type="text">
+                <label>Device Name</label>
+                <description>
+                    The Name of a DigitalStrom device.
+                </description>
+                <default></default>
+            </parameter>
+            <parameter name="PowerConsumptionRefreshPriority"
+                type="text">
+                <label>Power consumption refresh priority</label>
+                <description>
+                    Set the refresh priority for the power consumption
+                    sensor value. Can be never, low priority, medium
+                    priority or high priority.
+                </description>
+                <options>
+                    <option value="never">never</option>
+                    <option value="high">high priority</option>
+                    <option value="medium">medium priority</option>
+                    <option value="low">low priority</option>
+                </options>
+                <default>never</default>
+                <required>false</required>
+            </parameter>
+            <parameter name="ElectricMeterRefreshPriority"
+                type="text">
+                <label>Electric meter refresh priority</label>
+                <description>
+                    Set the refresh priority for the Electric meter
+                    sensor value. Can be never, low priority, medium
+                    priority or high priority.
+                </description>
+                <options>
+                    <option value="never">never</option>
+                    <option value="high">high priority</option>
+                    <option value="medium">medium priority</option>
+                    <option value="low">low priority</option>
+                </options>
+                <default>never</default>
+                <required>false</required>
+            </parameter>
+            <parameter name="EnergyMeterRefreshPriority" type="text">
+                <label>Energy meter refresh priority</label>
+                <description>
+                    Set the refresh priority for the Energy meter sensor
+                    value. Can be never, low priority, medium priority
+                    or high priority.
+                </description>
+                <options>
+                    <option value="never">never</option>
+                    <option value="high">high priority</option>
+                    <option value="medium">medium priority</option>
+                    <option value="low">low priority</option>
+                </options>
+                <default>never</default>
+                <required>false</required>
+            </parameter>
+            <!--deviceUID-->
+            <parameter name="dSUID" type="text">
+                <label>Device UID</label>
+                <description>
+                    The device identifier identifies one DigitalSTROM
+                    device.
+                </description>
+                <required>true</required>
+            </parameter>
+            <!--deviceID-->
+            <parameter name="dSID" type="text">
+                <label>Device ID</label>
+                <description>
+                    The device identifier identifies one DigitalSTROM
+                    device.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--meterID-->
+            <parameter name="meterDSID" type="text">
+                <label>Meter dSID</label>
+                <description>
+                    Identifier of the meter in which the device is
+                    connected.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--device hwInfo-->
+            <parameter name="hwInfo" type="text">
+                <label>Device hardware type</label>
+                <description>
+                    The hardware type from this DigitalSTROM device.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--zone id-->
+            <parameter name="zoneID" type="text">
+                <label>Zone ID</label>
+                <description>
+                    The DigitalSTROM device is part of this zone.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--groups id-->
+            <parameter name="groups" type="text">
+                <label>Group ID's</label>
+                <description>
+                    The DigitalSTROM device is part of this user-defined
+                    or functional groups.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--outputmode-->
+            <parameter name="outputmode" type="text">
+                <label>Device Output mode</label>
+                <description>
+                    The current DigitalSTROM device output mode e.g. 22
+                    = dimmable.
+                </description>
+                <required>false</required>
+            </parameter>
+            <!--funcColorGroup-->
+            <parameter name="funcColorGroup" type="text">
+                <label>Device functional color group</label>
+                <description>
+                    The current DigitalSTROM device functional color
+                    group e.g. yellow = light.
+                </description>
+                <required>false</required>
+            </parameter>
+        </config-description>
+</config-description:config-descriptions>
